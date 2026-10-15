@@ -1,7 +1,7 @@
 {
   "name": "team-friendship-frontend",
   "version": "1.0.0",
-  "description": "A template repository for node services developed in the Technologist Academy",
+  "description": "Front",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
