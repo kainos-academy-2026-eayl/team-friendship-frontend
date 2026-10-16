@@ -38,6 +38,9 @@ npm run dev        # start the service with hot reload
 
 Then in another terminal:
 
+Open `http://localhost:3000/` in your browser to view `src/index.html`.
+The production build copies this page to `dist/index.html` for `npm start`.
+
 ```sh
 curl http://localhost:3000/health
 # {"status":"ok","uptime":1.234}
