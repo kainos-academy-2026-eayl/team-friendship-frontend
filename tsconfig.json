@@ -9,7 +9,7 @@
     ],
     "module": "Preserve",
     "moduleResolution": "Bundler",
-    "rootDir": "template_frontend/src",
+    "rootDir": "src",
     "outDir": "./dist",
     "noEmit": true,
     "strict": true,
@@ -28,7 +28,7 @@
     "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo"
   },
   "include": [
-    "template_frontend/src/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
