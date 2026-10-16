@@ -8,8 +8,16 @@ export function createApp(): Express {
     res.sendFile(fileURLToPath(new URL('./login.html', import.meta.url)));
   });
 
+  app.get('/login.css', (_req: Request, res: Response) => {
+    res.sendFile(fileURLToPath(new URL('./login.css', import.meta.url)));
+  });
+
+  app.get('/login.js', (_req: Request, res: Response) => {
+    res.sendFile(fileURLToPath(new URL('../dist/login.js', import.meta.url)));
+  });
+
   app.get('/health', (_req: Request, res: Response) => {
-    res.status(200).json({ status: 'UP', uptime: process.uptime() });
+    res.json({ status: 'UP', uptime: process.uptime() });
   });
 
   return app;

@@ -38,11 +38,14 @@ npm run dev        # start the service with hot reload
 
 Then in another terminal:
 
-Open `http://localhost:3000/` in your browser to view `src/index.html`.
-The production build copies this page to `dist/index.html` for `npm start`.
+Open `http://localhost:8000/` in your browser to view `src/login.html`.
+Styles live in `src/login.css` and browser logic lives in `src/login.ts`.
+`npm run dev` compiles the browser logic to `dist/login.js` before starting the server.
+After editing `src/login.ts`, run `npm run build:client` and refresh the browser.
+The production build includes the page, stylesheet, and compiled script for `npm start`.
 
 ```sh
-curl http://localhost:3000/health
+curl http://localhost:8000/health
 # {"status":"ok","uptime":1.234}
 ```
 
