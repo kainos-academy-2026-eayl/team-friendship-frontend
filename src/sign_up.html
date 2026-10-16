@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce sign up</title>
+    <link rel="stylesheet" href="auth.css">
+</head>
+
+<body>
+    <main aria-labelledby="signup-title">
+        <p class="eyebrow">Join us</p>
+        <h1 id="signup-title">E-commerce sign up</h1>
+        <p class="intro">Create an account to start shopping.</p>
+
+        <form id="signup-form">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" autocomplete="username"
+                placeholder="Choose your username" required>
+
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="new-password"
+                placeholder="Choose your password" required>
+
+            <label for="confirm-password">Confirm password</label>
+            <input id="confirm-password" name="confirm-password" type="password" autocomplete="new-password"
+                placeholder="Confirm your password" required>
+
+            <div class="actions">
+                <button type="submit">Sign up</button>
+                <a class="button secondary" href="login.html">Login</a>
+            </div>
+        </form>
+        <p id="status" role="status"></p>
+    </main>
+    <script>
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm-password');
+        const status = document.getElementById('status');
+
+        function validatePasswords() {
+            confirmPassword.setCustomValidity(
+                confirmPassword.value && password.value !== confirmPassword.value
+                    ? 'Passwords must match.'
+                    : ''
+            );
+            status.textContent = '';
+        }
+
+        password.addEventListener('input', validatePasswords);
+        confirmPassword.addEventListener('input', validatePasswords);
+
+        document.getElementById('signup-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            status.textContent = 'Sign up is not available yet. Account registration has not been connected.';
+        });
+    </script>
+</body>
+
+</html>

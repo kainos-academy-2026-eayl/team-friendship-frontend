@@ -4,8 +4,16 @@ import { fileURLToPath } from 'node:url';
 export function createApp(): Express {
   const app = express();
 
-  app.get('/', (_req: Request, res: Response) => {
+  app.get(['/', '/login.html'], (_req: Request, res: Response) => {
     res.sendFile(fileURLToPath(new URL('./login.html', import.meta.url)));
+  });
+
+  app.get('/sign_up.html', (_req: Request, res: Response) => {
+    res.sendFile(fileURLToPath(new URL('./sign_up.html', import.meta.url)));
+  });
+
+  app.get('/auth.css', (_req: Request, res: Response) => {
+    res.sendFile(fileURLToPath(new URL('./auth.css', import.meta.url)));
   });
 
   app.get('/health', (_req: Request, res: Response) => {

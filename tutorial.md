@@ -38,8 +38,11 @@ npm run dev        # start the service with hot reload
 
 Then in another terminal:
 
-Open `http://localhost:3000/` in your browser to view `src/index.html`.
-The production build copies this page to `dist/index.html` for `npm start`.
+Open `http://localhost:3000/` in your browser to view `src/login.html`.
+Use **Sign up** to open `/sign_up.html`, and **Login** to return to `/login.html`.
+The sign-up form requires matching passwords; account registration is not connected yet.
+Both pages share `src/auth.css`. The production build copies both pages and the stylesheet
+to `dist/` for `npm start`.
 
 ```sh
 curl http://localhost:3000/health
