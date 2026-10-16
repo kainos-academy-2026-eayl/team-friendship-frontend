@@ -5,6 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
+    
     "dev": "npm run build:client && tsx watch src/index.ts",
     "build:client": "esbuild src/login.ts --bundle --platform=browser --format=esm --target=es2023 --outfile=dist/login.js --sourcemap",
     "build": "npm run typecheck && npm run build:client && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --outfile=dist/index.js --sourcemap && cp src/login.html src/login.css dist/",

@@ -17,7 +17,9 @@ export function createApp(): Express {
   });
 
   app.get('/health', (_req: Request, res: Response) => {
+
     res.json({ status: 'UP', uptime: process.uptime() });
+
   });
 
   return app;
