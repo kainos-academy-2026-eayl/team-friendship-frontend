@@ -16,8 +16,8 @@
 
         <form id="signup-form">
             <label for="username">Username</label>
-            <input id="username" name="username" type="text" autocomplete="username"
-                placeholder="Choose your username" required>
+            <input id="username" name="username" type="text" autocomplete="username" placeholder="Choose your username"
+                required>
 
             <label for="password">Password</label>
             <input id="password" name="password" type="password" autocomplete="new-password"
@@ -34,28 +34,7 @@
         </form>
         <p id="status" role="status"></p>
     </main>
-    <script>
-        const password = document.getElementById('password');
-        const confirmPassword = document.getElementById('confirm-password');
-        const status = document.getElementById('status');
-
-        function validatePasswords() {
-            confirmPassword.setCustomValidity(
-                confirmPassword.value && password.value !== confirmPassword.value
-                    ? 'Passwords must match.'
-                    : ''
-            );
-            status.textContent = '';
-        }
-
-        password.addEventListener('input', validatePasswords);
-        confirmPassword.addEventListener('input', validatePasswords);
-
-        document.getElementById('signup-form').addEventListener('submit', (event) => {
-            event.preventDefault();
-            status.textContent = 'Sign up is not available yet. Account registration has not been connected.';
-        });
-    </script>
+    <script type="module" src="sign_up.js"></script>
 </body>
 
 </html>
