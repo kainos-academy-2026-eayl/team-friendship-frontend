@@ -1,9 +1,14 @@
 const status = document.getElementById('status');
 const loginForm = document.getElementById('login-form');
+const loginSubmit = document.getElementById('login-submit');
 const signUp = document.getElementById('sign-up');
 const forgotPassword = document.getElementById('forgot-password');
 
-if (!status || !loginForm || !signUp || !forgotPassword) {
+if (!(status instanceof HTMLElement)
+    || !(loginForm instanceof HTMLFormElement)
+    || !(loginSubmit instanceof HTMLButtonElement)
+    || !(signUp instanceof HTMLButtonElement)
+    || !(forgotPassword instanceof HTMLButtonElement)) {
     throw new Error('Required login page elements are missing.');
 }
 
@@ -20,5 +25,7 @@ forgotPassword.addEventListener('click', (event) => {
     event.preventDefault();
     status.textContent = 'Password recovery is not available yet. Password reset has not been connected.';
 });
+
+loginSubmit.disabled = false;
 
 export {};

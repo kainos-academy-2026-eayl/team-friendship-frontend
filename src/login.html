@@ -14,7 +14,7 @@
         <h1 id="login-title">E-commerce login</h1>
         <p class="intro">Log in to your account to continue shopping.</p>
 
-        <form id="login-form">
+        <form id="login-form" method="post">
             <label for="username">Username</label>
             <input id="username" name="username" type="text" autocomplete="username" placeholder="Enter your username"
                 required>
@@ -23,13 +23,16 @@
             <input id="password" name="password" type="password" autocomplete="current-password"
                 placeholder="Enter your password" required>
 
-            <a class="forgot-password" href="#status" id="forgot-password">Forgot password?</a>
+            <button type="button" class="forgot-password" id="forgot-password">Forgot password?</button>
 
             <div class="actions">
-                <button type="submit">Login</button>
+                <button type="submit" id="login-submit" disabled>Login</button>
                 <button type="button" class="secondary" id="sign-up">Sign up</button>
             </div>
         </form>
+        <noscript>
+            <p>Enable JavaScript to use the login controls.</p>
+        </noscript>
         <p id="status" role="status"></p>
     </main>
     <script type="module" src="login.js"></script>

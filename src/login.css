@@ -71,12 +71,6 @@ a {
     text-underline-offset: 3px;
 }
 
-.forgot-password {
-    display: inline-block;
-    margin-bottom: 28px;
-    font-size: 13px;
-}
-
 .actions {
     display: grid;
     gap: 12px;
@@ -96,6 +90,30 @@ button {
 
 button:hover {
     background: #1c3e7d;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+button:disabled:hover {
+    background: #2853a2;
+}
+
+button.forgot-password {
+    display: inline-block;
+    min-height: auto;
+    margin-bottom: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #2853a2;
+    font-size: 13px;
+    font-weight: 400;
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .secondary {
