@@ -32,19 +32,7 @@
         </form>
         <p id="status" role="status"></p>
     </main>
-    <script>
-        const status = document.getElementById('status');
-
-        document.getElementById('login-form').addEventListener('submit', (event) => {
-            event.preventDefault();
-            status.textContent = 'Login is not available yet. Authentication has not been connected.';
-        });
-
-        document.getElementById('forgot-password').addEventListener('click', (event) => {
-            event.preventDefault();
-            status.textContent = 'Password recovery is not available yet. Password reset has not been connected.';
-        });
-    </script>
+    <script type="module" src="sign_up.js"></script>
 </body>
 
 </html>
