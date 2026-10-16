@@ -5,7 +5,7 @@ export function createApp(): Express {
   const app = express();
 
   app.get('/', (_req: Request, res: Response) => {
-    res.sendFile(fileURLToPath(new URL('./index.html', import.meta.url)));
+    res.sendFile(fileURLToPath(new URL('./login.html', import.meta.url)));
   });
 
   app.get('/health', (_req: Request, res: Response) => {
