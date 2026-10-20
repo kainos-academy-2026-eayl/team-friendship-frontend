@@ -1,25 +1,28 @@
-import express, { type Express, type Request, type Response } from 'express';
-import { fileURLToPath } from 'node:url';
+import express, { type Express, type Request, type Response } from "express";
+import nunjucks from "nunjucks";
 
 export function createApp(): Express {
   const app = express();
 
-  app.get('/', (_req: Request, res: Response) => {
-    res.sendFile(fileURLToPath(new URL('./login.html', import.meta.url)));
+  nunjucks.configure("pages", {
+    autoescape: true,
+    express: app,
   });
 
-  app.get('/login.css', (_req: Request, res: Response) => {
-    res.sendFile(fileURLToPath(new URL('./login.css', import.meta.url)));
+  app.set("view engine", "njk");
+
+  app.use(express.static("pages"));
+
+  app.get("/", (_req: Request, res: Response) => {
+    res.redirect("/login");
   });
 
-  app.get('/login.js', (_req: Request, res: Response) => {
-    res.sendFile(fileURLToPath(new URL('../dist/login.js', import.meta.url)));
+  app.get("/health", (_req: Request, res: Response) => {
+    res.json({ status: "ok", uptime: process.uptime() });
   });
 
-  app.get('/health', (_req: Request, res: Response) => {
-
-    res.json({ status: 'ok', uptime: process.uptime() });
-
+  app.get("/login", (_req: Request, res: Response) => {
+    res.render("login");
   });
 
   return app;
