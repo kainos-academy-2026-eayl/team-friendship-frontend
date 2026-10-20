@@ -36,7 +36,7 @@ Any failed step fails the **Build, lint and test** check.
 A workflow alone cannot block merging. A repository administrator must
 create an **Active** branch ruleset in **Settings > Rules > Rulesets**:
 
-1. Target `main` and `master` (whichever branches exist).
+1. Target `main`.
 2. Enable **Require a pull request before merging**.
 3. Enable **Require status checks to pass** and select **Build, lint and test**
    from the **GitHub Actions** app after this workflow has run once.
