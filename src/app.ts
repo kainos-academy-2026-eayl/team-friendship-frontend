@@ -1,5 +1,5 @@
-import express, { type Express, type Request, type Response } from 'express';
 import { fileURLToPath } from 'node:url';
+import express, { type Express, type Request, type Response } from 'express';
 
 export function createApp(): Express {
   const app = express();
