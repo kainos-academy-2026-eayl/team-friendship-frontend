@@ -25,8 +25,11 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Lint with Biome
+      - name: Lint 
         run: npm run lint
 
-      - name: Test with Vitest
+      - name: Test 
         run: npm test
+
+      - name: Format
+        run: npm run format
