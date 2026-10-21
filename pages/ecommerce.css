@@ -193,3 +193,63 @@ button:disabled:hover {
 .forgot_password:hover {
   color: #1c3e7d;
 }
+
+/* Basket Styles */
+
+.basket-items {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.basket-item {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #e0e5ee;
+  border-radius: 12px;
+  background: #fafbfd;
+}
+
+.basket-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #e0e5ee;
+}
+
+.basket-details {
+  display: grid;
+  gap: 8px;
+}
+
+.product-name {
+  margin: 0;
+  font-size: 18px;
+}
+
+.quantity,
+.item-total {
+  margin: 0;
+  color: #596579;
+}
+
+.basket-summary {
+  padding: 20px 0;
+  border-top: 1px solid #e0e5ee;
+  margin-bottom: 24px;
+}
+
+.basket-total-heading {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.basket-total {
+  margin: 0;
+  color: #2853a2;
+  font-size: 28px;
+  font-weight: 700;
+}
