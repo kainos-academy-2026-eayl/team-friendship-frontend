@@ -1,8 +1,7 @@
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import loginPage from '../pages/login';
-
-const productDisplayPage = {};
+import productPage from '../pages/product_display';
 
 export function createApp(): Express {
   const app = express();
@@ -28,12 +27,12 @@ export function createApp(): Express {
     res.render('login', { page: loginPage });
   });
 
-  app.get('/', (_req: Request, res: Response) => {
-    res.redirect('/product_display');
+  app.get('/product_display', (_req: Request, res: Response) => {
+    res.render('product_display', { page: productPage });
   });
 
   app.get('/product_display', (_req: Request, res: Response) => {
-    res.render('product_display', { page: productDisplayPage });
+    res.render('product_display', { page: productPage });
   });
 
   return app;
