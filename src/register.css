@@ -1,0 +1,101 @@
+:root {
+  color-scheme: light;
+  font-family: Verdana, sans-serif;
+  color: #202723;
+  background: #f6f8f7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #d5ddd8;
+  background: white;
+}
+
+header a {
+  color: #185b40;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+main {
+  width: min(100% - 3rem, 28rem);
+  margin: 3rem auto;
+}
+
+h1 {
+  margin: 0 0 2rem;
+  font-family: Georgia, serif;
+  font-size: 2rem;
+}
+
+form {
+  display: grid;
+  gap: 1.5rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+input,
+button {
+  width: 100%;
+  min-height: 2.75rem;
+  border-radius: 4px;
+  font: inherit;
+}
+
+input {
+  padding: 0.75rem;
+  border: 1px solid #7d8b82;
+  background: white;
+}
+
+input[aria-invalid="true"] {
+  border-color: #a12232;
+}
+
+input:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #237bba;
+  outline-offset: 3px;
+}
+
+button {
+  padding: 0.75rem;
+  border: 0;
+  background: #185b40;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #10432e;
+}
+
+.error {
+  margin: 0.5rem 0 0;
+  color: #a12232;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+#registration-status {
+  margin: 0;
+  line-height: 1.5;
+}
+
+[hidden] {
+  display: none;
+}

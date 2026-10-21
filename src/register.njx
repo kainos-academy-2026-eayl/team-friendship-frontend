@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Create an account | Team Friendship</title>
+		<link rel="stylesheet" href="/register.css">
+	</head>
+	<body>
+		<header><a href="/">Team Friendship</a></header>
+		<main>
+			<h1>Create an account</h1>
+			<form id="registration-form" method="post" action="/register">
+				<div>
+					<label for="email">Email</label>
+					<input id="email" name="email" type="email" autocomplete="email" required>
+				</div>
+				<div>
+					<label for="username">Username</label>
+					<input id="username" name="username" type="text" autocomplete="username"
+						minlength="3" aria-describedby="username-error" required>
+					<p id="username-error" class="error" aria-live="polite" hidden></p>
+				</div>
+				<div>
+					<label for="password">Password</label>
+					<input id="password" name="password" type="password" autocomplete="new-password" required>
+				</div>
+				<div>
+					<label for="confirm-password">Confirm password</label>
+					<input id="confirm-password" name="confirmPassword" type="password"
+						autocomplete="new-password" aria-describedby="password-error" required>
+					<p id="password-error" class="error" aria-live="polite" hidden></p>
+				</div>
+				<button type="submit">Register</button>
+				<p id="registration-status" role="status" hidden></p>
+			</form>
+		</main>
+		<script src="/register.js" defer></script>
+	</body>
+</html>
