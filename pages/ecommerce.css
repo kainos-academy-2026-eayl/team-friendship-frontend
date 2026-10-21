@@ -16,8 +16,9 @@ body {
 
 main {
   width: 100%;
-  max-width: 440px;
-  padding: 40px;
+  max-width: 1200px;
+  min-height: calc(100vh - 48px);
+  padding: 48px;
   background: #ffffff;
   border: 1px solid #e0e5ee;
   border-radius: 20px;
@@ -147,4 +148,28 @@ button:disabled:hover {
   main {
     padding: 28px 24px;
   }
+}
+
+/* Product Display Styles */
+
+.product-image {
+  width: 100%;
+  display: block;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  border: 1px solid #e0e5ee;
+}
+
+.price {
+  margin: 0 0 8px;
+  color: #2853a2;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.availability {
+  margin: 0 0 20px;
+  color: #596579;
+  font-size: 14px;
+  font-weight: 600;
 }

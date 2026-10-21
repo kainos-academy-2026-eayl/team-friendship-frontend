@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page.title }}</title>
-    <link rel="stylesheet" href="/login.css">
+    <link rel="stylesheet" href="/ecommerce.css">
 </head>
 
 <body>
@@ -28,7 +28,7 @@
             <div class="actions">
                 {% for action in page.actions %}
                 <button type="{{ action.type }}" id="{{ action.id }}"
-                    {% if action.className %}class="{{ action.className }}"{% endif %}
+                    {% if action.className %}class="{{ action.className }}" {% endif %}
                     {% if action.disabled %}disabled{% endif %}>{{ action.label }}</button>
                 {% endfor %}
             </div>
