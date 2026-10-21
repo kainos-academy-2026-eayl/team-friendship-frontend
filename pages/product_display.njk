@@ -13,7 +13,9 @@
 
         <p class="eyebrow">{{ page.eyebrow }}</p>
 
-        <img class="product-image" src="{{ page.image }}" alt="{{ page.imageAlt }}">
+        {% if page.image.src %}
+        <img class="product-image" src="{{ page.image.src }}" alt="{{ page.image.alt }}">
+        {% endif %}
 
         <h1 id="product-title">{{ page.title }}</h1>
 
