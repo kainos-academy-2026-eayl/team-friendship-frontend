@@ -173,3 +173,23 @@ button:disabled:hover {
   font-size: 14px;
   font-weight: 600;
 }
+
+/* Forgot Password Styles */
+
+.forgot_password {
+  display: inline-block;
+  margin-bottom: 28px;
+  color: #2853a2;
+  font-size: 13px;
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.forgot_password:hover {
+  color: #1c3e7d;
+}

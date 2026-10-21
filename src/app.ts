@@ -1,5 +1,6 @@
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
+import forgotPasswordPage from '../pages/forgot_password';
 import loginPage from '../pages/login';
 import productPage from '../pages/product_display';
 
@@ -41,6 +42,10 @@ export function createApp(): Express {
 
   app.get('/register.js', (_req: Request, res: Response) => {
     res.sendFile('dist/register.js', { root: process.cwd() });
+  });
+
+  app.get('/forgot_password', (_req, res) => {
+    res.render('forgot_password', { page: forgotPasswordPage });
   });
 
   return app;

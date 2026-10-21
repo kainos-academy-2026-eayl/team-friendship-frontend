@@ -21,9 +21,9 @@
                 autocomplete="{{ field.autocomplete }}" placeholder="{{ field.placeholder }}" required>
             {% endfor %}
 
-            <button type="button" class="forgot-password" id="{{ page.forgotPassword.id }}">
+            <a href="/forgot_password" class="forgot-password" id="{{ page.forgotPassword.id }}">
                 {{ page.forgotPassword.label }}
-            </button>
+            </a>
 
             <div class="actions">
                 {% for action in page.actions %}
