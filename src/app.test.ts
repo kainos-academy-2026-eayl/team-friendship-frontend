@@ -26,12 +26,14 @@ describe('HTTP application', () => {
     }
   });
 
-  it('serves the home page', async () => {
+  it('serves the login page', async () => {
     const response = await fetch(`${baseUrl}/`);
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
-    expect(await response.text()).toContain('<h1>Hello world</h1>');
+    expect(await response.text()).toContain(
+      '<h1 id="login-title">E-commerce login</h1>',
+    );
   });
 
   it('reports a healthy service with uptime', async () => {
