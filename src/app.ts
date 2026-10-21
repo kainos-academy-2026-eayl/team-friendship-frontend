@@ -6,7 +6,7 @@ import productPage from '../pages/product_display';
 export function createApp(): Express {
   const app = express();
 
-  nunjucks.configure('pages', {
+  nunjucks.configure(['pages', 'src/register'], {
     autoescape: true,
     express: app,
   });
@@ -29,6 +29,18 @@ export function createApp(): Express {
 
   app.get('/product_display', (_req: Request, res: Response) => {
     res.render('product_display', { page: productPage });
+  });
+
+  app.get('/register', (_req: Request, res: Response) => {
+    res.render('register');
+  });
+
+  app.get('/register.css', (_req: Request, res: Response) => {
+    res.sendFile('src/register/register.css', { root: process.cwd() });
+  });
+
+  app.get('/register.js', (_req: Request, res: Response) => {
+    res.sendFile('dist/register.js', { root: process.cwd() });
   });
 
   return app;
