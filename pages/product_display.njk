@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title }}</title>
+    <link rel="stylesheet" href="/ecommerce.css">
+</head>
+
+<body>
+    <main aria-labelledby="product-title">
+
+        <p class="eyebrow">{{ page.eyebrow }}</p>
+
+        <img class="product-image" src="{{ page.image }}" alt="{{ page.imageAlt }}">
+
+        <h1 id="product-title">{{ page.title }}</h1>
+
+        <p class="price">{{ page.price }}</p>
+
+        <p class="availability">
+            {{ page.availability }}
+        </p>
+
+        <p class="intro">
+            {{ page.description }}
+        </p>
+
+        <form id="product-form">
+
+            <label for="quantity">
+                Quantity
+            </label>
+
+            <input id="quantity" name="quantity" type="number" min="1" value="1" required>
+
+            <div class="actions">
+
+                <button type="submit" id="add-to-basket">
+                    Add to Basket
+                </button>
+
+                <button type="button" id="continue-shopping" class="secondary">
+                    Continue Shopping
+                </button>
+
+            </div>
+
+        </form>
+
+        <p id="status" role="status"></p>
+
+    </main>
+</body>
+
+</html>
