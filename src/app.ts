@@ -1,5 +1,6 @@
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
+import forgotPasswordPage from '../pages/forgot_password';
 import loginPage from '../pages/login';
 import productPage from '../pages/product_display';
 
@@ -29,6 +30,10 @@ export function createApp(): Express {
 
   app.get('/product_display', (_req: Request, res: Response) => {
     res.render('product_display', { page: productPage });
+  });
+
+  app.get('/forgot_password', (_req, res) => {
+    res.render('forgot_password', { page: forgotPasswordPage });
   });
 
   return app;
