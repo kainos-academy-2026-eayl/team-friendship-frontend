@@ -1,8 +1,8 @@
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
+import forgotPasswordPage from '../pages/forgot_password';
 import loginPage from '../pages/login';
 import productPage from '../pages/product_display';
-import forgotPasswordPage from '../pages/forgot_password';
 
 export function createApp(): Express {
   const app = express();
