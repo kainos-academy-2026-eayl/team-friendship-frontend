@@ -1,4 +1,13 @@
 <!doctype html>
+<!-- npm run build && node --input-type=module -e '
+import express from "express";
+import nunjucks from "nunjucks";
+const app = express();
+nunjucks.configure("dist", { autoescape: true, express: app });
+app.use(express.static("dist", { index: false }));
+app.get("/register", (_req, res) => res.render("register.njk"));
+app.listen(4318, () => console.log("http://localhost:4318/register"));
+'  code to start the server'-->
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
