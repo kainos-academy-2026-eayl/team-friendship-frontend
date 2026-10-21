@@ -31,9 +31,5 @@ export function createApp(): Express {
     res.render('product_display', { page: productPage });
   });
 
-  app.get('/product_display', (_req: Request, res: Response) => {
-    res.render('product_display', { page: productPage });
-  });
-
   return app;
 }
