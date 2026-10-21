@@ -1,5 +1,6 @@
 import express, { type Express, type Request, type Response } from "express";
 import nunjucks from "nunjucks";
+import loginPage from "../pages/login";
 
 export function createApp(): Express {
   const app = express();
@@ -22,7 +23,7 @@ export function createApp(): Express {
   });
 
   app.get("/login", (_req: Request, res: Response) => {
-    res.render("login");
+    res.render("login", { page: loginPage });
   });
 
   return app;

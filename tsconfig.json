@@ -29,7 +29,8 @@
     "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo"
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "pages"
   ],
   "exclude": [
     "node_modules",
