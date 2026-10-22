@@ -1,5 +1,6 @@
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
+import basketPage from '../pages/basket';
 import forgotPasswordPage from '../pages/forgot_password';
 import loginPage from '../pages/login';
 import productPage from '../pages/product_display';
