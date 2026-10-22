@@ -42,10 +42,6 @@ export function createApp(): Express {
     res.render('product_display', { page: productPage });
   });
 
-  app.get('/basket', (_req: Request, res: Response) => {
-    res.render('basket', { page: basketPage });
-  });
-
   app.get('/forgot_password', (_req: Request, res: Response) => {
     res.render('forgot_password', { page: forgotPasswordPage });
   });
