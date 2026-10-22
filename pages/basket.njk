@@ -27,7 +27,11 @@
 
             <article class="basket-item">
 
+                {% if product.image.src %}
                 <img class="basket-image" src="{{ product.image.src }}" alt="{{ product.image.alt }}">
+                {% else %}
+                <div class="basket-image" aria-hidden="true"></div>
+                {% endif %}
 
                 <div class="basket-details">
 
