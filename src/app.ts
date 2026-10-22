@@ -1,5 +1,6 @@
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
+import basketPage from '../pages/basket';
 import forgotPasswordPage from '../pages/forgot_password';
 import loginPage from '../pages/login';
 import productPage from '../pages/product_display';
@@ -27,6 +28,10 @@ export function createApp(): Express {
 
   app.get('/login', (_req: Request, res: Response) => {
     res.render('login', { page: loginPage });
+  });
+
+  app.get('/basket', (_req: Request, res: Response) => {
+    res.render('basket', { page: basketPage });
   });
 
   app.get('/register', (_req: Request, res: Response) => {

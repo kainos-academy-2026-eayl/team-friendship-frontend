@@ -44,6 +44,20 @@ describe('HTTP application', () => {
     expect(await response.text()).toContain('id="registration-form"');
   });
 
+  it('serves the basket page without an empty image and with checkout disabled', async () => {
+    const response = await fetch(`${baseUrl}/basket`);
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/html');
+    expect(html).toContain('id="basket-title"');
+    expect(html).toContain(
+      '<div class="basket-image" aria-hidden="true"></div>',
+    );
+    expect(html).not.toMatch(/<img[^>]+src=""/);
+    expect(html).toMatch(/<button[^>]+id="checkout"[^>]+disabled/);
+  });
+
   it('serves the registration stylesheet', async () => {
     const response = await fetch(`${baseUrl}/ecommerce.css`);
 
