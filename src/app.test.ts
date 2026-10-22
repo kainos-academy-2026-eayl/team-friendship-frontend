@@ -40,10 +40,12 @@ describe('HTTP application', () => {
 
   it('serves the registration page', async () => {
     const response = await fetch(`${baseUrl}/register`);
+    const body = await response.text();
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
-    expect(await response.text()).toContain('id="registration-form"');
+    expect(body).toContain('id="registration-form"');
+    expect(body).toContain('<a href="/">Team Friendship</a>');
   });
 
   it('serves the basket page', async () => {
