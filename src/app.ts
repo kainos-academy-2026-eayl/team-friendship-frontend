@@ -5,7 +5,6 @@ import forgotPasswordPage from '../pages/forgot_password';
 import loginPage from '../pages/login';
 import productPage from '../pages/product_display';
 import registerPage from '../pages/register';
-import basketPage from '../pages/basket';
 
 export function createApp(): Express {
   const app = express();
