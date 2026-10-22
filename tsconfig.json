@@ -1,8 +1,13 @@
 {
   "compilerOptions": {
     "target": "ES2023",
-    "lib": ["ES2023", "DOM"],
-    "types": ["node"],
+    "lib": [
+      "ES2023",
+      "DOM"
+    ],
+    "types": [
+      "node"
+    ],
     "module": "Preserve",
     "moduleResolution": "Bundler",
     "rootDir": ".",
@@ -23,6 +28,12 @@
     "incremental": true,
     "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo"
   },
-  "include": ["src/**/*", "pages"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*",
+    "src/views/pages"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

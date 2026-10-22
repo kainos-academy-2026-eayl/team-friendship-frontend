@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="/styles/ecommerce.css">
+</head>
+
+<body>
+    {% include "partials/header.njk" %}
+
+    <main class="page-shell">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include "partials/footer.njk" %}
+</body>
+
+</html>

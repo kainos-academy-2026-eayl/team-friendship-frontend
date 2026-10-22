@@ -246,7 +246,7 @@ input[aria-invalid="true"]:focus-visible {
 
 /* Registration-specific spacing */
 
-#registration-form > div:last-of-type {
+#registration-form>div:last-of-type {
   margin-bottom: 8px;
 }
 
@@ -318,4 +318,37 @@ input[aria-invalid="true"]:focus-visible {
   color: #2853a2;
   font-size: 28px;
   font-weight: 700;
+}
+
+
+/* Home Styles */
+/* Home Styles */
+
+.actions a {
+  display: block;
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 1px solid #2853a2;
+  border-radius: 8px;
+  background: #2853a2;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  line-height: 24px;
+}
+
+.actions a:hover {
+  background: #1c3e7d;
+}
+
+.actions a.secondary {
+  background: #ffffff;
+  color: #2853a2;
+}
+
+.actions a.secondary:hover {
+  background: #eef3fc;
 }

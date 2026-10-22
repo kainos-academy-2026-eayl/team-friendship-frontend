@@ -1,0 +1,46 @@
+{% extends "layouts/main.njk" %}​
+​
+{% block title %}Welcome to our store{% endblock %}​
+​
+{% block content %}​
+
+<p class="eyebrow">{{ page.eyebrow }}</p>
+
+{% if page.image.src %}
+<img class="product-image" src="{{ page.image.src }}" alt="{{ page.image.alt }}">
+{% endif %}
+
+<h1 id="product-title">{{ page.title }}</h1>
+
+<p class="price">{{ page.price }}</p>
+
+<p class="availability">
+    {{ page.availability }}
+</p>
+
+<p class="intro">
+    {{ page.description }}
+</p>
+
+<form id="product-form">
+
+    <label for="quantity">
+        Quantity
+    </label>
+
+    <input id="quantity" name="quantity" type="number" min="1" value="1" required>
+
+    <div class="actions">
+
+        {% for action in page.actions %}
+        <button type="{{ action.type }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
+            {% endif %} {% if action.disabled %}disabled{% endif %}>{{ action.label }}</button>
+        {% endfor %}
+
+    </div>
+
+</form>
+
+<p id="status" role="status"></p>
+
+{% endblock %}
