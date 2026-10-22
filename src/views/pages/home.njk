@@ -4,29 +4,29 @@
 ​
 {% block content %}​
 
-<main aria-labelledby="login-title">
-    <p class="eyebrow">{{ page.eyebrow }}</p>
-    <h1 id="login-title">{{ page.title }}</h1>
-    <p class="intro">{{ page.intro }}</p>
 
-    <form id="login-form" method="post">
-        {% for field in page.fields %}
-        <label for="{{ field.id }}">{{ field.label }}</label>
-        <input id="{{ field.id }}" name="{{ field.name }}" type="{{ field.type }}"
-            autocomplete="{{ field.autocomplete }}" placeholder="{{ field.placeholder }}" required>
+<p class="eyebrow">{{ page.eyebrow }}</p>
+<h1 id="login-title">{{ page.title }}</h1>
+<p class="intro">{{ page.intro }}</p>
+
+<form id="login-form" method="post">
+    {% for field in page.fields %}
+    <label for="{{ field.id }}">{{ field.label }}</label>
+    <input id="{{ field.id }}" name="{{ field.name }}" type="{{ field.type }}" autocomplete="{{ field.autocomplete }}"
+        placeholder="{{ field.placeholder }}" required>
+    {% endfor %}
+
+    <div class="actions">
+        {% for action in page.actions %}
+        <a href="{{ action.href }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
+            {% endif %}>
+            {{ action.label }}
+        </a>
         {% endfor %}
-
-        <div class="actions">
-            {% for action in page.actions %}
-            <a href="{{ action.href }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
-                {% endif %}>
-                {{ action.label }}
-            </a>
-            {% endfor %}
-        </div>
+    </div>
 
 
-        <p id="status" role="status"></p>
-</main>
+    <p id="status" role="status"></p>
 
-{% endblock %}
+
+    {% endblock %}
