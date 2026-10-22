@@ -36,6 +36,22 @@ describe('HTTP application', () => {
     );
   });
 
+  it('serves the registration page', async () => {
+    const response = await fetch(`${baseUrl}/register`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/html');
+    expect(await response.text()).toContain('id="registration-form"');
+  });
+
+  it('serves the registration stylesheet', async () => {
+    const response = await fetch(`${baseUrl}/ecommerce.css`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/css');
+    expect(await response.text()).toContain('#registration-status');
+  });
+
   it('reports a healthy service with uptime', async () => {
     const response = await fetch(`${baseUrl}/health`);
 
