@@ -246,7 +246,7 @@ input[aria-invalid="true"]:focus-visible {
 
 /* Registration-specific spacing */
 
-#registration-form>div:last-of-type {
+#registration-form > div:last-of-type {
   margin-bottom: 8px;
 }
 
@@ -319,7 +319,6 @@ input[aria-invalid="true"]:focus-visible {
   font-size: 28px;
   font-weight: 700;
 }
-
 
 /* Home Styles */
 /* Home Styles */

@@ -1,12 +1,12 @@
-import express, { type Express, type Request, type Response } from 'express';
 import { resolve } from 'node:path';
+import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import basketPage from './typescript/basket';
 import forgotPasswordPage from './typescript/forgot_password';
+import homePage from './typescript/home';
 import loginPage from './typescript/login';
 import productPage from './typescript/product_display';
 import registerPage from './typescript/register';
-import homePage from './typescript/home';
 
 export function createApp(): Express {
   const app = express();

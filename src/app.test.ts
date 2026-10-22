@@ -33,7 +33,9 @@ describe('HTTP application', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
     expect(body).toContain('<h1 id="login-title">E-commerce login</h1>');
-    expect(body).toContain('<link rel="stylesheet" href="/styles/ecommerce.css">');
+    expect(body).toContain(
+      '<link rel="stylesheet" href="/styles/ecommerce.css">',
+    );
   });
 
   it('serves the registration page', async () => {
