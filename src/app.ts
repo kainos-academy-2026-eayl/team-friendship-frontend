@@ -1,9 +1,9 @@
-import express, { type Express, type Request, type Response } from 'express';
+import express, { type Express } from 'express';
 import nunjucks from 'nunjucks';
+import basketPage from '../pages/basket';
 import forgotPasswordPage from '../pages/forgot_password';
 import loginPage from '../pages/login';
 import productPage from '../pages/product_display';
-import basketPage from '../pages/basket';
 
 export function createApp(): Express {
   const app = express();
@@ -17,19 +17,19 @@ export function createApp(): Express {
 
   app.use(express.static('pages'));
 
-  app.get('/', (_req: Request, res: Response) => {
+  app.get('/', (_req, res) => {
     res.redirect('/login');
   });
 
-  app.get('/health', (_req: Request, res: Response) => {
+  app.get('/health', (_req, res) => {
     res.json({ status: 'ok', uptime: process.uptime() });
   });
 
-  app.get('/login', (_req: Request, res: Response) => {
+  app.get('/login', (_req, res) => {
     res.render('login', { page: loginPage });
   });
 
-  app.get('/product_display', (_req: Request, res: Response) => {
+  app.get('/product_display', (_req, res) => {
     res.render('product_display', { page: productPage });
   });
 
