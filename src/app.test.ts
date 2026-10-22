@@ -45,7 +45,7 @@ describe('HTTP application', () => {
   });
 
   it('serves the registration stylesheet', async () => {
-    const response = await fetch(`${baseUrl}/register.css`);
+    const response = await fetch(`${baseUrl}/ecommerce.css`);
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/css');
