@@ -27,7 +27,7 @@ describe('HTTP application', () => {
   });
 
   it('serves the login page', async () => {
-    const response = await fetch(`${baseUrl}/`);
+    const response = await fetch(`${baseUrl}/login`);
     const body = await response.text();
 
     expect(response.status).toBe(200);
