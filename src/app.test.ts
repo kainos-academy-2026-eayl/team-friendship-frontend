@@ -44,6 +44,14 @@ describe('HTTP application', () => {
     expect(await response.text()).toContain('id="registration-form"');
   });
 
+  it('serves the basket page', async () => {
+    const response = await fetch(`${baseUrl}/basket`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/html');
+    expect(await response.text()).toContain('id="basket-title"');
+  });
+
   it('serves the registration stylesheet', async () => {
     const response = await fetch(`${baseUrl}/ecommerce.css`);
 
