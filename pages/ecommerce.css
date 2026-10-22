@@ -193,3 +193,71 @@ button:disabled:hover {
 .forgot_password:hover {
   color: #1c3e7d;
 }
+
+/* Register page Styles */
+
+/* Registration Page Styles */
+
+header {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto 24px;
+}
+
+header a {
+  color: #2853a2;
+  font-size: 20px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+header a:hover {
+  color: #1c3e7d;
+}
+
+.error {
+  margin: -12px 0 16px;
+  color: #c62828;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.error:not([hidden]) {
+  display: block;
+}
+
+#registration-status {
+  margin: 20px 0 0;
+  color: #596579;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#registration-status:empty,
+#registration-status[hidden] {
+  margin: 0;
+}
+
+input[aria-invalid="true"] {
+  border-color: #c62828;
+}
+
+input[aria-invalid="true"]:focus-visible {
+  outline-color: #c62828;
+}
+
+/* Registration-specific spacing */
+
+#registration-form > div:last-of-type {
+  margin-bottom: 8px;
+}
+
+/* Optional success state */
+
+.status-success {
+  color: #2e7d32;
+}
+
+.status-error {
+  color: #c62828;
+}

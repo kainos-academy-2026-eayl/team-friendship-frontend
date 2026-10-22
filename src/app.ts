@@ -3,11 +3,12 @@ import nunjucks from 'nunjucks';
 import forgotPasswordPage from '../pages/forgot_password';
 import loginPage from '../pages/login';
 import productPage from '../pages/product_display';
+import registerPage from '../pages/register';
 
 export function createApp(): Express {
   const app = express();
 
-  nunjucks.configure(['pages', 'src/register'], {
+  nunjucks.configure('pages', {
     autoescape: true,
     express: app,
   });
@@ -28,23 +29,15 @@ export function createApp(): Express {
     res.render('login', { page: loginPage });
   });
 
+  app.get('/register', (_req: Request, res: Response) => {
+    res.render('register', { page: registerPage });
+  });
+
   app.get('/product_display', (_req: Request, res: Response) => {
     res.render('product_display', { page: productPage });
   });
 
-  app.get('/register', (_req: Request, res: Response) => {
-    res.render('register');
-  });
-
-  app.get('/register.css', (_req: Request, res: Response) => {
-    res.sendFile('src/register/register.css', { root: process.cwd() });
-  });
-
-  app.get('/register.js', (_req: Request, res: Response) => {
-    res.sendFile('dist/register.js', { root: process.cwd() });
-  });
-
-  app.get('/forgot_password', (_req, res) => {
+  app.get('/forgot_password', (_req: Request, res: Response) => {
     res.render('forgot_password', { page: forgotPasswordPage });
   });
 
