@@ -30,6 +30,10 @@ export function createApp(): Express {
     res.render('login', { page: loginPage });
   });
 
+  app.get('/basket', (_req: Request, res: Response) => {
+    res.render('basket', { page: basketPage });
+  });
+
   app.get('/register', (_req: Request, res: Response) => {
     res.render('register', { page: registerPage });
   });
