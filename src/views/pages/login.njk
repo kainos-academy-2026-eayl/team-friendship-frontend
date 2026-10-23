@@ -1,0 +1,33 @@
+{% extends "layouts/main.njk" %}​
+​
+{% block title %}{{ page.title }}{% endblock %}​
+​
+{% block content %}​
+
+<p class="eyebrow">{{ page.eyebrow }}</p>
+<h1 id="login-title">{{ page.title }}</h1>
+<p class="intro">{{ page.intro }}</p>
+
+<form id="login-form" method="post">
+    {% for field in page.fields %}
+    <label for="{{ field.id }}">{{ field.label }}</label>
+    <input id="{{ field.id }}" name="{{ field.name }}" type="{{ field.type }}" autocomplete="{{ field.autocomplete }}"
+        placeholder="{{ field.placeholder }}" required>
+    {% endfor %}
+
+    <a href="/forgot_password" class="forgot-password" id="{{ page.forgotPassword.id }}">
+        {{ page.forgotPassword.label }}
+    </a>
+
+    <div class="actions">
+        {% for action in page.actions %}
+        <button type="{{ action.type }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
+            {% endif %} {% if action.disabled %}disabled{% endif %}>{{ action.label }}</button>
+        {% endfor %}
+    </div>
+</form>
+<p id="status" role="status"></p>
+
+
+
+{% endblock %}

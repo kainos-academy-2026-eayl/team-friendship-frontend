@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="/styles/ecommerce.css">
+</head>
+
+<body>
+    {% include "partials/header.njk" %}
+
+    <main class="page-shell">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include "partials/footer.njk" %}
+</body>
+
+</html>

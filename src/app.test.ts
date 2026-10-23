@@ -27,21 +27,25 @@ describe('HTTP application', () => {
   });
 
   it('serves the login page', async () => {
-    const response = await fetch(`${baseUrl}/`);
+    const response = await fetch(`${baseUrl}/login`);
+    const body = await response.text();
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
-    expect(await response.text()).toContain(
-      '<h1 id="login-title">E-commerce login</h1>',
+    expect(body).toContain('<h1 id="login-title">E-commerce login</h1>');
+    expect(body).toContain(
+      '<link rel="stylesheet" href="/styles/ecommerce.css">',
     );
   });
 
   it('serves the registration page', async () => {
     const response = await fetch(`${baseUrl}/register`);
+    const body = await response.text();
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
-    expect(await response.text()).toContain('id="registration-form"');
+    expect(body).toContain('id="registration-form"');
+    expect(body).toContain('<a href="/">Team Friendship</a>');
   });
 
   it('serves the basket page', async () => {
@@ -52,8 +56,8 @@ describe('HTTP application', () => {
     expect(await response.text()).toContain('id="basket-title"');
   });
 
-  it('serves the registration stylesheet', async () => {
-    const response = await fetch(`${baseUrl}/ecommerce.css`);
+  it('serves the stylesheet at the linked path', async () => {
+    const response = await fetch(`${baseUrl}/styles/ecommerce.css`);
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/css');

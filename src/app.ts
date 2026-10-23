@@ -1,25 +1,28 @@
+import { resolve } from 'node:path';
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
-import basketPage from '../pages/basket';
-import forgotPasswordPage from '../pages/forgot_password';
-import loginPage from '../pages/login';
-import productPage from '../pages/product_display';
-import registerPage from '../pages/register';
+import basketPage from './static_content_pages/basket_service';
+import forgotPasswordPage from './static_content_pages/forgot_password_service';
+import homePage from './static_content_pages/home_service';
+import loginPage from './static_content_pages/login_service';
+import productPage from './static_content_pages/product_display_service';
+import registerPage from './static_content_pages/register_service';
 
 export function createApp(): Express {
   const app = express();
+  const viewsDirectory = resolve(process.cwd(), 'src/views');
 
-  nunjucks.configure('pages', {
+  nunjucks.configure([resolve(viewsDirectory, 'pages'), viewsDirectory], {
     autoescape: true,
     express: app,
   });
 
   app.set('view engine', 'njk');
 
-  app.use(express.static('pages'));
+  app.use(express.static(resolve(process.cwd(), 'public')));
 
   app.get('/', (_req, res) => {
-    res.redirect('/login');
+    res.redirect('/home');
   });
 
   app.get('/health', (_req, res) => {
@@ -28,6 +31,10 @@ export function createApp(): Express {
 
   app.get('/login', (_req, res) => {
     res.render('login', { page: loginPage });
+  });
+
+  app.get('/home', (_req, res) => {
+    res.render('home', { page: homePage });
   });
 
   app.get('/basket', (_req: Request, res: Response) => {
