@@ -1,12 +1,12 @@
 import { resolve } from 'node:path';
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
-import basketPage from './services/basket';
-import forgotPasswordPage from './services/forgot_password';
-import homePage from './services/home';
-import loginPage from './services/login';
-import productPage from './services/product_display';
-import registerPage from './services/register';
+import basketPage from './static_content_pages/basket_service';
+import forgotPasswordPage from './static_content_pages/forgot_password_service';
+import homePage from './static_content_pages/home_service';
+import loginPage from './static_content_pages/login_service';
+import productPage from './static_content_pages/product_display_service';
+import registerPage from './static_content_pages/register_service';
 
 export function createApp(): Express {
   const app = express();
