@@ -45,7 +45,8 @@ describe('HTTP application', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
     expect(body).toContain('id="registration-form"');
-    expect(body).toContain('<a href="/">Team Friendship</a>');
+    expect(body).toMatch(/<a href="\/">\s*Team Friendship\s*<\/a>/);
+    expect(body).toContain('src="/images/Friendshop_logo.png"');
   });
 
   it('serves the basket page', async () => {
