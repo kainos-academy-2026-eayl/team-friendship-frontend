@@ -48,6 +48,20 @@ describe('HTTP application', () => {
     expect(body).toContain('<a href="/">Team Friendship</a>');
   });
 
+  it('serves the forgot-password page and its submit handler', async () => {
+    const pageResponse = await fetch(`${baseUrl}/forgot_password`);
+    const pageBody = await pageResponse.text();
+    const scriptResponse = await fetch(`${baseUrl}/scripts/forgot-password.js`);
+
+    expect(pageResponse.status).toBe(200);
+    expect(pageBody).toContain('id="send-recovery-email"');
+    expect(pageBody).toContain(
+      '<script src="/scripts/forgot-password.js" defer></script>',
+    );
+    expect(scriptResponse.status).toBe(200);
+    expect(await scriptResponse.text()).toContain("method: 'POST'");
+  });
+
   it('serves the basket page', async () => {
     const response = await fetch(`${baseUrl}/basket`);
 
