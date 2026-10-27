@@ -56,6 +56,16 @@ describe('HTTP application', () => {
     expect(await response.text()).toContain('id="basket-title"');
   });
 
+  it.each(['/home', '/product_display', '/forgot_password'])(
+    'serves the page at %s',
+    async (path) => {
+      const response = await fetch(`${baseUrl}${path}`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-type')).toContain('text/html');
+    },
+  );
+
   it('serves the stylesheet at the linked path', async () => {
     const response = await fetch(`${baseUrl}/styles/ecommerce.css`);
 

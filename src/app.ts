@@ -31,27 +31,29 @@ export function createApp(): Express {
   });
 
   app.get('/login', (_req, res) => {
-    res.render('login', { page: loginPage, apiUrl });
+    res.render('login/login', { page: loginPage, apiUrl });
   });
 
   app.get('/home', (_req, res) => {
-    res.render('home', { page: homePage });
+    res.render('home/home', { page: homePage });
   });
 
   app.get('/basket', (_req: Request, res: Response) => {
-    res.render('basket', { page: basketPage });
+    res.render('basket/basket', { page: basketPage });
   });
 
   app.get('/register', (_req: Request, res: Response) => {
-    res.render('register', { page: registerPage, apiUrl });
+    res.render('register/register', { page: registerPage, apiUrl });
   });
 
   app.get('/product_display', (_req: Request, res: Response) => {
-    res.render('product_display', { page: productPage });
+    res.render('product_display/product_display', { page: productPage });
   });
 
   app.get('/forgot_password', (_req: Request, res: Response) => {
-    res.render('forgot_password', { page: forgotPasswordPage });
+    res.render('forget_password/forgot_password', {
+      page: forgotPasswordPage,
+    });
   });
 
   return app;
