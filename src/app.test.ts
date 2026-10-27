@@ -66,6 +66,8 @@ describe('HTTP application', () => {
 
     expect(response.status).toBe(400);
     expect(await response.text()).toContain('Passwords do not match.');
+  });
+
   it('serves the forgot-password page and form', async () => {
     const pageResponse = await fetch(`${baseUrl}/forgot_password`);
     const pageBody = await pageResponse.text();
