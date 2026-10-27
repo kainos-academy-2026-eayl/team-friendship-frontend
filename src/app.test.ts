@@ -49,19 +49,29 @@ describe('HTTP application', () => {
     expect(body).toContain('src="/images/Friendshop_logo.png"');
   });
 
-  it('serves the forgot-password page and its submit handler', async () => {
+  it('serves the forgot-password page and form', async () => {
     const pageResponse = await fetch(`${baseUrl}/forgot_password`);
     const pageBody = await pageResponse.text();
-    const scriptResponse = await fetch(`${baseUrl}/scripts/forgot-password.js`);
 
     expect(pageResponse.status).toBe(200);
     expect(pageBody).toContain('id="send-recovery-email"');
-    expect(pageBody).toContain('data-api-url=');
     expect(pageBody).toContain(
-      '<script src="/scripts/forgot-password.js" defer></script>',
+      '<form id="forgot-password-form" action="/forgot_password" method="post">',
     );
-    expect(scriptResponse.status).toBe(200);
-    expect(await scriptResponse.text()).toMatch(/method:\s*["']POST["']/);
+  });
+
+  it('redirects to the forgot-password page when the email is missing', async () => {
+    const response = await fetch(`${baseUrl}/forgot_password`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: '',
+      redirect: 'manual',
+    });
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get('location')).toContain(
+      'error=Please%20enter%20a%20valid%20email%20address.',
+    );
   });
 
   it('serves the basket page', async () => {

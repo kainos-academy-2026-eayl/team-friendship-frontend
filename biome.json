@@ -6,11 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": [
-      "**",
-      "!**/package-lock.json",
-      "!public/scripts/forgot-password.js"
-    ]
+    "includes": ["**", "!**/package-lock.json"]
   },
   "formatter": {
     "enabled": true,
