@@ -8,7 +8,7 @@
 <h1 id="login-title">{{ page.title }}</h1>
 <p class="intro">{{ page.intro }}</p>
 
-<form id="login-form" method="post" data-api-url="{{ apiUrl }}">
+<form id="login-form" method="post" action="/login">
     {% for field in page.fields %}
     <label for="{{ field.id }}">{{ field.label }}</label>
     <input id="{{ field.id }}" name="{{ field.name }}" type="{{ field.type }}" autocomplete="{{ field.autocomplete }}"
@@ -21,13 +21,16 @@
 
     <div class="actions">
         {% for action in page.actions %}
+        {% if action.href %}
+        <a href="{{ action.href }}" id="{{ action.id }}" class="{{ action.className }}">{{ action.label }}</a>
+        {% else %}
         <button type="{{ action.type }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
             {% endif %} {% if action.disabled %}disabled{% endif %}>{{ action.label }}</button>
+        {% endif %}
         {% endfor %}
     </div>
 </form>
-<p id="status" role="status"></p>
-<script src="/scripts/login.js" defer></script>
+<p id="status" role="status">{% if error %}{{ error }}{% elif success %}{{ success }}{% endif %}</p>
 
 
 

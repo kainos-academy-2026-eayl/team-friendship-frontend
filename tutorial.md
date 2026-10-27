@@ -38,14 +38,11 @@ npm run dev        # start the service with hot reload
 
 Then in another terminal:
 
-Open `http://localhost:8000/` in your browser to view `src/login.html`.
-Styles live in `src/login.css` and browser logic lives in `src/login.ts`.
-`npm run dev` compiles the browser logic to `dist/login.js` before starting the server.
-After editing `src/login.ts`, run `npm run build:client` and refresh the browser.
-The production build includes the page, stylesheet, and compiled script for `npm start`.
-The login submit button stays disabled until the browser script has installed its
-handlers. JavaScript is required; login, sign up, and password recovery currently
-display notices rather than contacting an authentication service.
+Open `http://localhost:8000/` in your browser to view the server-rendered pages.
+Nunjucks templates live in `src/views/pages`, and Express routers for login and
+registration live in `src/controllers`. Set `BACKEND_URL` in `.env` to the
+backend API address; it defaults to `http://localhost:3000`. Login and
+registration forms submit to the server without requiring browser scripts.
 
 ```sh
 curl http://localhost:8000/health

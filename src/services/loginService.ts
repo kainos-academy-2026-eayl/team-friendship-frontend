@@ -1,4 +1,4 @@
-export type LoginCredentials = Record<string, FormDataEntryValue>;
+export type LoginCredentials = Record<string, string>;
 
 export interface LoginResult {
   ok: boolean;

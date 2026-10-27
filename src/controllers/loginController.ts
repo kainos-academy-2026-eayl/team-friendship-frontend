@@ -1,26 +1,33 @@
-import { login } from '../services/loginService';
+import { type Request, type Response, Router } from 'express';
+import { type LoginCredentials, login } from '../services/loginService';
+import loginPage from '../views/pages/login/login_page';
 
-const form = document.getElementById('login-form') as HTMLFormElement;
-const status = document.getElementById('status') as HTMLElement;
-const submit = document.getElementById('login-submit') as HTMLButtonElement;
+const router = Router();
 
-document.getElementById('sign-up')?.addEventListener('click', () => {
-  window.location.assign('/register');
+router.get('/', (req: Request, res: Response) => {
+  const error =
+    typeof req.query.error === 'string' ? req.query.error : undefined;
+  const success =
+    typeof req.query.success === 'string' ? req.query.success : undefined;
+  res.render('login/login', { page: loginPage, error, success });
 });
 
-form.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  submit.disabled = true;
-  status.textContent = '';
-
+router.post('/', async (req: Request, res: Response) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const credentials = Object.fromEntries(
+    Object.entries(body).filter(([, value]) => typeof value === 'string'),
+  ) as LoginCredentials;
   const result = await login(
-    form.dataset.apiUrl ?? '',
-    Object.fromEntries(new FormData(form)),
+    process.env.BACKEND_URL ?? 'http://localhost:3000',
+    credentials,
   );
-  status.textContent = result.message;
-  submit.disabled = false;
 
-  if (result.ok) {
-    window.location.assign('/home');
+  if (!result.ok) {
+    res.render('login/login', { page: loginPage, error: result.message });
+    return;
   }
+
+  res.redirect('/home');
 });
+
+export default router;

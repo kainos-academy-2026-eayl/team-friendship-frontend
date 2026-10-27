@@ -1,39 +1,46 @@
+import { type Request, type Response, Router } from 'express';
+import type { RegistrationData } from '../models/registerModel';
 import { passwordsMatch, register } from '../services/registerService';
+import registerPage from '../views/pages/register/register_page';
 
-const form = document.getElementById('registration-form') as HTMLFormElement;
-const status = document.getElementById('registration-status') as HTMLElement;
-const passwordError = document.getElementById('password-error') as HTMLElement;
-const submit = document.getElementById('register-submit') as HTMLButtonElement;
+const router = Router();
 
-document.getElementById('back-to-login')?.addEventListener('click', () => {
-  window.location.assign('/login');
+router.get('/', (req: Request, res: Response) => {
+  const error =
+    typeof req.query.error === 'string' ? req.query.error : undefined;
+  const success =
+    typeof req.query.success === 'string' ? req.query.success : undefined;
+  res.render('register/register', { page: registerPage, error, success });
 });
 
-function showStatus(message: string): void {
-  status.textContent = message;
-  status.hidden = false;
-}
-
-form.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const data = Object.fromEntries(new FormData(form));
+router.post('/', async (req: Request, res: Response) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const data = Object.fromEntries(
+    Object.entries(body).filter(([, value]) => typeof value === 'string'),
+  ) as RegistrationData;
 
   if (!passwordsMatch(data)) {
-    passwordError.textContent = 'Passwords do not match.';
-    passwordError.hidden = false;
+    res.status(400).render('register/register', {
+      page: registerPage,
+      passwordError: 'Passwords do not match.',
+    });
     return;
   }
-  passwordError.hidden = true;
 
-  submit.disabled = true;
-  status.hidden = true;
+  const result = await register(
+    process.env.BACKEND_URL ?? 'http://localhost:3000',
+    data,
+  );
 
-  const result = await register(form.dataset.apiUrl ?? '', data);
-  showStatus(result.message);
-  submit.disabled = false;
-
-  if (result.ok) {
-    form.reset();
-    window.setTimeout(() => window.location.assign('/login'), 1500);
+  if (!result.ok) {
+    res.render('register/register', {
+      page: registerPage,
+      error: result.message,
+    });
+    return;
   }
+
+  res.redirect(`/login?success=${encodeURIComponent(result.message)}`);
 });
+
+export default router;

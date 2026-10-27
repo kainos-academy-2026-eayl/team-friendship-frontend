@@ -1,4 +1,4 @@
-export type RegistrationData = Record<string, FormDataEntryValue>;
+export type RegistrationData = Record<string, string>;
 
 export interface RegisterResult {
   ok: boolean;

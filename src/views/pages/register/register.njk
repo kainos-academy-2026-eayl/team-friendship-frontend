@@ -7,7 +7,7 @@
 <h1 id="register-title">{{ page.heading }}</h1>
 <p class="intro">{{ page.intro }}</p>
 
-<form id="registration-form" method="post" action="{{ page.formAction }}" data-api-url="{{ apiUrl }}">
+<form id="registration-form" method="post" action="{{ page.formAction }}">
 
     {% for field in page.fields %}
     <div>
@@ -20,21 +20,24 @@
             {% if field.ariaDescribedBy %}aria-describedby="{{ field.ariaDescribedBy }}" {% endif %} required>
 
         {% if field.errorId %}
-        <p id="{{ field.errorId }}" class="error" aria-live="polite" hidden></p>
+        <p id="{{ field.errorId }}" class="error" aria-live="polite" {% if not passwordError %}hidden{% endif %}>{{ passwordError }}</p>
         {% endif %}
     </div>
     {% endfor %}
 
     <div class="actions">
         {% for action in page.actions %}
+        {% if action.href %}
+        <a href="{{ action.href }}" id="{{ action.id }}" class="{{ action.className }}">{{ action.label }}</a>
+        {% else %}
         <button type="{{ action.type }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
             {% endif %} {% if action.disabled %}disabled{% endif %}>
             {{ action.label }}
         </button>
+        {% endif %}
         {% endfor %}
     </div>
 
-    <p id="registration-status" role="status" hidden></p>
+    <p id="registration-status" role="status" {% if not error and not success %}hidden{% endif %}>{% if error %}{{ error }}{% elif success %}{{ success }}{% endif %}</p>
 </form>
-<script src="/scripts/register.js" defer></script>
 {% endblock %}
