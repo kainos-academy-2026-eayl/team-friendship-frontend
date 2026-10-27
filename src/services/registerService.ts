@@ -1,13 +1,8 @@
-export type RegistrationData = Record<string, FormDataEntryValue>;
-
-export interface RegisterResult {
-  ok: boolean;
-  message: string;
-}
-
-interface RegisterResponseBody {
-  message?: string;
-}
+import type {
+  RegisterResponseBody,
+  RegisterResult,
+  RegistrationData,
+} from '../models/registerModel';
 
 export function passwordsMatch(data: RegistrationData): boolean {
   return data.password === data.confirmPassword;
