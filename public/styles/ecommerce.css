@@ -246,7 +246,7 @@ input[aria-invalid="true"]:focus-visible {
 
 /* Registration-specific spacing */
 
-#registration-form>div:last-of-type {
+#registration-form > div:last-of-type {
   margin-bottom: 8px;
 }
 
