@@ -45,7 +45,8 @@ describe('HTTP application', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
     expect(body).toContain('id="registration-form"');
-    expect(body).toContain('<a href="/">Team Friendship</a>');
+    expect(body).toMatch(/<a href="\/">\s*Team Friendship\s*<\/a>/);
+    expect(body).toContain('src="/images/Friendshop_logo.png"');
   });
 
   it('serves the forgot-password page and its submit handler', async () => {
@@ -69,6 +70,16 @@ describe('HTTP application', () => {
     expect(response.headers.get('content-type')).toContain('text/html');
     expect(await response.text()).toContain('id="basket-title"');
   });
+
+  it.each(['/home', '/product_display', '/forgot_password'])(
+    'serves the page at %s',
+    async (path) => {
+      const response = await fetch(`${baseUrl}${path}`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-type')).toContain('text/html');
+    },
+  );
 
   it('serves the stylesheet at the linked path', async () => {
     const response = await fetch(`${baseUrl}/styles/ecommerce.css`);
