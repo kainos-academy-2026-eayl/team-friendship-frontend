@@ -5,8 +5,9 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "npm run typecheck && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --outfile=dist/index.js --sourcemap",
+    "dev": "npm run build:client -- --watch & tsx watch src/index.ts",
+    "build:client": "esbuild login=src/controllers/loginController.ts register=src/controllers/registerController.ts --bundle --platform=browser --target=es2023 --outdir=public/scripts --sourcemap",
+    "build": "npm run typecheck && npm run build:client && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --outfile=dist/index.js --sourcemap",
     "typecheck": "tsc",
     "start": "node dist/index.js",
     "format": "biome format .",
