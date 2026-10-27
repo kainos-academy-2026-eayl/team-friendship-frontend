@@ -320,6 +320,32 @@ input[aria-invalid="true"]:focus-visible {
   font-weight: 700;
 }
 
+/* Header Styles */
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-logo {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+header a {
+  color: #2853a2;
+  font-size: 20px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+header a:hover {
+  color: #1c3e7d;
+}
+
 /* Home Styles */
 
 .actions a {
@@ -349,30 +375,4 @@ input[aria-invalid="true"]:focus-visible {
 
 .actions a.secondary:hover {
   background: #eef3fc;
-}
-
-/* Header Styles */
-
-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-logo {
-  width: 100px;
-  height: 100px;
-  object-fit: contain;
-  border-radius: 8px;
-}
-
-header a {
-  color: #2853a2;
-  font-size: 20px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-header a:hover {
-  color: #1c3e7d;
 }
