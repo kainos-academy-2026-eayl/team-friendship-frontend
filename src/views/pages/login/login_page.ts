@@ -4,12 +4,12 @@ const loginPage = {
   intro: 'Log in to your account to continue shopping.',
   fields: [
     {
-      id: 'username',
-      name: 'username',
-      label: 'Username',
-      type: 'text',
-      autocomplete: 'username',
-      placeholder: 'Enter your username',
+      id: 'email',
+      name: 'email',
+      label: 'Email',
+      type: 'email',
+      autocomplete: 'email',
+      placeholder: 'Enter your email address',
     },
     {
       id: 'password',
@@ -29,7 +29,6 @@ const loginPage = {
       id: 'login-submit',
       type: 'submit',
       label: 'Login',
-      disabled: true,
     },
     {
       id: 'sign-up',
