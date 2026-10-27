@@ -11,6 +11,7 @@ import registerPage from './static_content_pages/register_service';
 export function createApp(): Express {
   const app = express();
   const viewsDirectory = resolve(process.cwd(), 'src/views');
+  const apiUrl = process.env.BACKEND_URL ?? 'http://localhost:3000';
 
   nunjucks.configure([resolve(viewsDirectory, 'pages'), viewsDirectory], {
     autoescape: true,
@@ -30,7 +31,7 @@ export function createApp(): Express {
   });
 
   app.get('/login', (_req, res) => {
-    res.render('login', { page: loginPage });
+    res.render('login', { page: loginPage, apiUrl });
   });
 
   app.get('/home', (_req, res) => {
@@ -42,7 +43,7 @@ export function createApp(): Express {
   });
 
   app.get('/register', (_req: Request, res: Response) => {
-    res.render('register', { page: registerPage });
+    res.render('register', { page: registerPage, apiUrl });
   });
 
   app.get('/product_display', (_req: Request, res: Response) => {
