@@ -1,4 +1,4 @@
-import { Router, type Request, type Response } from 'express';
+import { type Request, type Response, Router } from 'express';
 import forgotPasswordPage from '../pages/forget_password/forget_password_page';
 
 interface RecoveryApiResponse {
@@ -26,8 +26,7 @@ router.post('/', async (req: Request, res: Response) => {
 
   if (!email) {
     return res.redirect(
-      '/forgot_password?error=' +
-        encodeURIComponent('Please enter a valid email address.'),
+      `/forgot_password?error=${encodeURIComponent('Please enter a valid email address.')}`,
     );
   }
 
@@ -39,15 +38,13 @@ router.post('/', async (req: Request, res: Response) => {
       },
       body: JSON.stringify({ email }),
     });
-    const data: RecoveryApiResponse = await response
-      .json()
-      .catch(() => ({}));
+    const data: RecoveryApiResponse = await response.json().catch(() => ({}));
 
     if (!response.ok) {
       const error =
         data.error ?? data.message ?? 'Could not send the recovery email.';
       return res.redirect(
-        '/forgot_password?error=' + encodeURIComponent(error),
+        `/forgot_password?error=${encodeURIComponent(error)}`,
       );
     }
 
@@ -55,15 +52,12 @@ router.post('/', async (req: Request, res: Response) => {
       data.message ??
       'If an account exists for this email, recovery instructions will be sent.';
     return res.redirect(
-      '/forgot_password?message=' + encodeURIComponent(message),
+      `/forgot_password?message=${encodeURIComponent(message)}`,
     );
   } catch (error) {
     console.error('Failed to send the recovery email request.', error);
     return res.redirect(
-      '/forgot_password?error=' +
-        encodeURIComponent(
-          'Unable to contact the recovery service. Please try again.',
-        ),
+      `/forgot_password?error=${encodeURIComponent('Unable to contact the recovery service. Please try again.')}`,
     );
   }
 });

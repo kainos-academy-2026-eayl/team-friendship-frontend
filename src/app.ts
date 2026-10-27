@@ -1,8 +1,8 @@
 import { resolve } from 'node:path';
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
-import basketPage from './views/pages/basket/basket_page';
 import forgotPasswordController from './views/controllers/forgot-password-controller';
+import basketPage from './views/pages/basket/basket_page';
 import homePage from './views/pages/home/home_page';
 import loginPage from './views/pages/login/login_page';
 import productPage from './views/pages/product_display/product_display_page';
