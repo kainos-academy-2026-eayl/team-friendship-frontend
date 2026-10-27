@@ -18,7 +18,7 @@ const forgotPasswordPage = {
       id: 'send-recovery-email',
       type: 'submit',
       label: 'Send Recovery Email',
-      disabled: true,
+      disabled: false,
     },
   ],
 };
