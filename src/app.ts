@@ -7,6 +7,7 @@ import homePage from './static_content_pages/home_service';
 import loginPage from './static_content_pages/login_service';
 import productPage from './static_content_pages/product_display_service';
 import registerPage from './static_content_pages/register_service';
+import checkoutPage from './static_content_pages/checkout_service';
 
 export function createApp(): Express {
   const app = express();
@@ -39,6 +40,10 @@ export function createApp(): Express {
 
   app.get('/basket', (_req: Request, res: Response) => {
     res.render('basket', { page: basketPage });
+  });
+
+  app.get('/checkout', (_req: Request, res: Response) => {
+    res.render('checkout', { page: checkoutPage });
   });
 
   app.get('/register', (_req: Request, res: Response) => {
