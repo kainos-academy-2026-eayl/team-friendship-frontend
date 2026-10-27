@@ -3,8 +3,8 @@ import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import loginController from './controllers/loginController';
 import registerController from './controllers/registerController';
+import forgotPasswordController from './views/controllers/forgot-password-controller';
 import basketPage from './views/pages/basket/basket_page';
-import forgotPasswordPage from './views/pages/forget_password/forget_password_page';
 import homePage from './views/pages/home/home_page';
 import productPage from './views/pages/product_display/product_display_page';
 
@@ -23,6 +23,7 @@ export function createApp(): Express {
   app.use(express.static(resolve(process.cwd(), 'public')));
   app.use('/login', loginController);
   app.use('/register', registerController);
+  app.use(express.urlencoded({ extended: false }));
 
   app.get('/', (_req, res) => {
     res.redirect('/home');
@@ -44,11 +45,7 @@ export function createApp(): Express {
     res.render('product_display/product_display', { page: productPage });
   });
 
-  app.get('/forgot_password', (_req: Request, res: Response) => {
-    res.render('forget_password/forgot_password', {
-      page: forgotPasswordPage,
-    });
-  });
+  app.use('/forgot_password', forgotPasswordController);
 
   return app;
 }

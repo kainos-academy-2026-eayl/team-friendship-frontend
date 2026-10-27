@@ -66,6 +66,29 @@ describe('HTTP application', () => {
 
     expect(response.status).toBe(400);
     expect(await response.text()).toContain('Passwords do not match.');
+  it('serves the forgot-password page and form', async () => {
+    const pageResponse = await fetch(`${baseUrl}/forgot_password`);
+    const pageBody = await pageResponse.text();
+
+    expect(pageResponse.status).toBe(200);
+    expect(pageBody).toContain('id="send-recovery-email"');
+    expect(pageBody).toContain(
+      '<form id="forgot-password-form" action="/forgot_password" method="post">',
+    );
+  });
+
+  it('redirects to the forgot-password page when the email is missing', async () => {
+    const response = await fetch(`${baseUrl}/forgot_password`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: '',
+      redirect: 'manual',
+    });
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get('location')).toContain(
+      'error=Please%20enter%20a%20valid%20email%20address.',
+    );
   });
 
   it('serves the basket page', async () => {
