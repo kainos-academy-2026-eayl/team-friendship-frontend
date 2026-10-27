@@ -7,7 +7,7 @@
 <h1 id="register-title">{{ page.heading }}</h1>
 <p class="intro">{{ page.intro }}</p>
 
-<form id="registration-form" method="post" action="{{ page.formAction }}">
+<form id="registration-form" method="post" action="{{ page.formAction }}" data-api-url="{{ apiUrl }}">
 
     {% for field in page.fields %}
     <div>
@@ -16,6 +16,7 @@
         <input id="{{ field.id }}" name="{{ field.name }}" type="{{ field.type }}"
             autocomplete="{{ field.autocomplete }}" {% if field.placeholder %}placeholder="{{ field.placeholder }}"
             {% endif %} {% if field.minlength %}minlength="{{ field.minlength }}" {% endif %}
+            {% if field.maxlength %}maxlength="{{ field.maxlength }}" {% endif %}
             {% if field.ariaDescribedBy %}aria-describedby="{{ field.ariaDescribedBy }}" {% endif %} required>
 
         {% if field.errorId %}
@@ -35,4 +36,5 @@
 
     <p id="registration-status" role="status" hidden></p>
 </form>
+<script src="/scripts/register.js" defer></script>
 {% endblock %}
