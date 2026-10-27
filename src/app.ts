@@ -5,9 +5,9 @@ import basketPage from './static_content_pages/basket_service';
 import forgotPasswordPage from './static_content_pages/forgot_password_service';
 import homePage from './static_content_pages/home_service';
 import loginPage from './static_content_pages/login_service';
+import productBrowser from './static_content_pages/product_browse';
 import productPage from './static_content_pages/product_display_service';
 import registerPage from './static_content_pages/register_service';
-import productBrowser from './static_content_pages/product_browse';
 
 export function createApp(): Express {
   const app = express();
@@ -57,5 +57,6 @@ export function createApp(): Express {
   app.get('/product_browse', (_req: Request, res: Response) => {
     res.render('product_browse', { page: productBrowser });
   });
+
   return app;
 }
