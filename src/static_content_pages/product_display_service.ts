@@ -17,12 +17,14 @@ const productPage = {
     value: '1',
   },
   actions: [
+    /* add to basket button */
     {
       id: 'add-to-basket',
       type: 'submit',
       label: 'Add to Basket',
       disabled: true,
     },
+    /* continue shopping button */
     {
       id: 'continue-shopping',
       type: 'button',
@@ -32,4 +34,5 @@ const productPage = {
   ],
 };
 
+/* export product display page content to app.ts */
 export default productPage;

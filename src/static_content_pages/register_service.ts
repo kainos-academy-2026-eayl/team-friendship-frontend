@@ -7,6 +7,7 @@ const registerPage = {
   formAction: '/register',
 
   fields: [
+    /* email field */
     {
       id: 'email',
       name: 'email',
@@ -15,6 +16,7 @@ const registerPage = {
       autocomplete: 'email',
       placeholder: 'Enter your email address',
     },
+    /* username field */
     {
       id: 'username',
       name: 'username',
@@ -26,6 +28,7 @@ const registerPage = {
       ariaDescribedBy: 'username-error',
       errorId: 'username-error',
     },
+    /* password field */
     {
       id: 'password',
       name: 'password',
@@ -34,6 +37,7 @@ const registerPage = {
       autocomplete: 'new-password',
       placeholder: 'Enter a password',
     },
+    /* confirm password field */
     {
       id: 'confirm-password',
       name: 'confirmPassword',
@@ -47,12 +51,14 @@ const registerPage = {
   ],
 
   actions: [
+    /* register button */
     {
       id: 'register-submit',
       type: 'submit',
       label: 'Register',
       disabled: true,
     },
+    /* back to login button */
     {
       id: 'back-to-login',
       type: 'button',
@@ -63,4 +69,5 @@ const registerPage = {
   ],
 };
 
+/* export register page content to app.ts */
 export default registerPage;

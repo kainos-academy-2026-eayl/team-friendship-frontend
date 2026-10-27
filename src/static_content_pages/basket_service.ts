@@ -3,6 +3,7 @@ const basketPage = {
   eyebrow: 'Shopping Basket',
   intro: 'Review the items in your basket before checkout.',
   products: [
+    /* product item */
     {
       name: 'Product Name',
       quantity: '1',
@@ -15,6 +16,7 @@ const basketPage = {
   ],
   basketTotal: '£0.00',
   actions: [
+    /* continue shopping button */
     {
       id: 'checkout',
       type: 'button',
@@ -24,4 +26,5 @@ const basketPage = {
   ],
 };
 
+/* export basket page content to app.ts */
 export default basketPage;

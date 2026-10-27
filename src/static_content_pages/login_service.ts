@@ -3,6 +3,7 @@ const loginPage = {
   eyebrow: 'Welcome back',
   intro: 'Log in to your account to continue shopping.',
   fields: [
+    /* username field */
     {
       id: 'username',
       name: 'username',
@@ -11,6 +12,7 @@ const loginPage = {
       autocomplete: 'username',
       placeholder: 'Enter your username',
     },
+    /* password field */
     {
       id: 'password',
       name: 'password',
@@ -20,17 +22,20 @@ const loginPage = {
       placeholder: 'Enter your password',
     },
   ],
+  /* forgot password link */
   forgotPassword: {
     id: 'forgot-password',
     label: 'Forgot password?',
   },
   actions: [
+    /* login button */
     {
       id: 'login-submit',
       type: 'submit',
       label: 'Login',
       disabled: true,
     },
+    /* sign up button */
     {
       id: 'sign-up',
       type: 'button',
@@ -40,4 +45,5 @@ const loginPage = {
   ],
 };
 
+/* export login page content to app.ts */
 export default loginPage;

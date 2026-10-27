@@ -4,6 +4,7 @@ const forgotPasswordPage = {
   intro:
     'Enter the email address associated with your account and we will send password recovery instructions.',
   fields: [
+    /* email field */
     {
       id: 'email',
       name: 'email',
@@ -14,6 +15,7 @@ const forgotPasswordPage = {
     },
   ],
   actions: [
+    /* send recovery email button */
     {
       id: 'send-recovery-email',
       type: 'submit',
@@ -23,4 +25,5 @@ const forgotPasswordPage = {
   ],
 };
 
+/* export forgot password page content to app.ts */
 export default forgotPasswordPage;
