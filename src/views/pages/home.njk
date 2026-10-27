@@ -1,3 +1,4 @@
+{# Home page: landing page with links to the main actions. #}
 {% extends "layouts/main.njk" %}​
 ​
 {% block title %}{{ page.title }}{% endblock %}​
@@ -16,6 +17,7 @@
         placeholder="{{ field.placeholder }}" required>
     {% endfor %}
 
+    {# Links are rendered from page.actions #}
     <div class="actions">
         {% for action in page.actions %}
         <a href="{{ action.href }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
@@ -26,6 +28,7 @@
     </div>
 
 
+    {# Live region for status messages #}
     <p id="status" role="status"></p>
 
 

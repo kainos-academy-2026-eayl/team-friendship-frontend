@@ -1,3 +1,4 @@
+{# Product page: shows product details and a quantity form. #}
 {% extends "layouts/main.njk" %}​
 ​
 {% block title %}{{ page.title }}{% endblock %}​
@@ -6,6 +7,7 @@
 
 <p class="eyebrow">{{ page.eyebrow }}</p>
 
+{# Only render the image when one is provided #}
 {% if page.image.src %}
 <img class="product-image" src="{{ page.image.src }}" alt="{{ page.image.alt }}">
 {% endif %}
@@ -22,6 +24,7 @@
     {{ page.description }}
 </p>
 
+{# Quantity selection, minimum of 1 #}
 <form id="product-form">
 
     <label for="quantity">
@@ -30,6 +33,7 @@
 
     <input id="quantity" name="quantity" type="number" min="1" value="1" required>
 
+    {# Buttons are rendered from page.actions #}
     <div class="actions">
 
         {% for action in page.actions %}
@@ -41,6 +45,7 @@
 
 </form>
 
+{# Live region for status messages #}
 <p id="status" role="status"></p>
 
 {% endblock %}

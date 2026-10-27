@@ -1,3 +1,4 @@
+{# Basket page: lists basket items, the basket total and the page actions. #}
 {% extends "layouts/main.njk" %}​
 ​
 {% block title %}{{ page.title }}{% endblock %}​
@@ -14,12 +15,14 @@
     {{ page.intro }}
 </p>
 
+{# One article per product in the basket #}
 <div class="basket-items">
 
     {% for product in page.products %}
 
     <article class="basket-item">
 
+        {# Fall back to an empty placeholder when the product has no image #}
         {% if product.image.src %}
         <img class="basket-image" src="{{ product.image.src }}" alt="{{ product.image.alt }}">
         {% else %}
@@ -48,6 +51,7 @@
 
 </div>
 
+{# Basket total summary #}
 <div class="basket-summary">
 
     <h2 class="basket-total-heading">
@@ -60,6 +64,7 @@
 
 </div>
 
+{# Buttons are rendered from page.actions #}
 <div class="actions">
 
     {% for action in page.actions %}
@@ -73,6 +78,7 @@
 
 </div>
 
+{# Live region for status messages #}
 <p id="status" role="status"></p>
 
 {% endblock %}

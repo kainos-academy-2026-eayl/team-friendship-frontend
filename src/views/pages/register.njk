@@ -1,3 +1,4 @@
+{# Register page: account registration form with per-field validation messages. #}
 {% extends "layouts/main.njk" %}​
 ​
 {% block title %}{{ page.title }}{% endblock %}​
@@ -9,6 +10,7 @@
 
 <form id="registration-form" method="post" action="{{ page.formAction }}">
 
+    {# Inputs are rendered from page.fields; optional attributes are only output when set #}
     {% for field in page.fields %}
     <div>
         <label for="{{ field.id }}">{{ field.label }}</label>
@@ -18,12 +20,14 @@
             {% endif %} {% if field.minlength %}minlength="{{ field.minlength }}" {% endif %}
             {% if field.ariaDescribedBy %}aria-describedby="{{ field.ariaDescribedBy }}" {% endif %} required>
 
+        {# Hidden error placeholder, announced politely when validation fails #}
         {% if field.errorId %}
         <p id="{{ field.errorId }}" class="error" aria-live="polite" hidden></p>
         {% endif %}
     </div>
     {% endfor %}
 
+    {# Buttons are rendered from page.actions #}
     <div class="actions">
         {% for action in page.actions %}
         <button type="{{ action.type }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
@@ -33,6 +37,7 @@
         {% endfor %}
     </div>
 
+    {# Hidden live region for the registration result #}
     <p id="registration-status" role="status" hidden></p>
 </form>
 {% endblock %}

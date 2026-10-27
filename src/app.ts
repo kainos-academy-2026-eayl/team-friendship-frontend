@@ -1,6 +1,8 @@
 import { resolve } from 'node:path';
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
+
+/* Import static content pages */
 import basketPage from './static_content_pages/basket_service';
 import forgotPasswordPage from './static_content_pages/forgot_password_service';
 import homePage from './static_content_pages/home_service';
@@ -21,14 +23,17 @@ export function createApp(): Express {
 
   app.use(express.static(resolve(process.cwd(), 'public')));
 
+  /* redirect root to home page */
   app.get('/', (_req, res) => {
     res.redirect('/home');
   });
 
+  /* health check endpoint */
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', uptime: process.uptime() });
   });
 
+  /* render web pages */
   app.get('/login', (_req, res) => {
     res.render('login', { page: loginPage });
   });
