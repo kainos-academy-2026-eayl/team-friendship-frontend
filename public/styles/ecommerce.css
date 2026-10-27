@@ -356,3 +356,8 @@ input[aria-invalid="true"]:focus-visible {
   margin-top: 16px;
   color: #666;
 }
+
+.checkout-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

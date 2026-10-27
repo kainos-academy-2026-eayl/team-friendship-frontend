@@ -36,21 +36,38 @@
   <section class="checkout-section">
     <h2>Delivery Details</h2>
 
-    <input type="text" placeholder="First Name">
-    <input type="text" placeholder="Surname">
-    <input type="text" placeholder="Address">
-    <input type="text" placeholder="Postcode">
-    <input type="email" placeholder="Email Address">
+    <label for="first-name">First Name</label>
+    <input id="first-name" type="text" placeholder="First Name">
+
+    <label for="surname">Surname</label>
+    <input id="surname" type="text" placeholder="Surname">
+
+    <label for="address">Address</label>
+    <input id="address" type="text" placeholder="Address">
+
+    <label for="postcode">Postcode</label>
+    <input id="postcode" type="text" placeholder="Postcode">
+
+    <label for="email">Email Address</label>
+    <input id="email" type="email" placeholder="Email Address">
+
 
     <h2>Payment Details</h2>
 
-    <input type="text" placeholder="Card Number">
-    <input type="text" placeholder="Expiry Date">
-    <input type="text" placeholder="CVV">
-
-    <button class="checkout-button">
+    <label for="card-number">Card Number</label>
+    <input id="card-number" type="text" placeholder="Card Number">
+ 
+    <label for="expiry-date">Expiry Date</label>
+    <input id="expiry-date" type="text" placeholder="Expiry Date">
+ 
+    <label for="cvv">CVV</label>
+    <input id="cvv" type="text" placeholder="CVV">
+    
+   
+    <button class="checkout-button" disabled>
       Place Order
     </button>
+    
     <p class="checkout-note">
   Your order will be confirmed after payment is processed.
 </p>
