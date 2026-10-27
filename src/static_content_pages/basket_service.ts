@@ -16,7 +16,7 @@ const basketPage = {
   ],
   basketTotal: '£0.00',
   actions: [
-    /* continue shopping button */
+    /* checkout button */
     {
       id: 'checkout',
       type: 'button',
