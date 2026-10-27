@@ -246,7 +246,7 @@ input[aria-invalid="true"]:focus-visible {
 
 /* Registration-specific spacing */
 
-#registration-form > div:last-of-type {
+#registration-form>div:last-of-type {
   margin-bottom: 8px;
 }
 
@@ -353,8 +353,26 @@ input[aria-invalid="true"]:focus-visible {
 
 /* Header Styles */
 
-header img {
-  width: 50px;
-  height: 50px;
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-logo {
+  width: 100px;
+  height: 100px;
   object-fit: contain;
+  border-radius: 8px;
+}
+
+header a {
+  color: #2853a2;
+  font-size: 20px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+header a:hover {
+  color: #1c3e7d;
 }
