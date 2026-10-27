@@ -53,6 +53,7 @@ export function createApp(): Express {
   app.get('/forgot_password', (_req: Request, res: Response) => {
     res.render('forget_password/forgot_password', {
       page: forgotPasswordPage,
+      apiUrl,
     });
   });
 

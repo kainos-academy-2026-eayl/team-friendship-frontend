@@ -56,11 +56,12 @@ describe('HTTP application', () => {
 
     expect(pageResponse.status).toBe(200);
     expect(pageBody).toContain('id="send-recovery-email"');
+    expect(pageBody).toContain('data-api-url=');
     expect(pageBody).toContain(
       '<script src="/scripts/forgot-password.js" defer></script>',
     );
     expect(scriptResponse.status).toBe(200);
-    expect(await scriptResponse.text()).toContain("method: 'POST'");
+    expect(await scriptResponse.text()).toMatch(/method:\s*["']POST["']/);
   });
 
   it('serves the basket page', async () => {
