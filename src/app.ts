@@ -5,9 +5,9 @@ import forgotPasswordController from './views/controllers/forgot-password-contro
 import basketPage from './views/pages/basket/basket_page';
 import homePage from './views/pages/home/home_page';
 import loginPage from './views/pages/login/login_page';
+import productBrowse from './views/pages/product_browse/product_browse';
 import productPage from './views/pages/product_display/product_display_page';
 import registerPage from './views/pages/register/register_page';
-import productBrowse from './views/pages/product_browse/product_browse';
 
 export function createApp(): Express {
   const app = express();
