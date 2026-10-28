@@ -135,4 +135,12 @@ describe('HTTP application', () => {
     expect(response.status).toBe(404);
     await response.text();
   });
+
+  it('serves the checkout page', async () => {
+    const response = await fetch(`${baseUrl}/checkout`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/html');
+    expect(await response.text()).toContain('id="checkout-title"');
+  });
 });
