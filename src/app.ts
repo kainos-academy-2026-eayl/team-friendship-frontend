@@ -8,6 +8,7 @@ import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
 import homePage from './views/pages/home/home_page';
 import productPage from './views/pages/product_display/product_display_page';
+import registerPage from './views/pages/register/register_page';
 
 export function createApp(): Express {
   const app = express();
@@ -47,7 +48,7 @@ export function createApp(): Express {
   });
 
   app.get('/register', (_req: Request, res: Response) => {
-    res.render('register/register', { page: registerPage, apiUrl });
+    res.render('register/register', { page: registerPage });
   });
 
   app.get('/product_display', (_req: Request, res: Response) => {
