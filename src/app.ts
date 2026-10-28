@@ -3,7 +3,7 @@ import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import loginController from './controllers/loginController';
 import registerController from './controllers/registerController';
-import forgotPasswordController from './views/controllers/forgot-password-controller';
+import forgotPasswordController from './controllers/forgot-password-controller';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
 import homePage from './views/pages/home/home_page';
