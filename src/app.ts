@@ -51,13 +51,12 @@ export function createApp(): Express {
   app.get('/product_display', (_req: Request, res: Response) => {
     res.render('product_display/product_display', { page: productPage });
   });
-  
+
   app.get('/product_browse', (_req: Request, res: Response) => {
     res.render('product_browse/product_browse', { page: productBrowse });
   });
 
   app.use('/forgot_password', forgotPasswordController);
-  
 
   return app;
 }
