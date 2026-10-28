@@ -7,6 +7,7 @@ import homePage from './views/pages/home/home_page';
 import loginPage from './views/pages/login/login_page';
 import productPage from './views/pages/product_display/product_display_page';
 import registerPage from './views/pages/register/register_page';
+import productBrowse from './views/pages/product_browse/product_browse';
 
 export function createApp(): Express {
   const app = express();
@@ -50,8 +51,13 @@ export function createApp(): Express {
   app.get('/product_display', (_req: Request, res: Response) => {
     res.render('product_display/product_display', { page: productPage });
   });
+  
+  app.get('/product_browse', (_req: Request, res: Response) => {
+    res.render('product_browse/product_browse', { page: productBrowse });
+  });
 
   app.use('/forgot_password', forgotPasswordController);
+  
 
   return app;
 }
