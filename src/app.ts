@@ -3,6 +3,7 @@ import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import forgotPasswordController from './views/controllers/forgot-password-controller';
 import basketPage from './views/pages/basket/basket_page';
+import checkoutPage from './views/pages/checkout/checkout';
 import homePage from './views/pages/home/home_page';
 import loginPage from './views/pages/login/login_page';
 import productPage from './views/pages/product_display/product_display_page';
@@ -41,6 +42,10 @@ export function createApp(): Express {
 
   app.get('/basket', (_req: Request, res: Response) => {
     res.render('basket/basket', { page: basketPage });
+  });
+
+  app.get('/checkout', (_req: Request, res: Response) => {
+    res.render('checkout/checkout', { page: checkoutPage });
   });
 
   app.get('/register', (_req: Request, res: Response) => {

@@ -376,3 +376,13 @@ header a:hover {
 .actions a.secondary:hover {
   background: #eef3fc;
 }
+
+.checkout-note {
+  margin-top: 16px;
+  color: #666;
+}
+
+.checkout-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
