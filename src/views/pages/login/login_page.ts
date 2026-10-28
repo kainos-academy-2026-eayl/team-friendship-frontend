@@ -32,9 +32,10 @@ const loginPage = {
     },
     {
       id: 'sign-up',
-      type: 'button',
+      type: 'link',
       label: 'Sign up',
       className: 'secondary',
+      href: '/register',
     },
   ],
 };
