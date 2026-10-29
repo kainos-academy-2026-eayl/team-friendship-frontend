@@ -7,7 +7,6 @@ import registerController from './controllers/registerController';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
 import homePage from './views/pages/home/home_page';
-import loginPage from './views/pages/login/login_page';
 import orderHistoryPage from './views/pages/order_history/order_history_service';
 import productPage from './views/pages/product_display/product_display_page';
 import registerPage from './views/pages/register/register_page';
