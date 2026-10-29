@@ -33,6 +33,9 @@ describe('HTTP application', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
     expect(body).toContain('<h1 id="login-title">E-commerce login</h1>');
+    expect(body).toContain('method="post" action="/login"');
+    expect(body).toContain('href="/register"');
+    expect(body).not.toContain('/scripts/login.js');
     expect(body).toContain(
       '<link rel="stylesheet" href="/styles/ecommerce.css">',
     );
@@ -45,8 +48,24 @@ describe('HTTP application', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
     expect(body).toContain('id="registration-form"');
+    expect(body).toContain('method="post" action="/register"');
+    expect(body).not.toContain('/scripts/register.js');
     expect(body).toMatch(/<a href="\/">\s*Team Friendship\s*<\/a>/);
     expect(body).toContain('src="/images/Friendshop_logo.png"');
+  });
+
+  it('rejects registration when passwords do not match', async () => {
+    const response = await fetch(`${baseUrl}/register`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        password: 'password-one',
+        confirmPassword: 'password-two',
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.text()).toContain('Passwords do not match.');
   });
 
   it('serves the forgot-password page and form', async () => {

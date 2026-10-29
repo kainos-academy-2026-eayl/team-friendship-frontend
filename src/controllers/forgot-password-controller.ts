@@ -1,5 +1,5 @@
 import { type Request, type Response, Router } from 'express';
-import forgotPasswordPage from '../pages/forget_password/forget_password_page';
+import forgotPasswordPage from '../views/pages/forget_password/forget_password_page';
 
 interface RecoveryApiResponse {
   message?: string;
