@@ -33,6 +33,7 @@
     "approve": "^0.0.12",
     "dotenv": "17.4.2",
     "express": "5.2.1",
+    "express-rate-limit": "^8.7.1",
     "nunjucks": "^3.2.4",
     "scripts": "^0.1.0"
   },

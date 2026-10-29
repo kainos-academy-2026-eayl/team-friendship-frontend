@@ -85,9 +85,10 @@ const registerPage = {
     },
     {
       id: 'back-to-login',
-      type: 'button',
+      type: 'link',
       label: 'Back to login',
       className: 'secondary',
+      href: '/login',
     },
   ],
 };
