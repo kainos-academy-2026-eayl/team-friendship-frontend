@@ -124,4 +124,12 @@ describe('HTTP application', () => {
     expect(response.headers.get('content-type')).toContain('text/html');
     expect(await response.text()).toContain('id="checkout-title"');
   });
+
+  it('serves the order history page', async () => {
+    const response = await fetch(`${baseUrl}/order_history`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/html');
+    expect(await response.text()).toContain('id="order-history-title"');
+  });
 });
