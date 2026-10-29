@@ -5,18 +5,16 @@
 {% block content %}​
 
 <h1 class="page-title">Browse Products</h1>
->
+
 <section class="search-section">
     <form method="GET" class="search-form">
         <input type="text" name="search" class="search-input" placeholder="Search products..." value="{{ searchTerm }}"
-            aria-label="Search products"> <---> Search fn not available. Action to be added when backend is connected<--->
-
+            aria-label="Search products">
         <button type="submit" class="search-button">
             Search
         </button>
     </form>
 </section>
-
 {% if products.length > 0 %}
 <section class="product-grid">
 
@@ -52,7 +50,7 @@
 
 <section class="navigation">
     <button type="button" class="navigator" onclick="window.location.href='/home'">
-        Logout <---> token to be involved when backend is connected<--->
+        Logout
     </button>
 </section>
 
