@@ -15,6 +15,9 @@
         </button>
     </form>
 </section>
+{% if error %}
+<p class="error-message" role="alert">{{ error }}</p>
+{% endif %}
 {% if products.length > 0 %}
 <section class="product-grid">
 

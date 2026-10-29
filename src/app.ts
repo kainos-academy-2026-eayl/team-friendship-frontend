@@ -3,6 +3,7 @@ import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import forgotPasswordController from './controllers/forgot-password-controller';
 import loginController from './controllers/loginController';
+import productController from './controllers/productController';
 import registerController from './controllers/registerController';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
@@ -10,7 +11,6 @@ import homePage from './views/pages/home/home_page';
 import orderHistoryPage from './views/pages/order_history/order_history';
 import productPage from './views/pages/product_display/product_display_page';
 import registerPage from './views/pages/register/register_page';
-import productBrowse from './views/pages/product_browse/product_browse';
 
 export function createApp(): Express {
   const app = express();
@@ -57,9 +57,7 @@ export function createApp(): Express {
     res.render('product_display/product_display', { page: productPage });
   });
 
-  app.get('/product_browse', (_req: Request, res: Response) => {
-    res.render('product_browse/product_browse', { page: productBrowse });
-  });
+  app.use('/product_browse', productController);
 
   app.use('/forgot_password', forgotPasswordController);
 
