@@ -9,6 +9,8 @@ interface RecoveryApiResponse {
 const router = Router();
 const apiUrl = process.env.BACKEND_URL ?? 'http://localhost:3000';
 
+
+
 router.get('/', (req: Request, res: Response) => {
   const error = req.query.error as string | undefined;
   const message = req.query.message as string | undefined;
