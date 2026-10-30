@@ -32,7 +32,8 @@ function toProduct(product: z.infer<typeof backendProductSchema>): Product {
     name: product.productName,
     description: product.productDescription,
     price: product.productPrice.toFixed(2),
-    imageUrl: product.productImage,
+    // Backend may send a full URL or relative path; images are served from public/images.
+    imageUrl: `/images/products_images/${product.productImage.split('/').pop()}`,
     stock: product.productStock,
   };
 }

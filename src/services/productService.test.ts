@@ -44,7 +44,7 @@ describe('productService', () => {
           name: 'Blue Mug',
           description: 'A ceramic mug',
           price: '7.50',
-          imageUrl: '/images/mug.png',
+          imageUrl: '/images/products_images/mug.png',
           stock: 3,
         },
       ],
