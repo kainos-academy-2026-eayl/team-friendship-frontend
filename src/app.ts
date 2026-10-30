@@ -11,6 +11,7 @@ import homePage from './views/pages/home/home_page';
 import orderHistoryPage from './views/pages/order_history/order_history';
 import productPage from './views/pages/product_display/product_display_page';
 import registerPage from './views/pages/register/register_page';
+import sidebarNavigation from './views/partials/sidebar_navigation';
 
 export function createApp(): Express {
   const app = express();
@@ -25,6 +26,13 @@ export function createApp(): Express {
 
   app.use(express.urlencoded({ extended: false }));
   app.use(express.static(resolve(process.cwd(), 'public')));
+
+  app.use((req, res, next) => {
+    res.locals.navigation = sidebarNavigation;
+    res.locals.currentPath = req.path;
+    next();
+  });
+
   app.use('/login', loginController);
   app.use('/register', registerController);
   app.use(express.urlencoded({ extended: false }));

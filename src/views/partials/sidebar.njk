@@ -1,0 +1,26 @@
+{% macro navLink(item) %}
+<li>
+    <a href="{{ item.href }}" {% if currentPath == item.href %}class="active" aria-current="page"{% endif %}>
+        {{ item.label }}
+    </a>
+</li>
+{% endmacro %}
+
+<input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-input" aria-controls="sidebar-nav">
+
+<aside class="sidebar">
+    <nav id="sidebar-nav" class="sidebar-nav" aria-label="Main navigation">
+        <p class="sidebar-heading">Menu</p>
+        <ul class="sidebar-links">
+            {% for item in navigation %}{% if not item.pinToBottom %}{{ navLink(item) }}{% endif %}{% endfor %}
+        </ul>
+        <ul class="sidebar-links sidebar-links-bottom">
+            {% for item in navigation %}{% if item.pinToBottom %}{{ navLink(item) }}{% endif %}{% endfor %}
+        </ul>
+    </nav>
+
+    <label for="sidebar-toggle" class="sidebar-toggle">
+        <span class="sidebar-arrow" aria-hidden="true">&#10095;</span>
+        <span class="visually-hidden">Toggle navigation menu</span>
+    </label>
+</aside>
