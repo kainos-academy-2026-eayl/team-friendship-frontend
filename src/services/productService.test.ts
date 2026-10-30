@@ -52,7 +52,7 @@ describe('productService', () => {
   });
 
   it('rejects responses that fail schema validation', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => { });
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     mockFetch({ products: [{ ...backendProduct, productPrice: 'free' }] });
 
     const result = await getProducts('http://backend');

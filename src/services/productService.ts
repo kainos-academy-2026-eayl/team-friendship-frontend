@@ -23,8 +23,8 @@ export interface Product {
 }
 
 export type ProductsResult =
-  | { ok: true; products: Product[]; }
-  | { ok: false; message: string; };
+  | { ok: true; products: Product[] }
+  | { ok: false; message: string };
 
 function toProduct(product: z.infer<typeof backendProductSchema>): Product {
   return {
