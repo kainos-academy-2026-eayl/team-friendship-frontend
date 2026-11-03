@@ -79,6 +79,31 @@ describe('HTTP application', () => {
     );
   });
 
+  it('renders the reset page with a locked email and masked passwords without validation', async () => {
+    const response = await fetch(
+      `${baseUrl}/reset_password?email=person%2Breset%40example.com`,
+    );
+    const body = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(body).toContain('value="person+reset@example.com" readonly');
+    expect(body).toContain('name="newPassword" type="password"');
+    expect(body).toContain('name="confirmPassword" type="password"');
+    expect(body).toContain('data-password-toggle="new-password"');
+    expect(body).toContain('data-password-toggle="confirm-password"');
+    expect(body).not.toMatch(/\b(required|minlength|maxlength|pattern)=?/);
+    expect(body).toContain('/scripts/reset-password.js');
+  });
+
+  it('escapes the reset email supplied in the link', async () => {
+    const response = await fetch(
+      `${baseUrl}/reset_password?${new URLSearchParams({ email: '"><script>alert(1)</script>' })}`,
+    );
+    expect(await response.text()).not.toContain(
+      'value=""><script>alert(1)</script>',
+    );
+  });
+
   it('redirects to the forgot-password page when the email is missing', async () => {
     const response = await fetch(`${baseUrl}/forgot_password`, {
       method: 'POST',
