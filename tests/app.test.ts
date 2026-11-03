@@ -1,7 +1,7 @@
 import { once } from 'node:events';
 import type { Server } from 'node:http';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createApp } from './app';
+import { createApp } from '../src/app';
 
 describe('HTTP application', () => {
   let server: Server;
