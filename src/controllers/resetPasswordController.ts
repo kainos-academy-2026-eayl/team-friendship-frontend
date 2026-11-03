@@ -10,8 +10,6 @@ const apiUrl = process.env.BACKEND_URL ?? 'http://localhost:3000';
 
 const asString = (value: unknown) => (typeof value === 'string' ? value : '');
 
-const asString = (value: unknown) => (typeof value === 'string' ? value : '');
-
 router.get('/', (req: Request, res: Response) => {
   const email = asString(req.query.email);
   const token = asString(req.query.token);
@@ -80,30 +78,6 @@ router.post('/', async (req: Request, res: Response) => {
       message: 'Unable to reach the password reset service. Please try again.',
     });
   }
-});
-
-router.post('/', (req: Request, res: Response) => {
-  const body = req.body && typeof req.body === 'object' ? req.body : {};
-  const email = asString(body.email);
-  const errors = validateResetPassword(
-    asString(body.newPassword),
-    asString(body.confirmPassword),
-  );
-
-  if (hasResetPasswordErrors(errors)) {
-    res
-      .status(400)
-      .render(
-        'forget_password/reset_password',
-        getResetPasswordPage(email, errors),
-      );
-    return;
-  }
-
-  res.render('forget_password/reset_password', {
-    ...getResetPasswordPage(email),
-    message: 'Your new password is valid. Saving it is not connected yet.',
-  });
 });
 
 export default router;
