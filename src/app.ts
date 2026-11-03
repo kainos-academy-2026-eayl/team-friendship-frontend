@@ -71,7 +71,6 @@ export function createApp(): Express {
 
     console.log(data);
 
-
     res.render('product_display/product_display', {
       page: { title: 'Products' },
       products: data.products,
