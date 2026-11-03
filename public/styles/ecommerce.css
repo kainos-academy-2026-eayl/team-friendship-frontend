@@ -153,7 +153,9 @@ button:disabled:hover {
 /* Product Display Styles */
 
 .product-image {
+  width: 100%;
   height: 180px;
+  object-fit: contain;
   display: block;
   margin-bottom: 24px;
   border-radius: 12px;
