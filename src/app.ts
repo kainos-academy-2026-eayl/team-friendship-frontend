@@ -7,7 +7,6 @@ import loginController from './controllers/loginController';
 import logoutController from './controllers/logoutController';
 import productController from './controllers/productController';
 import registerController from './controllers/registerController';
-import resetPasswordController from './controllers/resetPasswordController';
 import { loadSession, requireLogin } from './controllers/sessionController';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
