@@ -255,6 +255,11 @@ header a:hover {
   margin: 0;
 }
 
+.reset-password-errors {
+  margin: -12px 0 20px;
+  padding-left: 18px;
+}
+
 input[aria-invalid="true"] {
   border-color: #c62828;
 }
