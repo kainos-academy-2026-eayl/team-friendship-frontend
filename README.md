@@ -20,7 +20,20 @@ It runs `npm run lint` and blocks pushes on failure. Fix diagnostics with
 `npm run lint:fix` and resolve any remaining issues before retrying.
 Local hooks can be bypassed, so CI runs the checks independently.
 
+## Reset password page
+
+Preview `/reset_password?email=person%40example.com`. The email from the link
+is displayed read-only. Each password field has its own Show/Hide control.
+The page is rendered server-side by [resetPasswordController.ts](src/controllers/resetPasswordController.ts)
+using [resetPasswordService.ts](src/services/resetPasswordService.ts).
+Only the password visibility toggle runs in the browser.
+No password validation or reset API submission is implemented yet; the reset
+button is disabled. The backend recovery email link is not connected yet.
+When reset submission is implemented, the account must be identified using a
+validated reset token, not the editable URL email parameter.
+
 ## Continuous integration
+
 
 The [Frontend CI workflow](.github/workflows/github-actions.yml) installs
 locked dependencies, builds, lints and runs Vitest on:
