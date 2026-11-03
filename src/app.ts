@@ -60,21 +60,27 @@ export function createApp(): Express {
   });
 
   app.get('/product_display', async (_req: Request, res: Response) => {
-    const response = await fetch(
-      `${process.env.BACKEND_URL ?? 'http://localhost:3000'}/products`,
-    );
-    if (!response.ok) {
-      res.status(502).send('Unable to load products.');
-      return;
+    try {
+      const response = await fetch(
+        `${process.env.BACKEND_URL ?? 'http://localhost:3000'}/products`,
+      );
+
+      if (!response.ok) {
+        throw new Error('Unable to load products');
+      }
+
+      const data = await response.json();
+
+      res.render('product_display/product_display', {
+        page: { title: 'Products' },
+        products: data.products,
+      });
+    } catch {
+      res.render('product_display/product_display', {
+        page: { title: 'Products' },
+        products: [],
+      });
     }
-    const data = await response.json();
-
-    console.log(data);
-
-    res.render('product_display/product_display', {
-      page: { title: 'Products' },
-      products: data.products,
-    });
   });
 
   app.use('/product_browse', productController);
