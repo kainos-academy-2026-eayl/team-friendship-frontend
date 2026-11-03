@@ -1,6 +1,5 @@
 node_modules
 dist/
-public/scripts/*
-!public/scripts/reset-password.js
+public/scripts/
 .env
 .DS_Store
