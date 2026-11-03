@@ -101,7 +101,7 @@ describe('HTTP application', () => {
     expect(await response.text()).toContain('id="basket-title"');
   });
 
-  it.each(['/home', '/product_display', '/forgot_password'])(
+  it.each(['/home', '/products/40', '/forgot_password'])(
     'serves the page at %s',
     async (path) => {
       const response = await fetch(`${baseUrl}${path}`);
@@ -157,7 +157,7 @@ describe('HTTP application', () => {
     '/basket',
     '/checkout',
     '/register',
-    '/product_display',
+    '/products/40',
     '/forgot_password',
     '/order_history',
     '/login',
