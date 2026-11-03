@@ -159,6 +159,51 @@ describe('session authentication', () => {
     },
   );
 
+  it.each([
+    { 'sec-fetch-site': 'cross-site' },
+    { 'sec-fetch-site': 'same-site' },
+    { origin: 'https://evil.com' },
+    { origin: 'null' },
+  ])('rejects a cross-site login POST with %o', async (headers) => {
+    const response = await fetch(`${baseUrl}/login`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        ...headers,
+      },
+      body: new URLSearchParams({
+        email: 'attacker@example.com',
+        password: 'correct',
+      }),
+      redirect: 'manual',
+    });
+
+    expect(response.status).toBe(403);
+    expect(response.headers.getSetCookie()).toEqual([]);
+    expect(calls).toEqual([]);
+  });
+
+  it('accepts a same-origin login POST', async () => {
+    const response = await fetch(`${baseUrl}/login`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        'sec-fetch-site': 'same-origin',
+        origin: baseUrl,
+      },
+      body: new URLSearchParams({
+        email: 'ada@example.com',
+        password: 'correct',
+      }),
+      redirect: 'manual',
+    });
+
+    expect(response.status).toBe(302);
+    expect(cookiesFrom(response).access_token).toMatch(
+      /^access_token=access-login;/,
+    );
+  });
+
   it('re-renders the form without cookies when login fails', async () => {
     const response = await postForm(`${baseUrl}/login`, {
       email: 'ada@example.com',

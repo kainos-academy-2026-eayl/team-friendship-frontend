@@ -5,6 +5,7 @@ import nunjucks from 'nunjucks';
 import forgotPasswordController from './controllers/forgot-password-controller';
 import loginController from './controllers/loginController';
 import logoutController from './controllers/logoutController';
+import { requireSameOrigin } from './controllers/originGuard';
 import productController from './controllers/productController';
 import registerController from './controllers/registerController';
 import { loadSession, requireLogin } from './controllers/sessionController';
@@ -30,6 +31,7 @@ export function createApp(): Express {
   app.use(express.urlencoded({ extended: false }));
   app.use(express.static(resolve(process.cwd(), 'public')));
   app.use(cookieParser());
+  app.use(requireSameOrigin);
   // Before loadSession so logout revokes the existing refresh token instead of rotating it first.
   app.use('/logout', logoutController);
   app.use(loadSession);
