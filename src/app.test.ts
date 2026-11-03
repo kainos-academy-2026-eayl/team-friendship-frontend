@@ -210,7 +210,7 @@ describe('HTTP application', () => {
 
     if (navHrefs.includes(path)) {
       expect(nav).toContain(
-        `<a href="${path}" class="active" aria-current="page">`,
+        `<a href="${path}" class="active" aria-current="page" >`,
       );
     } else {
       expect(nav).not.toContain('class="active"');
