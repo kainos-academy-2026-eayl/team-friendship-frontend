@@ -474,7 +474,8 @@ header a:hover {
   border-top: 1px solid #e0e5ee;
 }
 
-.sidebar-links a {
+.sidebar-links a,
+.sidebar-logout {
   display: block;
   padding: 10px 12px;
   border-radius: 8px;
@@ -483,7 +484,17 @@ header a:hover {
   text-decoration: none;
 }
 
-.sidebar-links a:hover {
+.sidebar-logout {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-links a:hover,
+.sidebar-logout:hover {
   background: #eef3fc;
   color: #1c3e7d;
 }

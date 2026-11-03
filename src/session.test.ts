@@ -1,0 +1,245 @@
+import { once } from 'node:events';
+import type { Server } from 'node:http';
+import type { AddressInfo } from 'node:net';
+import express from 'express';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { createApp } from './app';
+
+interface BackendCall {
+  path: string;
+  body: Record<string, unknown>;
+}
+
+const calls: BackendCall[] = [];
+let refreshStatus = 200;
+
+function tokenBody(suffix: string) {
+  return {
+    accessToken: `access-${suffix}`,
+    tokenType: 'Bearer',
+    expiresIn: 900,
+    refreshToken: `refresh-${suffix}`,
+    refreshExpiresAt: '2099-01-01T00:00:00.000Z',
+  };
+}
+
+function createFakeBackend() {
+  const backend = express();
+  backend.use(express.json());
+  backend.use((req, _res, next) => {
+    calls.push({ path: req.path, body: req.body ?? {} });
+    next();
+  });
+  backend.post('/login', (req, res) => {
+    if (req.body.password !== 'correct') {
+      res.status(401).json({ error: 'Your email or password is invalid' });
+      return;
+    }
+    res.json({ message: 'Login successful', ...tokenBody('login') });
+  });
+  backend.post('/auth/refresh', async (_req, res) => {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    if (refreshStatus !== 200) {
+      res.status(refreshStatus).json({ error: 'Session expired' });
+      return;
+    }
+    res.json(tokenBody('refreshed'));
+  });
+  backend.post('/auth/logout', (_req, res) => {
+    res.status(204).end();
+  });
+  return backend;
+}
+
+async function listen(app: express.Express): Promise<[Server, string]> {
+  const server = app.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const { port } = server.address() as AddressInfo;
+  return [server, `http://127.0.0.1:${port}`];
+}
+
+function cookiesFrom(response: Response): Record<string, string> {
+  return Object.fromEntries(
+    response.headers.getSetCookie().map((header) => {
+      const [pair = ''] = header.split(';');
+      const index = pair.indexOf('=');
+      return [pair.slice(0, index), header];
+    }),
+  );
+}
+
+function postForm(url: string, fields: Record<string, string>, cookie = '') {
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded',
+      ...(cookie && { cookie }),
+    },
+    body: new URLSearchParams(fields),
+    redirect: 'manual',
+  });
+}
+
+describe('session authentication', () => {
+  let backendServer: Server;
+  let frontendServer: Server;
+  let baseUrl: string;
+  const originalBackendUrl = process.env.BACKEND_URL;
+
+  beforeAll(async () => {
+    let backendUrl: string;
+    [backendServer, backendUrl] = await listen(createFakeBackend());
+    process.env.BACKEND_URL = backendUrl;
+    [frontendServer, baseUrl] = await listen(createApp());
+  });
+
+  afterAll(async () => {
+    if (originalBackendUrl === undefined) {
+      delete process.env.BACKEND_URL;
+    } else {
+      process.env.BACKEND_URL = originalBackendUrl;
+    }
+    for (const server of [frontendServer, backendServer]) {
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
+    }
+  });
+
+  beforeEach(() => {
+    calls.length = 0;
+    refreshStatus = 200;
+  });
+
+  it('sets HttpOnly session cookies and redirects to returnTo on login', async () => {
+    const response = await postForm(`${baseUrl}/login`, {
+      email: 'ada@example.com',
+      password: 'correct',
+      returnTo: '/basket',
+    });
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get('location')).toBe('/basket');
+    const cookies = cookiesFrom(response);
+    expect(cookies.access_token).toMatch(/^access_token=access-login;/);
+    expect(cookies.access_token).toMatch(/HttpOnly/);
+    expect(cookies.access_token).toMatch(/SameSite=Lax/);
+    expect(cookies.refresh_token).toMatch(/^refresh_token=refresh-login;/);
+    expect(cookies.refresh_token).toMatch(/HttpOnly/);
+    expect(calls).toEqual([
+      {
+        path: '/login',
+        body: { email: 'ada@example.com', password: 'correct' },
+      },
+    ]);
+  });
+
+  it.each(['//evil.com', '/\\evil.com', 'https://evil.com'])(
+    'ignores unsafe returnTo %s',
+    async (returnTo) => {
+      const response = await postForm(`${baseUrl}/login`, {
+        email: 'ada@example.com',
+        password: 'correct',
+        returnTo,
+      });
+
+      expect(response.headers.get('location')).toBe('/product_browse');
+    },
+  );
+
+  it('re-renders the form without cookies when login fails', async () => {
+    const response = await postForm(`${baseUrl}/login`, {
+      email: 'ada@example.com',
+      password: 'wrong',
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain(
+      'Your email or password is invalid',
+    );
+    expect(response.headers.getSetCookie()).toEqual([]);
+  });
+
+  it('keeps returnTo in the login form', async () => {
+    const response = await fetch(`${baseUrl}/login?returnTo=%2Fcheckout`);
+
+    expect(await response.text()).toContain(
+      '<input type="hidden" name="returnTo" value="/checkout">',
+    );
+  });
+
+  it('refreshes an expired access token using the refresh cookie', async () => {
+    const response = await fetch(`${baseUrl}/basket`, {
+      headers: { cookie: 'refresh_token=refresh-expired-1' },
+      redirect: 'manual',
+    });
+
+    expect(response.status).toBe(200);
+    const cookies = cookiesFrom(response);
+    expect(cookies.access_token).toMatch(/^access_token=access-refreshed;/);
+    expect(cookies.refresh_token).toMatch(/^refresh_token=refresh-refreshed;/);
+    expect(calls).toEqual([
+      { path: '/auth/refresh', body: { refreshToken: 'refresh-expired-1' } },
+    ]);
+  });
+
+  it('refreshes only once for concurrent requests with the same token', async () => {
+    const cookie = 'refresh_token=refresh-concurrent';
+    const responses = await Promise.all(
+      ['/basket', '/checkout', '/order_history'].map((path) =>
+        fetch(`${baseUrl}${path}`, { headers: { cookie }, redirect: 'manual' }),
+      ),
+    );
+
+    expect(responses.map((response) => response.status)).toEqual([
+      200, 200, 200,
+    ]);
+    expect(calls.filter((call) => call.path === '/auth/refresh')).toHaveLength(
+      1,
+    );
+  });
+
+  it('clears cookies and redirects to login when refresh is rejected', async () => {
+    refreshStatus = 401;
+
+    const response = await fetch(`${baseUrl}/basket`, {
+      headers: { cookie: 'refresh_token=refresh-revoked' },
+      redirect: 'manual',
+    });
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get('location')).toBe('/login?returnTo=%2Fbasket');
+    const cookies = cookiesFrom(response);
+    expect(cookies.access_token).toMatch(/^access_token=;/);
+    expect(cookies.refresh_token).toMatch(/^refresh_token=;/);
+  });
+
+  it('keeps cookies when the backend is unavailable during refresh', async () => {
+    refreshStatus = 503;
+
+    const response = await fetch(`${baseUrl}/basket`, {
+      headers: { cookie: 'refresh_token=refresh-backend-down' },
+      redirect: 'manual',
+    });
+
+    expect(response.status).toBe(302);
+    expect(response.headers.getSetCookie()).toEqual([]);
+  });
+
+  it('revokes the session and clears cookies on logout', async () => {
+    const response = await postForm(
+      `${baseUrl}/logout`,
+      {},
+      'access_token=access-current; refresh_token=refresh-current',
+    );
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get('location')).toBe('/login');
+    const cookies = cookiesFrom(response);
+    expect(cookies.access_token).toMatch(/^access_token=;/);
+    expect(cookies.refresh_token).toMatch(/^refresh_token=;/);
+    expect(calls).toEqual([
+      { path: '/auth/logout', body: { refreshToken: 'refresh-current' } },
+    ]);
+  });
+});

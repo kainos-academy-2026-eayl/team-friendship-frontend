@@ -1,6 +1,6 @@
 {% macro navLink(item) %}
 <li>
-    <a href="{{ item.href }}" {% if currentPath == item.href %}class="active" aria-current="page"{% endif %}>
+    <a href="{{ item.href }}" {% if currentPath == item.href %}class="active" aria-current="page" {% endif %}>
         {{ item.label }}
     </a>
 </li>
@@ -15,7 +15,15 @@
             {% for item in navigation %}{% if not item.pinToBottom %}{{ navLink(item) }}{% endif %}{% endfor %}
         </ul>
         <ul class="sidebar-links sidebar-links-bottom">
+            {% if isLoggedIn %}
+            <li>
+                <form method="post" action="/logout">
+                    <button type="submit" id="logout-button" class="sidebar-logout">Logout</button>
+                </form>
+            </li>
+            {% else %}
             {% for item in navigation %}{% if item.pinToBottom %}{{ navLink(item) }}{% endif %}{% endfor %}
+            {% endif %}
         </ul>
     </nav>
 
