@@ -5,11 +5,11 @@ import forgotPasswordController from './controllers/forgot-password-controller';
 import loginController from './controllers/loginController';
 import productController from './controllers/productController';
 import registerController from './controllers/registerController';
+import productDisplayController from './controllers/productDisplayController';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
 import homePage from './views/pages/home/home_page';
 import orderHistoryPage from './views/pages/order_history/order_history';
-import productPage from './views/pages/product_display/product_display_page';
 import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
 
@@ -35,7 +35,7 @@ export function createApp(): Express {
 
   app.use('/login', loginController);
   app.use('/register', registerController);
-  app.use(express.urlencoded({ extended: false }));
+  app.use('/products', productDisplayController);
 
   app.get('/', (_req, res) => {
     res.redirect('/home');
@@ -59,10 +59,6 @@ export function createApp(): Express {
 
   app.get('/register', (_req: Request, res: Response) => {
     res.render('register/register', { page: registerPage });
-  });
-
-  app.get('/product_display', (_req: Request, res: Response) => {
-    res.render('product_display/product_display', { page: productPage });
   });
 
   app.use('/product_browse', productController);
