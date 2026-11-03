@@ -57,7 +57,8 @@ export function hasResetPasswordErrors(errors: ResetPasswordErrors) {
 
 export function getResetPasswordPage(
   email: string,
+  token = '',
   errors: ResetPasswordErrors = {},
 ) {
-  return { page: resetPasswordPage, email, errors };
+  return { page: resetPasswordPage, email, token, errors };
 }
