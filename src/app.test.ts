@@ -151,4 +151,47 @@ describe('HTTP application', () => {
     expect(response.headers.get('content-type')).toContain('text/html');
     expect(await response.text()).toContain('id="order-history-title"');
   });
+
+  it.each([
+    '/home',
+    '/basket',
+    '/checkout',
+    '/register',
+    '/product_display',
+    '/forgot_password',
+    '/order_history',
+    '/login',
+  ])('renders the sidebar navigation on %s', async (path) => {
+    const response = await fetch(`${baseUrl}${path}`);
+    const body = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(body).toContain('id="sidebar-toggle"');
+    expect(body).toContain(
+      '<label for="sidebar-toggle" class="sidebar-toggle">',
+    );
+
+    const nav = body.match(/<nav id="sidebar-nav"[\s\S]*?<\/nav>/)?.[0] ?? '';
+    const navHrefs = [...nav.matchAll(/href="([^"]+)"/g)].map(
+      ([, href]) => href,
+    );
+    expect(navHrefs).toEqual([
+      '/home',
+      '/product_browse',
+      '/basket',
+      '/order_history',
+      '/login',
+    ]);
+    expect(nav).toMatch(
+      /<ul class="sidebar-links sidebar-links-bottom">\s*<li>\s*<a href="\/login"/,
+    );
+
+    if (navHrefs.includes(path)) {
+      expect(nav).toContain(
+        `<a href="${path}" class="active" aria-current="page">`,
+      );
+    } else {
+      expect(nav).not.toContain('class="active"');
+    }
+  });
 });

@@ -1,0 +1,60 @@
+{% extends "layouts/main.njk" %}​
+​
+{% block title %}{{ page.title }}{% endblock %}​
+​
+{% block content %}​
+
+<h1 class="page-title">Browse Products</h1>
+
+<section class="search-section">
+    <form method="GET" class="search-form">
+        <input type="text" name="search" class="search-input" placeholder="Search products..." value="{{ searchTerm }}"
+            aria-label="Search products">
+        <button type="submit" class="search-button">
+            Search
+        </button>
+    </form>
+</section>
+{% if error %}
+<p class="error-message" role="alert">{{ error }}</p>
+{% endif %}
+{% if products.length > 0 %}
+<section class="product-grid">
+
+    {% for product in products %}
+    <article class="product-card">
+
+        <img src="{{ product.imageUrl }}" alt="{{ product.name }}" class="product-image">
+
+        <div class="product-details">
+            <h2 class="product-name">
+                {{ product.name }}
+            </h2>
+
+            <p class="product-price">
+                £{{ product.price }}
+            </p>
+
+            <a href="/products/{{ product.id }}" class="view-product-button" id="view-product-button">
+                View Details
+            </a>
+        </div>
+
+    </article>
+    {% endfor %}
+
+</section>
+
+{% else %}
+<section class="no-results">
+    <p>No products found.</p>
+</section>
+{% endif %}
+
+<section class="navigation">
+    <button type="button" class="navigator" onclick="window.location.href='/home'">
+        Logout
+    </button>
+</section>
+
+{% endblock %}

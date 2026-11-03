@@ -3,13 +3,15 @@ import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import forgotPasswordController from './controllers/forgot-password-controller';
 import loginController from './controllers/loginController';
+import productController from './controllers/productController';
 import registerController from './controllers/registerController';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
 import homePage from './views/pages/home/home_page';
-import orderHistoryPage from './views/pages/order_history/order_history_service';
+import orderHistoryPage from './views/pages/order_history/order_history';
 import productPage from './views/pages/product_display/product_display_page';
 import registerPage from './views/pages/register/register_page';
+import sidebarNavigation from './views/partials/sidebar_navigation';
 
 export function createApp(): Express {
   const app = express();
@@ -24,6 +26,13 @@ export function createApp(): Express {
 
   app.use(express.urlencoded({ extended: false }));
   app.use(express.static(resolve(process.cwd(), 'public')));
+
+  app.use((req, res, next) => {
+    res.locals.navigation = sidebarNavigation;
+    res.locals.currentPath = req.path;
+    next();
+  });
+
   app.use('/login', loginController);
   app.use('/register', registerController);
   app.use(express.urlencoded({ extended: false }));
@@ -55,6 +64,8 @@ export function createApp(): Express {
   app.get('/product_display', (_req: Request, res: Response) => {
     res.render('product_display/product_display', { page: productPage });
   });
+
+  app.use('/product_browse', productController);
 
   app.use('/forgot_password', forgotPasswordController);
 
