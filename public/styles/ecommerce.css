@@ -153,7 +153,7 @@ button:disabled:hover {
 /* Product Display Styles */
 
 .product-image {
-  width: 100%;
+  height: 180px;
   display: block;
   margin-bottom: 24px;
   border-radius: 12px;
@@ -265,7 +265,7 @@ input[aria-invalid="true"]:focus-visible {
 
 /* Registration-specific spacing */
 
-#registration-form > div:last-of-type {
+#registration-form>div:last-of-type {
   margin-bottom: 8px;
 }
 
@@ -520,25 +520,26 @@ header a:hover {
   transition: transform 0.25s ease;
 }
 
-.sidebar-toggle-input:checked + .sidebar {
+.sidebar-toggle-input:checked+.sidebar {
   box-shadow: 0 16px 48px #17243b1a;
   transform: translateX(0);
 }
 
-.sidebar-toggle-input:checked + .sidebar .sidebar-nav {
+.sidebar-toggle-input:checked+.sidebar .sidebar-nav {
   visibility: visible;
 }
 
-.sidebar-toggle-input:checked + .sidebar .sidebar-arrow {
+.sidebar-toggle-input:checked+.sidebar .sidebar-arrow {
   transform: rotate(180deg);
 }
 
-.sidebar-toggle-input:focus-visible + .sidebar .sidebar-toggle {
+.sidebar-toggle-input:focus-visible+.sidebar .sidebar-toggle {
   outline: 3px solid #527ccb;
   outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .sidebar,
   .sidebar-nav,
   .sidebar-arrow {
