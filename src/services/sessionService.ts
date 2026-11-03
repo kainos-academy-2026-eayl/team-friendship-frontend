@@ -42,6 +42,24 @@ export async function refreshSession(
   return parseSessionTokens(await response.json()) ?? null;
 }
 
+// Returns false when the backend rejects the token; throws when the backend can't be reached.
+export async function verifyAccessToken(
+  apiUrl: string,
+  accessToken: string,
+): Promise<boolean> {
+  const response = await fetch(`${apiUrl}/me`, {
+    headers: { authorization: `Bearer ${accessToken}` },
+  });
+
+  if (response.status === 401) {
+    return false;
+  }
+  if (!response.ok) {
+    throw new Error(`Session check failed with status ${response.status}`);
+  }
+  return true;
+}
+
 export async function endSession(
   apiUrl: string,
   refreshToken: string,

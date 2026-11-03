@@ -1,5 +1,9 @@
 import type { CookieOptions, NextFunction, Request, Response } from 'express';
-import { refreshSession, type SessionTokens } from '../services/sessionService';
+import {
+  refreshSession,
+  type SessionTokens,
+  verifyAccessToken,
+} from '../services/sessionService';
 
 export const ACCESS_COOKIE = 'access_token';
 export const REFRESH_COOKIE = 'refresh_token';
@@ -61,23 +65,30 @@ export async function loadSession(
 ): Promise<void> {
   let accessToken = cookie(req, ACCESS_COOKIE);
   const refreshToken = cookie(req, REFRESH_COOKIE);
+  let isLoggedIn = false;
 
-  if (!accessToken && refreshToken) {
-    try {
+  try {
+    if (accessToken) {
+      isLoggedIn = await verifyAccessToken(backendUrl(), accessToken);
+    }
+    if (!isLoggedIn && refreshToken) {
       const tokens = await refreshOnce(refreshToken);
       if (tokens) {
         setSessionCookies(res, tokens);
         accessToken = tokens.accessToken;
+        isLoggedIn = true;
       } else {
         clearSessionCookies(res);
       }
-    } catch {
-      // Backend unreachable: treat this request as logged out but keep the cookies for a retry.
+    } else if (!isLoggedIn && accessToken) {
+      res.clearCookie(ACCESS_COOKIE, baseCookie);
     }
+  } catch {
+    // Backend unreachable: treat this request as logged out but keep the cookies for a retry.
   }
 
-  res.locals.accessToken = accessToken;
-  res.locals.isLoggedIn = accessToken !== undefined;
+  res.locals.accessToken = isLoggedIn ? accessToken : undefined;
+  res.locals.isLoggedIn = isLoggedIn;
   next();
 }
 

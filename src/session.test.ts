@@ -12,6 +12,11 @@ interface BackendCall {
 
 const calls: BackendCall[] = [];
 let refreshStatus = 200;
+const validAccessTokens = new Set(
+  ['access-login', 'access-refreshed', 'access-current', 'access-valid'].map(
+    (token) => `Bearer ${token}`,
+  ),
+);
 
 function tokenBody(suffix: string) {
   return {
@@ -47,6 +52,13 @@ function createFakeBackend() {
   });
   backend.post('/auth/logout', (_req, res) => {
     res.status(204).end();
+  });
+  backend.get('/me', (req, res) => {
+    if (!validAccessTokens.has(req.get('authorization') ?? '')) {
+      res.status(401).json({ error: 'Invalid or expired access token' });
+      return;
+    }
+    res.json({ customerId: 1 });
   });
   return backend;
 }
@@ -238,8 +250,49 @@ describe('session authentication', () => {
     const cookies = cookiesFrom(response);
     expect(cookies.access_token).toMatch(/^access_token=;/);
     expect(cookies.refresh_token).toMatch(/^refresh_token=;/);
-    expect(calls).toEqual([
+    expect(calls.filter((call) => call.path === '/auth/logout')).toEqual([
       { path: '/auth/logout', body: { refreshToken: 'refresh-current' } },
     ]);
+  });
+
+  it.each(['/basket', '/checkout', '/order_history'])(
+    'rejects a forged access token on %s',
+    async (path) => {
+      const response = await fetch(`${baseUrl}${path}`, {
+        headers: { cookie: 'access_token=anything' },
+        redirect: 'manual',
+      });
+
+      expect(response.status).toBe(302);
+      expect(response.headers.get('location')).toBe(
+        `/login?returnTo=${encodeURIComponent(path)}`,
+      );
+      expect(cookiesFrom(response).access_token).toMatch(/^access_token=;/);
+    },
+  );
+
+  it('allows a backend-verified access token', async () => {
+    const response = await fetch(`${baseUrl}/basket`, {
+      headers: { cookie: 'access_token=access-valid' },
+      redirect: 'manual',
+    });
+
+    expect(response.status).toBe(200);
+    expect(calls.map((call) => call.path)).toEqual(['/me']);
+  });
+
+  it('refreshes when the access token is rejected', async () => {
+    const response = await fetch(`${baseUrl}/basket`, {
+      headers: {
+        cookie: 'access_token=access-expired; refresh_token=refresh-stale',
+      },
+      redirect: 'manual',
+    });
+
+    expect(response.status).toBe(200);
+    expect(cookiesFrom(response).access_token).toMatch(
+      /^access_token=access-refreshed;/,
+    );
+    expect(calls.map((call) => call.path)).toEqual(['/me', '/auth/refresh']);
   });
 });

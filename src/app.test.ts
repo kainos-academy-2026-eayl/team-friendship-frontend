@@ -1,16 +1,36 @@
 import { once } from 'node:events';
 import type { Server } from 'node:http';
+import type { AddressInfo } from 'node:net';
+import express from 'express';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from './app';
 
-// The frontend trusts the cookie's presence; the backend verifies the token on API calls.
 const LOGGED_IN = 'access_token=test-access-token';
+
+function createFakeBackend() {
+  const backend = express();
+  backend.get('/me', (req, res) => {
+    if (req.get('authorization') !== 'Bearer test-access-token') {
+      res.status(401).json({ error: 'Invalid or expired access token' });
+      return;
+    }
+    res.json({ customerId: 1 });
+  });
+  return backend;
+}
 
 describe('HTTP application', () => {
   let server: Server;
+  let backendServer: Server;
   let baseUrl: string;
+  const originalBackendUrl = process.env.BACKEND_URL;
 
   beforeAll(async () => {
+    backendServer = createFakeBackend().listen(0, '127.0.0.1');
+    await once(backendServer, 'listening');
+    const { port: backendPort } = backendServer.address() as AddressInfo;
+    process.env.BACKEND_URL = `http://127.0.0.1:${backendPort}`;
+
     server = createApp().listen(0, '127.0.0.1');
     await once(server, 'listening');
 
@@ -22,10 +42,17 @@ describe('HTTP application', () => {
   });
 
   afterAll(async () => {
-    if (server) {
-      await new Promise<void>((resolve, reject) => {
-        server.close((error) => (error ? reject(error) : resolve()));
-      });
+    if (originalBackendUrl === undefined) {
+      delete process.env.BACKEND_URL;
+    } else {
+      process.env.BACKEND_URL = originalBackendUrl;
+    }
+    for (const s of [server, backendServer]) {
+      if (s) {
+        await new Promise<void>((resolve, reject) => {
+          s.close((error) => (error ? reject(error) : resolve()));
+        });
+      }
     }
   });
 
