@@ -60,12 +60,20 @@ export function createApp(): Express {
   });
 
   app.get('/product_display', async (_req: Request, res: Response) => {
-    const response = await fetch('http://localhost:3000/products');
+    const response = await fetch(
+      `${process.env.BACKEND_URL ?? 'http://localhost:3000'}/products`,
+    );
+    if (!response.ok) {
+      res.status(502).send('Unable to load products.');
+      return;
+    }
     const data = await response.json();
 
     console.log(data);
 
+
     res.render('product_display/product_display', {
+      page: { title: 'Products' },
       products: data.products,
     });
   });
