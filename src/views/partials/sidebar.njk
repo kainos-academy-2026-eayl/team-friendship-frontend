@@ -1,6 +1,6 @@
 {% macro navLink(item) %}
 <li>
-    <a href="{{ item.href }}" {% if currentPath == item.href %}class="active" aria-current="page" {% endif %}>
+    <a href="{{ item.href }}" {% if currentPath == item.href %}class="active" aria-current="page"{% endif %}>
         {{ item.label }}
     </a>
 </li>
