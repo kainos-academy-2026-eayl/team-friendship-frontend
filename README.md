@@ -35,6 +35,11 @@ and that both passwords match. The frontend then posts the email, token and new
 password to the backend's `/reset-password` endpoint. The backend validates the
 single-use token and saves the hashed password in the database; its response is
 shown on the reset page.
+and that both passwords match. Errors are shown under each field. Valid
+passwords are not sent to the backend yet, and the recovery email link is not
+connected yet.
+When reset submission is implemented, the account must be identified using a
+validated reset token, not the editable URL email parameter.
 
 ## Continuous integration
 
