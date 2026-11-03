@@ -6,13 +6,14 @@ const productPage = {
       id: 'add-to-basket',
       type: 'submit',
       label: 'Add to Basket',
-      disabled: true,
+      href: '/basket',
     },
     {
       id: 'continue-shopping',
-      type: 'button',
+      type: 'link',
       label: 'Continue Shopping',
       className: 'secondary',
+      href: '/product_browse',
     },
   ],
 };
