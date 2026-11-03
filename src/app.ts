@@ -8,6 +8,7 @@ import logoutController from './controllers/logoutController';
 import productController from './controllers/productController';
 import registerController from './controllers/registerController';
 import { loadSession, requireLogin } from './controllers/sessionController';
+import resetPasswordController from './controllers/resetPasswordController';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
 import homePage from './views/pages/home/home_page';
@@ -76,6 +77,9 @@ export function createApp(): Express {
   app.use('/forgot_password', forgotPasswordController);
 
   app.get('/order_history', requireLogin, (_req: Request, res: Response) => {
+  app.use('/reset_password', resetPasswordController);
+
+  app.get('/order_history', (_req: Request, res: Response) => {
     res.render('order_history/order_history', { page: orderHistoryPage });
   });
 
