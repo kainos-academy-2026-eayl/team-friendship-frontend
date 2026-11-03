@@ -250,8 +250,27 @@ describe('session authentication', () => {
     const cookies = cookiesFrom(response);
     expect(cookies.access_token).toMatch(/^access_token=;/);
     expect(cookies.refresh_token).toMatch(/^refresh_token=;/);
-    expect(calls.filter((call) => call.path === '/auth/logout')).toEqual([
+    expect(calls).toEqual([
       { path: '/auth/logout', body: { refreshToken: 'refresh-current' } },
+    ]);
+  });
+
+  it('revokes the existing refresh token without rotating it when the access cookie has expired', async () => {
+    const response = await postForm(
+      `${baseUrl}/logout`,
+      {},
+      'refresh_token=refresh-expired-access',
+    );
+
+    expect(response.status).toBe(302);
+    const cookies = cookiesFrom(response);
+    expect(cookies.access_token).toMatch(/^access_token=;/);
+    expect(cookies.refresh_token).toMatch(/^refresh_token=;/);
+    expect(calls).toEqual([
+      {
+        path: '/auth/logout',
+        body: { refreshToken: 'refresh-expired-access' },
+      },
     ]);
   });
 

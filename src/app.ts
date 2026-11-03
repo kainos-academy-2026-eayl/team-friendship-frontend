@@ -30,6 +30,8 @@ export function createApp(): Express {
   app.use(express.urlencoded({ extended: false }));
   app.use(express.static(resolve(process.cwd(), 'public')));
   app.use(cookieParser());
+  // Before loadSession so logout revokes the existing refresh token instead of rotating it first.
+  app.use('/logout', logoutController);
   app.use(loadSession);
 
   app.use((req, res, next) => {
@@ -39,7 +41,6 @@ export function createApp(): Express {
   });
 
   app.use('/login', loginController);
-  app.use('/logout', logoutController);
   app.use('/register', registerController);
   app.use(express.urlencoded({ extended: false }));
 
