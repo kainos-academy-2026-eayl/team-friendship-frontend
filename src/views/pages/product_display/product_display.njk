@@ -6,20 +6,22 @@
 
 <p class="eyebrow">{{ page.eyebrow }}</p>
 
-{% if page.image.src %}
-<img class="product-image" src="{{ page.image.src }}" alt="{{ page.image.alt }}">
-{% endif %}
+<img class="product-image" src="{{ product.imageUrl }}" alt="{{ product.name }}">
 
-<h1 id="product-title">{{ page.title }}</h1>
+<h1 id="product-title">{{ product.name }}</h1>
 
-<p class="price">{{ page.price }}</p>
+<p class="price">£{{ product.price }}</p>
 
 <p class="availability">
-    {{ page.availability }}
+    {% if product.stock > 0 %}
+    In Stock ({{ product.stock }} available)
+    {% else %}
+    Out of Stock
+    {% endif %}
 </p>
 
 <p class="intro">
-    {{ page.description }}
+    {{ product.description }}
 </p>
 
 <form id="product-form">
