@@ -9,7 +9,6 @@ import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
 import homePage from './views/pages/home/home_page';
 import orderHistoryPage from './views/pages/order_history/order_history';
-import productPage from './views/pages/product_display/product_display_page';
 import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
 
@@ -24,7 +23,6 @@ export function createApp(): Express {
 
   app.set('view engine', 'njk');
 
-  app.use(express.urlencoded({ extended: false }));
   app.use(express.static(resolve(process.cwd(), 'public')));
 
   app.use((req, res, next) => {
@@ -33,9 +31,9 @@ export function createApp(): Express {
     next();
   });
 
+  app.use(express.urlencoded({ extended: false }));
   app.use('/login', loginController);
   app.use('/register', registerController);
-  app.use(express.urlencoded({ extended: false }));
 
   app.get('/', (_req, res) => {
     res.redirect('/home');
@@ -61,8 +59,15 @@ export function createApp(): Express {
     res.render('register/register', { page: registerPage });
   });
 
-  app.get('/product_display', (_req: Request, res: Response) => {
-    res.render('product_display/product_display', { page: productPage });
+  app.get('/product_display', async (_req: Request, res: Response) => {
+    const response = await fetch('http://localhost:3000/products');
+    const data = await response.json();
+
+    console.log(data);
+
+    res.render('product_display/product_display', {
+      products: data.products,
+    });
   });
 
   app.use('/product_browse', productController);
