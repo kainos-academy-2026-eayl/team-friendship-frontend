@@ -5,9 +5,9 @@ import forgotPasswordController from './controllers/forgot-password-controller';
 import loginController from './controllers/loginController';
 import productController from './controllers/productController';
 import registerController from './controllers/registerController';
+import resetPasswordController from './controllers/resetPasswordController';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
-import resetPasswordPage from './views/pages/forget_password/reset_password_page';
 import homePage from './views/pages/home/home_page';
 import orderHistoryPage from './views/pages/order_history/order_history';
 import productPage from './views/pages/product_display/product_display_page';
@@ -70,13 +70,7 @@ export function createApp(): Express {
 
   app.use('/forgot_password', forgotPasswordController);
 
-  app.get('/reset_password', (req: Request, res: Response) => {
-    const email = typeof req.query.email === 'string' ? req.query.email : '';
-    res.render('forget_password/reset_password', {
-      page: resetPasswordPage,
-      email,
-    });
-  });
+  app.use('/reset_password', resetPasswordController);
 
   app.get('/order_history', (_req: Request, res: Response) => {
     res.render('order_history/order_history', { page: orderHistoryPage });

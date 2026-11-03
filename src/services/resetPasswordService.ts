@@ -18,4 +18,6 @@ const resetPasswordPage = {
   ],
 };
 
-export default resetPasswordPage;
+export function getResetPasswordPage(email: string) {
+  return { page: resetPasswordPage, email };
+}

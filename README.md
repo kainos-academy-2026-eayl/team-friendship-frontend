@@ -24,6 +24,9 @@ Local hooks can be bypassed, so CI runs the checks independently.
 
 Preview `/reset_password?email=person%40example.com`. The email from the link
 is displayed read-only. Each password field has its own Show/Hide control.
+The page is rendered server-side by [resetPasswordController.ts](src/controllers/resetPasswordController.ts)
+using [resetPasswordService.ts](src/services/resetPasswordService.ts).
+Only the password visibility toggle runs in the browser.
 No password validation or reset API submission is implemented yet; the reset
 button is disabled. The backend recovery email link is not connected yet.
 When reset submission is implemented, the account must be identified using a
