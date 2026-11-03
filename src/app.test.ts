@@ -79,7 +79,7 @@ describe('HTTP application', () => {
     );
   });
 
-  it('renders the reset page with a locked email and masked passwords without validation', async () => {
+  it('renders the reset page with a locked email and masked passwords', async () => {
     const response = await fetch(
       `${baseUrl}/reset_password?email=person%2Breset%40example.com`,
     );
@@ -87,12 +87,57 @@ describe('HTTP application', () => {
 
     expect(response.status).toBe(200);
     expect(body).toContain('value="person+reset@example.com" readonly');
+    expect(body).toContain('method="post" action="/reset_password"');
     expect(body).toContain('name="newPassword" type="password"');
     expect(body).toContain('name="confirmPassword" type="password"');
     expect(body).toContain('data-password-toggle="new-password"');
     expect(body).toContain('data-password-toggle="confirm-password"');
-    expect(body).not.toMatch(/\b(required|minlength|maxlength|pattern)=?/);
+    expect(body).not.toContain('aria-invalid="true"');
     expect(body).toContain('/scripts/reset-password.js');
+  });
+
+  const postResetPassword = (newPassword: string, confirmPassword: string) =>
+    fetch(`${baseUrl}/reset_password`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        email: 'person@example.com',
+        newPassword,
+        confirmPassword,
+      }),
+    });
+
+  it.each([
+    ['short1!', 'Password must be at least 8 characters long.'],
+    ['NoNumbers!', 'Password must contain at least one number.'],
+    ['NoSpecial123', 'Password must contain at least one special character.'],
+  ])('rejects the reset password %s', async (password, message) => {
+    const response = await postResetPassword(password, password);
+    const body = await response.text();
+
+    expect(response.status).toBe(400);
+    expect(body).toContain(message);
+    expect(body).toContain('aria-invalid="true"');
+    expect(body).toContain('value="person@example.com" readonly');
+    expect(body).not.toContain(`value="${password}"`);
+  });
+
+  it('rejects reset passwords that do not match', async () => {
+    const response = await postResetPassword('Valid123!', 'Different123!');
+    const body = await response.text();
+
+    expect(response.status).toBe(400);
+    expect(body).toContain('Passwords do not match.');
+    expect(body).toContain('aria-describedby="confirm-password-error"');
+  });
+
+  it('accepts a valid matching reset password', async () => {
+    const response = await postResetPassword('Valid123!', 'Valid123!');
+    const body = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(body).not.toContain('aria-invalid="true"');
+    expect(body).toContain('Your new password is valid.');
   });
 
   it('escapes the reset email supplied in the link', async () => {
