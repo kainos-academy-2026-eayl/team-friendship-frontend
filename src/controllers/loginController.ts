@@ -39,7 +39,7 @@ router.post('/', loginRateLimit, async (req: Request, res: Response) => {
     return;
   }
 
-  res.redirect('/home');
+  res.redirect('/product_browse');
 });
 
 export default router;
