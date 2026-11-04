@@ -34,7 +34,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 
   res.render('product_display/product_display', {
-    page: f,
+    page: productDisplay,
     product: result.product,
   });
 });

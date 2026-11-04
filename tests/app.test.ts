@@ -3,7 +3,7 @@ import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import express from 'express';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { createApp } from './app';
+import { createApp } from '../src/app';
 
 const LOGGED_IN = 'access_token=test-access-token';
 
