@@ -1,33 +1,19 @@
 const productPage = {
-  title: 'Product name',
-  eyebrow: 'Product details',
-  description: 'Product description',
-  image: {
-    src: '',
-    alt: 'Product image',
-  },
-  price: '£0.00',
-  availability: 'Stock availability',
-  quantityField: {
-    id: 'quantity',
-    name: 'quantity',
-    label: 'Quantity',
-    type: 'number',
-    min: '1',
-    value: '1',
-  },
+  title: 'Product Details',
+  eyebrow: 'Product Information',
   actions: [
     {
       id: 'add-to-basket',
       type: 'submit',
       label: 'Add to Basket',
-      disabled: true,
+      href: '/basket',
     },
     {
       id: 'continue-shopping',
-      type: 'button',
+      type: 'link',
       label: 'Continue Shopping',
       className: 'secondary',
+      href: '/product_browse',
     },
   ],
 };

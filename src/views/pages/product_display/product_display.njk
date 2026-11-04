@@ -4,27 +4,43 @@
 ​
 {% block content %}​
 
-{% for product in products %}
+{% if error %}
+<p class="error-message" role="alert">{{ error }}</p>
+{% endif %}
 
-<div class="product-card">
+{% if product %}
+<img class="product-image" src="{{ product.imageUrl }}" alt="{{ product.name }}">
 
-  <h2>{{ product.productName }}</h2>
+<h1 id="product-title">{{ product.name }}</h1>
 
-  <p>{{ product.productDescription }}</p>
+<p class="price">£{{ product.price }}</p>
 
-  <p>£{{ product.productPrice }}</p>
+<p class="availability">
+  {% if product.stock > 0 %}
+  In Stock ({{ product.stock }} available)
+  {% else %}
+  Out of Stock
+  {% endif %}
+</p>
 
-  <p>Stock: {{ product.productStock }}</p>
+<p class="intro">
+  {{ product.description }}
+</p>
 
-  <button
-  class="add-to-basket"
-  data-product-id="{{ product.productID }}"
->
-  Add To Basket
-</button>
+<input id="quantity" name="quantity" type="number" min="1" value="1" required>
 
+<div class="actions">
+  {% for action in page.actions %}
+  {% if action.href %}
+  <a href="{{ action.href }}" id="{{ action.id }}" class="{{ action.className }}">{{ action.label }}</a>
+  {% else %}
+  <button type="{{ action.type }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
+    {% endif %} {% if action.disabled %}disabled{% endif %}>{{ action.label }}</button>
+  {% endif %}
+  {% endfor %}
 </div>
 
-{% endfor %}
+<p id="status" role="status"></p>
+{% endif %}
 
 {% endblock %}

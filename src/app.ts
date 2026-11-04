@@ -7,6 +7,7 @@ import loginController from './controllers/loginController';
 import logoutController from './controllers/logoutController';
 import { requireSameOrigin } from './controllers/originGuard';
 import productController from './controllers/productController';
+import productDisplayController from './controllers/productDisplayController';
 import registerController from './controllers/registerController';
 import resetPasswordController from './controllers/resetPasswordController';
 import { loadSession, requireLogin } from './controllers/sessionController';
@@ -44,6 +45,7 @@ export function createApp(): Express {
   app.use(express.urlencoded({ extended: false }));
   app.use('/login', loginController);
   app.use('/register', registerController);
+  app.use('/products', productDisplayController);
 
   app.get('/', (_req, res) => {
     res.redirect('/home');
@@ -69,29 +71,29 @@ export function createApp(): Express {
     res.render('register/register', { page: registerPage });
   });
 
-  app.get('/product_display', async (_req: Request, res: Response) => {
-    try {
-      const response = await fetch(
-        `${process.env.BACKEND_URL ?? 'http://localhost:3000'}/products`,
-      );
+  //  app.get('/product_display', async (_req: Request, res: Response) => {
+  //    try {
+  //      const response = await fetch(
+  //        `${process.env.BACKEND_URL ?? 'http://localhost:3000'}/products`,
+  //      );
 
-      if (!response.ok) {
-        throw new Error('Unable to load products');
-      }
+  //      if (!response.ok) {
+  //        throw new Error('Unable to load products');
+  //      }
 
-      const data = await response.json();
+  //      const data = await response.json();
 
-      res.render('product_display/product_display', {
-        page: { title: 'Products' },
-        products: data.products,
-      });
-    } catch {
-      res.render('product_display/product_display', {
-        page: { title: 'Products' },
-        products: [],
-      });
-    }
-  });
+  //      res.render('product_display/product_display', {
+  //        page: { title: 'Products' },
+  //        products: data.products,
+  //      });
+  //    } catch {
+  //      res.render('product_display/product_display', {
+  //        page: { title: 'Products' },
+  //        products: [],
+  //      });
+  //    }
+  //  });
 
   app.use('/product_browse', productController);
 
