@@ -4,6 +4,7 @@ const backendProductSchema = z.object({
   productID: z.number().int().positive(),
   productName: z.string(),
   productDescription: z.string(),
+  productCategory: z.string(),
   productPrice: z.number().nonnegative(),
   productImage: z.string(),
   productStock: z.number().int().nonnegative(),
@@ -17,6 +18,7 @@ export interface Product {
   id: number;
   name: string;
   description: string;
+  category: string;
   price: string;
   imageUrl: string;
   stock: number;
@@ -31,6 +33,7 @@ function toProduct(product: z.infer<typeof backendProductSchema>): Product {
     id: product.productID,
     name: product.productName,
     description: product.productDescription,
+    category: product.productCategory,
     price: product.productPrice.toFixed(2),
     // Backend may send a full URL or relative path; images are served from public/images.
     imageUrl: `/images/products_images/${product.productImage.split('/').pop()}`,
@@ -50,6 +53,52 @@ export function filterProducts(
     (product) =>
       product.name.toLowerCase().includes(term) ||
       product.description.toLowerCase().includes(term),
+  );
+}
+
+export function filterProductsByCategory(
+  products: Product[],
+  category: string | undefined,
+): Product[] {
+  const target = category?.trim().toLowerCase();
+  if (!target) {
+    return products;
+  }
+  return products.filter(
+    (product) => product.category.toLowerCase() === target,
+  );
+}
+
+export function getCategories(products: Product[]): string[] {
+  const byKey = new Map<string, string>();
+  for (const product of products) {
+    const key = product.category.toLowerCase();
+    if (!byKey.has(key)) {
+      byKey.set(key, product.category);
+    }
+  }
+  return [...byKey.values()].sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: 'base' }),
+  );
+}
+
+export const productSortOptions = ['category-asc', 'category-desc'] as const;
+export type ProductSort = (typeof productSortOptions)[number];
+
+export function sortProducts(
+  products: Product[],
+  sort: ProductSort | undefined,
+): Product[] {
+  if (!sort) {
+    return products;
+  }
+  const direction = sort === 'category-desc' ? -1 : 1;
+  return [...products].sort(
+    (a, b) =>
+      direction *
+        a.category.localeCompare(b.category, undefined, {
+          sensitivity: 'base',
+        }) || a.name.localeCompare(b.name),
   );
 }
 
