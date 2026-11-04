@@ -1,9 +1,10 @@
+import { parseSessionTokens, type SessionTokens } from './sessionService';
+
 export type LoginCredentials = Record<string, string>;
 
-export interface LoginResult {
-  ok: boolean;
-  message: string;
-}
+export type LoginResult =
+  | { ok: true; message: string; tokens: SessionTokens }
+  | { ok: false; message: string };
 
 interface LoginResponseBody {
   message?: string;
@@ -24,7 +25,11 @@ export async function login(
     const body: LoginResponseBody = await response.json().catch(() => ({}));
 
     if (response.ok) {
-      return { ok: true, message: body.message ?? 'Login successful' };
+      const tokens = parseSessionTokens(body);
+      if (!tokens) {
+        return { ok: false, message: 'Login failed.' };
+      }
+      return { ok: true, message: body.message ?? 'Login successful', tokens };
     }
 
     const fieldErrors = Object.values(body.details ?? {}).flat();

@@ -2,6 +2,11 @@ import { type Request, type Response, Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { type LoginCredentials, login } from '../services/loginService';
 import loginPage from '../views/pages/login/login_page';
+import {
+  backendUrl,
+  safeReturnTo,
+  setSessionCookies,
+} from './sessionController';
 
 const router = Router();
 const loginRateLimit = rateLimit({
@@ -21,25 +26,30 @@ router.get('/', (req: Request, res: Response) => {
     typeof req.query.error === 'string' ? req.query.error : undefined;
   const success =
     typeof req.query.success === 'string' ? req.query.success : undefined;
-  res.render('login/login', { page: loginPage, error, success });
+  const returnTo = safeReturnTo(req.query.returnTo);
+  res.render('login/login', { page: loginPage, error, success, returnTo });
 });
 
 router.post('/', loginRateLimit, async (req: Request, res: Response) => {
-  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const { returnTo: rawReturnTo, ...body } =
+    req.body && typeof req.body === 'object' ? req.body : {};
+  const returnTo = safeReturnTo(rawReturnTo);
   const credentials = Object.fromEntries(
     Object.entries(body).filter(([, value]) => typeof value === 'string'),
   ) as LoginCredentials;
-  const result = await login(
-    process.env.BACKEND_URL ?? 'http://localhost:3000',
-    credentials,
-  );
+  const result = await login(backendUrl(), credentials);
 
   if (!result.ok) {
-    res.render('login/login', { page: loginPage, error: result.message });
+    res.render('login/login', {
+      page: loginPage,
+      error: result.message,
+      returnTo,
+    });
     return;
   }
 
-  res.redirect('/home');
+  setSessionCookies(res, result.tokens);
+  res.redirect(returnTo ?? '/product_browse');
 });
 
 export default router;

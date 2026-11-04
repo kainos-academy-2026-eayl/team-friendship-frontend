@@ -1,11 +1,16 @@
 import { resolve } from 'node:path';
+import cookieParser from 'cookie-parser';
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import forgotPasswordController from './controllers/forgot-password-controller';
 import loginController from './controllers/loginController';
+import logoutController from './controllers/logoutController';
+import { requireSameOrigin } from './controllers/originGuard';
 import productController from './controllers/productController';
 import productDisplayController from './controllers/productDisplayController';
 import registerController from './controllers/registerController';
+import resetPasswordController from './controllers/resetPasswordController';
+import { loadSession, requireLogin } from './controllers/sessionController';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
 import homePage from './views/pages/home/home_page';
@@ -26,6 +31,11 @@ export function createApp(): Express {
 
   app.use(express.urlencoded({ extended: false }));
   app.use(express.static(resolve(process.cwd(), 'public')));
+  app.use(cookieParser());
+  app.use(requireSameOrigin);
+  // Before loadSession so logout revokes the existing refresh token instead of rotating it first.
+  app.use('/logout', logoutController);
+  app.use(loadSession);
 
   app.use((req, res, next) => {
     res.locals.navigation = sidebarNavigation;
@@ -49,11 +59,11 @@ export function createApp(): Express {
     res.render('home/home', { page: homePage });
   });
 
-  app.get('/basket', (_req: Request, res: Response) => {
+  app.get('/basket', requireLogin, (_req: Request, res: Response) => {
     res.render('basket/basket', { page: basketPage });
   });
 
-  app.get('/checkout', (_req: Request, res: Response) => {
+  app.get('/checkout', requireLogin, (_req: Request, res: Response) => {
     res.render('checkout/checkout', { page: checkoutPage });
   });
 
@@ -65,7 +75,9 @@ export function createApp(): Express {
 
   app.use('/forgot_password', forgotPasswordController);
 
-  app.get('/order_history', (_req: Request, res: Response) => {
+  app.use('/reset_password', resetPasswordController);
+
+  app.get('/order_history', requireLogin, (_req: Request, res: Response) => {
     res.render('order_history/order_history', { page: orderHistoryPage });
   });
 
