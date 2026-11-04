@@ -43,7 +43,6 @@ validated reset token, not the editable URL email parameter.
 
 ## Continuous integration
 
-
 The [Frontend CI workflow](.github/workflows/github-actions.yml) installs
 locked dependencies, builds, lints and runs Vitest on:
 

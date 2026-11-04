@@ -215,63 +215,6 @@ button:disabled:hover {
 
 /* Registration Page Styles */
 
-#reset-email {
-  background: #e9edf2;
-  color: #596579;
-  cursor: not-allowed;
-  margin-bottom: 8px;
-}
-
-#reset-email-help {
-  margin: 0 0 20px;
-  color: #596579;
-  font-size: 14px;
-}
-
-.reset-password-field {
-  position: relative;
-  margin-bottom: 20px;
-}
-
-.reset-password-field input {
-  min-width: 0;
-  margin-bottom: 0;
-  padding-right: 52px;
-}
-
-.reset-password-field .password-toggle {
-  position: absolute;
-  top: 50%;
-  right: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  min-height: 40px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #596579;
-  transform: translateY(-50%);
-}
-
-.password-toggle[hidden] {
-  display: none;
-}
-
-.reset-password-field .password-toggle:hover {
-  background: #eef3fc;
-  color: #2853a2;
-}
-
-.password-eye-slash {
-  display: none;
-}
-
-.password-toggle[aria-pressed="true"] .password-eye-slash {
-  display: block;
-}
-
 header {
   width: 100%;
   max-width: 1200px;
@@ -536,7 +479,8 @@ header a:hover {
   border-top: 1px solid #e0e5ee;
 }
 
-.sidebar-links a {
+.sidebar-links a,
+.sidebar-logout {
   display: block;
   padding: 10px 12px;
   border-radius: 8px;
@@ -545,7 +489,17 @@ header a:hover {
   text-decoration: none;
 }
 
-.sidebar-links a:hover {
+.sidebar-logout {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-links a:hover,
+.sidebar-logout:hover {
   background: #eef3fc;
   color: #1c3e7d;
 }

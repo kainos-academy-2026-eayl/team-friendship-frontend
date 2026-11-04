@@ -9,6 +9,9 @@
 <p class="intro">{{ page.intro }}</p>
 
 <form id="login-form" method="post" action="/login">
+    {% if returnTo %}
+    <input type="hidden" name="returnTo" value="{{ returnTo }}">
+    {% endif %}
     {% for field in page.fields %}
     <label for="{{ field.id }}">{{ field.label }}</label>
     <input id="{{ field.id }}" name="{{ field.name }}" type="{{ field.type }}" autocomplete="{{ field.autocomplete }}"
