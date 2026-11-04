@@ -1,23 +1,15 @@
+import type {
+  LoginCredentials,
+  LoginResponseBody,
+  LoginResult,
+} from '../models/loginModel';
 import loginPage from '../views/pages/login/login_page';
 import {
   applyPasswordState,
   emptyPasswordState,
   type PasswordState,
 } from './passwordVisibilityService';
-import { parseSessionTokens, type SessionTokens } from './sessionService';
-
-export type LoginCredentials = Record<string, string>;
-
-export type LoginResult =
-  | { ok: true; message: string; tokens: SessionTokens; isAdmin: boolean }
-  | { ok: false; message: string };
-
-interface LoginResponseBody {
-  customer?: { role?: string };
-  message?: string;
-  error?: string;
-  details?: Record<string, string[]>;
-}
+import { parseSessionTokens } from './sessionService';
 
 export async function login(
   apiUrl: string,

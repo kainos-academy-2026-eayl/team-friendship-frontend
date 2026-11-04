@@ -1,8 +1,8 @@
 import { type Request, type Response, Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
+import type { LoginCredentials } from '../models/loginModel';
 import {
   getLoginPage,
-  type LoginCredentials,
   login,
   loginFieldNames,
   loginPasswordFieldNames,
