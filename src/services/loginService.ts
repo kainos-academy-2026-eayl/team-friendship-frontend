@@ -1,22 +1,15 @@
+import type {
+  LoginCredentials,
+  LoginResponseBody,
+  LoginResult,
+} from '../models/loginModel';
 import loginPage from '../views/pages/login/login_page';
 import {
   applyPasswordState,
   emptyPasswordState,
   type PasswordState,
 } from './passwordVisibilityService';
-import { parseSessionTokens, type SessionTokens } from './sessionService';
-
-export type LoginCredentials = Record<string, string>;
-
-export type LoginResult =
-  | { ok: true; message: string; tokens: SessionTokens }
-  | { ok: false; message: string };
-
-interface LoginResponseBody {
-  message?: string;
-  error?: string;
-  details?: Record<string, string[]>;
-}
+import { parseSessionTokens } from './sessionService';
 
 export async function login(
   apiUrl: string,
@@ -35,7 +28,12 @@ export async function login(
       if (!tokens) {
         return { ok: false, message: 'Login failed.' };
       }
-      return { ok: true, message: body.message ?? 'Login successful', tokens };
+      return {
+        ok: true,
+        message: body.message ?? 'Login successful',
+        tokens,
+        isAdmin: body.customer?.role === 'admin',
+      };
     }
 
     const fieldErrors = Object.values(body.details ?? {}).flat();

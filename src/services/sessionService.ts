@@ -42,22 +42,29 @@ export async function refreshSession(
   return parseSessionTokens(await response.json()) ?? null;
 }
 
-// Returns false when the backend rejects the token; throws when the backend can't be reached.
-export async function verifyAccessToken(
+// Roles must come from the backend, never from form fields or unsigned cookies.
+export async function getSessionUser(
   apiUrl: string,
   accessToken: string,
-): Promise<boolean> {
+): Promise<{ isAdmin: boolean } | null> {
   const response = await fetch(`${apiUrl}/me`, {
     headers: { authorization: `Bearer ${accessToken}` },
   });
 
   if (response.status === 401) {
-    return false;
+    return null;
   }
   if (!response.ok) {
     throw new Error(`Session check failed with status ${response.status}`);
   }
-  return true;
+  const body: unknown = await response.json();
+  return {
+    isAdmin:
+      typeof body === 'object' &&
+      body !== null &&
+      'role' in body &&
+      body.role === 'admin',
+  };
 }
 
 export async function endSession(

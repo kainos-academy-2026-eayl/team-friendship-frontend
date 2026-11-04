@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import cookieParser from 'cookie-parser';
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
+import adminController from './controllers/adminController';
 import forgotPasswordController from './controllers/forgot-password-controller';
 import loginController from './controllers/loginController';
 import logoutController from './controllers/logoutController';
@@ -43,6 +44,7 @@ export function createApp(): Express {
 
   app.use(express.urlencoded({ extended: false }));
   app.use('/login', loginController);
+  app.use('/admin', adminController);
   app.use('/register', registerController);
 
   app.get('/', (_req, res) => {

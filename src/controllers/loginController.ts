@@ -1,8 +1,8 @@
 import { type Request, type Response, Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
+import type { LoginCredentials } from '../models/loginModel';
 import {
   getLoginPage,
-  type LoginCredentials,
   login,
   loginFieldNames,
   loginPasswordFieldNames,
@@ -81,7 +81,7 @@ router.post('/', loginRateLimit, async (req: Request, res: Response) => {
   }
 
   setSessionCookies(res, result.tokens);
-  res.redirect(returnTo ?? '/product_browse');
+  res.redirect(result.isAdmin ? '/admin' : (returnTo ?? '/product_browse'));
 });
 
 export default router;

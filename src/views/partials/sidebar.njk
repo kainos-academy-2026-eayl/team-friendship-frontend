@@ -12,6 +12,9 @@
     <nav id="sidebar-nav" class="sidebar-nav" aria-label="Main navigation">
         <p class="sidebar-heading">Menu</p>
         <ul class="sidebar-links">
+            {% if isAdmin %}
+            {{ navLink({ href: '/admin', label: 'Admin portal' }) }}
+            {% endif %}
             {% for item in navigation %}{% if not item.pinToBottom %}{{ navLink(item) }}{% endif %}{% endfor %}
         </ul>
         <ul class="sidebar-links sidebar-links-bottom">
