@@ -2,7 +2,7 @@ import { once } from 'node:events';
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import express from 'express';
-import { afterAll, beforeAll, describe, expect, it, afterEach } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from './app';
 
 const LOGGED_IN = 'access_token=test-access-token';
@@ -18,9 +18,8 @@ function createFakeBackend() {
   });
   return backend;
 }
-import {
-  vi
-} from 'vitest';
+
+import { vi } from 'vitest';
 
 const nativeFetch = globalThis.fetch.bind(globalThis);
 
