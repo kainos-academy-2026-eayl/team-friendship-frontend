@@ -2,7 +2,7 @@ import { get, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import express from 'express';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import productDisplayController from './productDisplayController';
+import productDisplayController from '../src/controllers/productDisplayController';
 
 const backendProduct = {
   productID: 1,
@@ -66,7 +66,7 @@ describe('productDisplayController', () => {
   it.each(['not JSON', JSON.stringify({ product: {} })])(
     'returns 502 for an invalid response body: %s',
     async (body) => {
-      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(console, 'error').mockImplementation(() => { });
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body)));
 
       expect(await requestProduct()).toBe(502);
