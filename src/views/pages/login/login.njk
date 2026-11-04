@@ -3,6 +3,7 @@
 {% block title %}{{ page.title }}{% endblock %}​
 ​
 {% block content %}​
+{% from "partials/password_toggle.njk" import passwordToggle %}
 
 <p class="eyebrow">{{ page.eyebrow }}</p>
 <h1 id="login-title">{{ page.title }}</h1>
@@ -11,8 +12,16 @@
 <form id="login-form" method="post" action="/login">
     {% for field in page.fields %}
     <label for="{{ field.id }}">{{ field.label }}</label>
+    {% if field.type == 'password' %}
+    <div class="password-field">
+        <input id="{{ field.id }}" name="{{ field.name }}" type="password" autocomplete="{{ field.autocomplete }}"
+            placeholder="{{ field.placeholder }}" required>
+        {{ passwordToggle(field.id, field.label) }}
+    </div>
+    {% else %}
     <input id="{{ field.id }}" name="{{ field.name }}" type="{{ field.type }}" autocomplete="{{ field.autocomplete }}"
         placeholder="{{ field.placeholder }}" required>
+    {% endif %}
     {% endfor %}
 
     <a href="/forgot_password" class="forgot-password" id="{{ page.forgotPassword.id }}">
@@ -31,6 +40,8 @@
     </div>
 </form>
 <p id="status" role="status">{% if error %}{{ error }}{% elif success %}{{ success }}{% endif %}</p>
+
+<script src="/scripts/password-toggle.js" defer></script>
 
 
 

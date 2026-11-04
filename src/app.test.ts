@@ -50,9 +50,20 @@ describe('HTTP application', () => {
     expect(body).toContain('method="post" action="/login"');
     expect(body).toContain('href="/register"');
     expect(body).not.toContain('/scripts/login.js');
+    expect(body).toContain('name="password" type="password"');
+    expect(body).toContain('data-password-toggle="password"');
+    expect(body).toContain('/scripts/password-toggle.js');
     expect(body).toContain(
       '<link rel="stylesheet" href="/styles/ecommerce.css">',
     );
+  });
+
+  it('serves the password visibility toggle script', async () => {
+    const response = await fetch(`${baseUrl}/scripts/password-toggle.js`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('javascript');
+    expect(await response.text()).toContain('data-password-toggle');
   });
 
   it('serves the registration page', async () => {
@@ -108,7 +119,7 @@ describe('HTTP application', () => {
     expect(body).toContain('data-password-toggle="new-password"');
     expect(body).toContain('data-password-toggle="confirm-password"');
     expect(body).not.toContain('aria-invalid="true"');
-    expect(body).toContain('/scripts/reset-password.js');
+    expect(body).toContain('/scripts/password-toggle.js');
   });
 
   const postResetPassword = (

@@ -228,18 +228,18 @@ button:disabled:hover {
   font-size: 14px;
 }
 
-.reset-password-field {
+.password-field {
   position: relative;
   margin-bottom: 20px;
 }
 
-.reset-password-field input {
+.password-field input {
   min-width: 0;
   margin-bottom: 0;
   padding-right: 52px;
 }
 
-.reset-password-field .password-toggle {
+.password-field .password-toggle {
   position: absolute;
   top: 50%;
   right: 4px;
@@ -259,7 +259,7 @@ button:disabled:hover {
   display: none;
 }
 
-.reset-password-field .password-toggle:hover {
+.password-field .password-toggle:hover {
   background: #eef3fc;
   color: #2853a2;
 }
