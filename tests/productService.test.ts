@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { filterProducts, getProducts } from './productService';
+import { filterProducts, getProducts } from '../src/services/productService';
 
 const backendProduct = {
   productID: 1,
