@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { Product, ProductResult } from '../models/productDisplayModel';
 
 const backendProductSchema = z.object({
   productID: z.number().int().positive(),
@@ -12,19 +13,6 @@ const backendProductSchema = z.object({
 const productResponseSchema = z.object({
   product: backendProductSchema,
 });
-
-export interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: string;
-  imageUrl: string;
-  stock: number;
-}
-
-export type ProductResult =
-  | { ok: true; product: Product }
-  | { ok: false; status: 404 | 502; message: string };
 
 function toProduct(product: z.infer<typeof backendProductSchema>): Product {
   return {
