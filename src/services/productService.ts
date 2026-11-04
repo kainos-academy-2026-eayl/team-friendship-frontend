@@ -56,6 +56,52 @@ export function filterProducts(
   );
 }
 
+export function filterProductsByCategory(
+  products: Product[],
+  category: string | undefined,
+): Product[] {
+  const target = category?.trim().toLowerCase();
+  if (!target) {
+    return products;
+  }
+  return products.filter(
+    (product) => product.category.toLowerCase() === target,
+  );
+}
+
+export function getCategories(products: Product[]): string[] {
+  const byKey = new Map<string, string>();
+  for (const product of products) {
+    const key = product.category.toLowerCase();
+    if (!byKey.has(key)) {
+      byKey.set(key, product.category);
+    }
+  }
+  return [...byKey.values()].sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: 'base' }),
+  );
+}
+
+export const productSortOptions = ['category-asc', 'category-desc'] as const;
+export type ProductSort = (typeof productSortOptions)[number];
+
+export function sortProducts(
+  products: Product[],
+  sort: ProductSort | undefined,
+): Product[] {
+  if (!sort) {
+    return products;
+  }
+  const direction = sort === 'category-desc' ? -1 : 1;
+  return [...products].sort(
+    (a, b) =>
+      direction *
+        a.category.localeCompare(b.category, undefined, {
+          sensitivity: 'base',
+        }) || a.name.localeCompare(b.name),
+  );
+}
+
 export async function getProducts(apiUrl: string): Promise<ProductsResult> {
   try {
     const response = await fetch(`${apiUrl}/products`, {
