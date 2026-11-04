@@ -4,6 +4,7 @@ const backendProductSchema = z.object({
   productID: z.number().int().positive(),
   productName: z.string(),
   productDescription: z.string(),
+  productCategory: z.string(),
   productPrice: z.number().nonnegative(),
   productImage: z.string(),
   productStock: z.number().int().nonnegative(),
@@ -17,6 +18,7 @@ export interface Product {
   id: number;
   name: string;
   description: string;
+  category: string;
   price: string;
   imageUrl: string;
   stock: number;
@@ -31,6 +33,7 @@ function toProduct(product: z.infer<typeof backendProductSchema>): Product {
     id: product.productID,
     name: product.productName,
     description: product.productDescription,
+    category: product.productCategory,
     price: product.productPrice.toFixed(2),
     // Backend may send a full URL or relative path; images are served from public/images.
     imageUrl: `/images/products_images/${product.productImage.split('/').pop()}`,
