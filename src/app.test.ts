@@ -1,23 +1,40 @@
 import { once } from 'node:events';
 import type { Server } from 'node:http';
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import type { AddressInfo } from 'node:net';
+import express from 'express';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from './app';
+
+const LOGGED_IN = 'access_token=test-access-token';
+
+function createFakeBackend() {
+  const backend = express();
+  backend.get('/me', (req, res) => {
+    if (req.get('authorization') !== 'Bearer test-access-token') {
+      res.status(401).json({ error: 'Invalid or expired access token' });
+      return;
+    }
+    res.json({ customerId: 1 });
+  });
+  return backend;
+}
+
+import { vi } from 'vitest';
 
 const nativeFetch = globalThis.fetch.bind(globalThis);
 
 describe('HTTP application', () => {
   let server: Server;
+  let backendServer: Server;
   let baseUrl: string;
+  const originalBackendUrl = process.env.BACKEND_URL;
 
   beforeAll(async () => {
+    backendServer = createFakeBackend().listen(0, '127.0.0.1');
+    await once(backendServer, 'listening');
+    const { port: backendPort } = backendServer.address() as AddressInfo;
+    process.env.BACKEND_URL = `http://127.0.0.1:${backendPort}`;
+
     server = createApp().listen(0, '127.0.0.1');
     await once(server, 'listening');
 
@@ -29,10 +46,17 @@ describe('HTTP application', () => {
   });
 
   afterAll(async () => {
-    if (server) {
-      await new Promise<void>((resolve, reject) => {
-        server.close((error) => (error ? reject(error) : resolve()));
-      });
+    if (originalBackendUrl === undefined) {
+      delete process.env.BACKEND_URL;
+    } else {
+      process.env.BACKEND_URL = originalBackendUrl;
+    }
+    for (const s of [server, backendServer]) {
+      if (s) {
+        await new Promise<void>((resolve, reject) => {
+          s.close((error) => (error ? reject(error) : resolve()));
+        });
+      }
     }
   });
 
@@ -307,6 +331,7 @@ describe('HTTP application', () => {
     const response = await fetch(
       `${baseUrl}/reset_password?${new URLSearchParams({ email: '"><script>alert(1)</script>' })}`,
     );
+    expect(response.status).toBe(200);
     expect(await response.text()).not.toContain(
       'value=""><script>alert(1)</script>',
     );
@@ -326,13 +351,27 @@ describe('HTTP application', () => {
     );
   });
 
-  it('serves the basket page', async () => {
-    const response = await fetch(`${baseUrl}/basket`);
+  it('serves the basket page when logged in', async () => {
+    const response = await fetch(`${baseUrl}/basket`, {
+      headers: { cookie: LOGGED_IN },
+    });
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
     expect(await response.text()).toContain('id="basket-title"');
   });
+
+  it.each(['/basket', '/checkout', '/order_history'])(
+    'redirects %s to login when logged out',
+    async (path) => {
+      const response = await fetch(`${baseUrl}${path}`, { redirect: 'manual' });
+
+      expect(response.status).toBe(302);
+      expect(response.headers.get('location')).toBe(
+        `/login?returnTo=${encodeURIComponent(path)}`,
+      );
+    },
+  );
 
   it.each(['/home', '/product_display', '/forgot_password'])(
     'serves the page at %s',
@@ -369,16 +408,20 @@ describe('HTTP application', () => {
     await response.text();
   });
 
-  it('serves the checkout page', async () => {
-    const response = await fetch(`${baseUrl}/checkout`);
+  it('serves the checkout page when logged in', async () => {
+    const response = await fetch(`${baseUrl}/checkout`, {
+      headers: { cookie: LOGGED_IN },
+    });
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
     expect(await response.text()).toContain('id="checkout-title"');
   });
 
-  it('serves the order history page', async () => {
-    const response = await fetch(`${baseUrl}/order_history`);
+  it('serves the order history page when logged in', async () => {
+    const response = await fetch(`${baseUrl}/order_history`, {
+      headers: { cookie: LOGGED_IN },
+    });
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
@@ -395,7 +438,9 @@ describe('HTTP application', () => {
     '/order_history',
     '/login',
   ])('renders the sidebar navigation on %s', async (path) => {
-    const response = await fetch(`${baseUrl}${path}`);
+    const response = await fetch(`${baseUrl}${path}`, {
+      headers: { cookie: LOGGED_IN },
+    });
     const body = await response.text();
 
     expect(response.status).toBe(200);
@@ -413,10 +458,9 @@ describe('HTTP application', () => {
       '/product_browse',
       '/basket',
       '/order_history',
-      '/login',
     ]);
     expect(nav).toMatch(
-      /<ul class="sidebar-links sidebar-links-bottom">\s*<li>\s*<a href="\/login"/,
+      /<ul class="sidebar-links sidebar-links-bottom">\s*<li>\s*<form method="post" action="\/logout">/,
     );
 
     if (navHrefs.includes(path)) {
@@ -426,5 +470,18 @@ describe('HTTP application', () => {
     } else {
       expect(nav).not.toContain('class="active"');
     }
+  });
+
+  it('shows the login link instead of logout when logged out', async () => {
+    const response = await fetch(`${baseUrl}/home`);
+    const nav =
+      (await response.text()).match(
+        /<nav id="sidebar-nav"[\s\S]*?<\/nav>/,
+      )?.[0] ?? '';
+
+    expect(nav).toMatch(
+      /<ul class="sidebar-links sidebar-links-bottom">\s*<li>\s*<a href="\/login"/,
+    );
+    expect(nav).not.toContain('action="/logout"');
   });
 });

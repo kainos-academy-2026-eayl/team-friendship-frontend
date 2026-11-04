@@ -46,24 +46,24 @@ router.post('/toggle-password', (req: Request, res: Response) => {
 });
 
 router.post('/', loginRateLimit, async (req: Request, res: Response) => {
-  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const { returnTo: rawReturnTo, ...body } =
+    req.body && typeof req.body === 'object' ? req.body : {};
+  const returnTo = safeReturnTo(rawReturnTo);
   const credentials = Object.fromEntries(
     Object.entries(body).filter(
       ([key, value]) =>
         typeof value === 'string' && !isPasswordVisibilityField(key),
     ),
   ) as LoginCredentials;
-  const result = await login(
-    process.env.BACKEND_URL ?? 'http://localhost:3000',
-    credentials,
-  );
+  const result = await login(backendUrl(), credentials);
 
   if (!result.ok) {
     res.render('login/login', { page: getLoginPage(), error: result.message });
     return;
   }
 
-  res.redirect('/product_browse');
+  setSessionCookies(res, result.tokens);
+  res.redirect(returnTo ?? '/product_browse');
 });
 
 export default router;
