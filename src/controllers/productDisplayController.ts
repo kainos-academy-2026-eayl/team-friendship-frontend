@@ -26,7 +26,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   );
 
   if (!result.ok) {
-    res.status(404).render('product_display/product_display', {
+    res.status(result.status).render('product_display/product_display', {
       page: productDisplay,
       error: result.message,
     });

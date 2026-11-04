@@ -54,6 +54,7 @@ test('getProduct returns failure when backend returns non-success status', async
 
   expect(result).toEqual({
     ok: false,
+    status: 404,
     message: 'Unable to load product.',
   });
 });
@@ -77,6 +78,7 @@ test('getProduct returns failure when backend response is invalid', async () => 
 
   expect(result).toEqual({
     ok: false,
+    status: 502,
     message: 'Unable to load product.',
   });
 });
@@ -100,6 +102,7 @@ test('getProduct returns failure when backend response is invalid', async () => 
 
   expect(result).toEqual({
     ok: false,
+    status: 502,
     message: 'Unable to load product.',
   });
 });
@@ -111,6 +114,7 @@ test('getProduct returns failure when fetch throws', async () => {
 
   expect(result).toEqual({
     ok: false,
+    status: 502,
     message: 'Unable to reach the server. Please try again.',
   });
 });

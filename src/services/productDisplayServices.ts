@@ -24,7 +24,7 @@ export interface Product {
 
 export type ProductResult =
   | { ok: true; product: Product }
-  | { ok: false; message: string };
+  | { ok: false; status: 404 | 502; message: string };
 
 function toProduct(product: z.infer<typeof backendProductSchema>): Product {
   return {
@@ -47,7 +47,11 @@ export async function getProduct(
     });
 
     if (!response.ok) {
-      return { ok: false, message: 'Unable to load product.' };
+      return {
+        ok: false,
+        status: response.status === 404 ? 404 : 502,
+        message: 'Unable to load product.',
+      };
     }
 
     const result = productResponseSchema.safeParse(await response.json());
@@ -60,6 +64,7 @@ export async function getProduct(
 
       return {
         ok: false,
+        status: 502,
         message: 'Unable to load product.',
       };
     }
@@ -71,6 +76,7 @@ export async function getProduct(
   } catch {
     return {
       ok: false,
+      status: 502,
       message: 'Unable to reach the server. Please try again.',
     };
   }
