@@ -261,7 +261,7 @@ describe('HTTP application', () => {
   });
 
   it('saves a valid matching reset password through the backend', async () => {
-    let backendRequest: { url: string; init: RequestInit; } | undefined;
+    let backendRequest: { url: string; init: RequestInit } | undefined;
     vi.stubGlobal(
       'fetch',
       async (input: string | URL | Request, init?: RequestInit) => {
