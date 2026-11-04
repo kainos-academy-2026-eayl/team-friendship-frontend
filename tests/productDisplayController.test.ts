@@ -66,7 +66,7 @@ describe('productDisplayController', () => {
   it.each(['not JSON', JSON.stringify({ product: {} })])(
     'returns 502 for an invalid response body: %s',
     async (body) => {
-      vi.spyOn(console, 'error').mockImplementation(() => { });
+      vi.spyOn(console, 'error').mockImplementation(() => {});
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body)));
 
       expect(await requestProduct()).toBe(502);
