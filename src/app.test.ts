@@ -16,6 +16,9 @@ function createFakeBackend() {
     }
     res.json({ customerId: 1 });
   });
+  backend.get('/products', (_req, res) => {
+    res.json({ products: [] });
+  });
   return backend;
 }
 
@@ -402,7 +405,7 @@ describe('HTTP application', () => {
     },
   );
 
-  it.each(['/home', '/product_display', '/forgot_password'])(
+  it.each(['/home', '/product_browse', '/forgot_password'])(
     'serves the page at %s',
     async (path) => {
       const response = await fetch(`${baseUrl}${path}`);
@@ -462,7 +465,7 @@ describe('HTTP application', () => {
     '/basket',
     '/checkout',
     '/register',
-    '/products',
+    '/product_browse',
     '/forgot_password',
     '/order_history',
     '/login',
@@ -484,7 +487,7 @@ describe('HTTP application', () => {
     );
     expect(navHrefs).toEqual([
       '/home',
-      '/products',
+      '/product_browse',
       '/basket',
       '/order_history',
     ]);
