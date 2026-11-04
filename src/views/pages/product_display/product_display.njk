@@ -4,7 +4,7 @@
 ​
 {% block content %}​
 
-<p class="eyebrow">{{ page.eyebrow }}</p>
+{% for product in products %}
 
 {% if error %}
 <p class="error-message" role="alert">{{ error }}</p>
@@ -29,11 +29,14 @@
     {{ product.description }}
 </p>
 
-<form id="product-form">
+  <button
+  class="add-to-basket"
+  data-product-id="{{ product.productID }}"
+>
+  Add To Basket
+</button>
 
-    <label for="quantity">
-        Quantity
-    </label>
+</div>
 
     <input id="quantity" name="quantity" type="number" min="1" value="1" required>
 

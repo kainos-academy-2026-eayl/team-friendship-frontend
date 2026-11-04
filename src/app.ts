@@ -29,7 +29,6 @@ export function createApp(): Express {
 
   app.set('view engine', 'njk');
 
-  app.use(express.urlencoded({ extended: false }));
   app.use(express.static(resolve(process.cwd(), 'public')));
   app.use(cookieParser());
   app.use(requireSameOrigin);
@@ -43,6 +42,7 @@ export function createApp(): Express {
     next();
   });
 
+  app.use(express.urlencoded({ extended: false }));
   app.use('/login', loginController);
   app.use('/register', registerController);
   app.use('/products', productDisplayController);
