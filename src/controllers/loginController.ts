@@ -1,7 +1,16 @@
 import { type Request, type Response, Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
-import { type LoginCredentials, login } from '../services/loginService';
-import loginPage from '../views/pages/login/login_page';
+import {
+  getLoginPage,
+  type LoginCredentials,
+  login,
+  loginFieldNames,
+  loginPasswordFieldNames,
+} from '../services/loginService';
+import {
+  getPasswordState,
+  isPasswordVisibilityField,
+} from '../services/passwordVisibilityService';
 import {
   backendUrl,
   safeReturnTo,
@@ -14,9 +23,9 @@ const loginRateLimit = rateLimit({
   limit: 10,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  handler: (_req, res) =>
+  handler: (req, res) =>
     res.status(429).render('login/login', {
-      page: loginPage,
+      page: getLoginPage(),
       error: 'Too many login attempts. Please try again later.',
     }),
 });
@@ -27,7 +36,7 @@ router.get('/', (req: Request, res: Response) => {
   const success =
     typeof req.query.success === 'string' ? req.query.success : undefined;
   const returnTo = safeReturnTo(req.query.returnTo);
-  res.render('login/login', { page: loginPage, error, success, returnTo });
+  res.render('login/login', { page: getLoginPage(), error, success, returnTo });
 });
 
 router.post('/', loginRateLimit, async (req: Request, res: Response) => {
@@ -41,7 +50,7 @@ router.post('/', loginRateLimit, async (req: Request, res: Response) => {
 
   if (!result.ok) {
     res.render('login/login', {
-      page: loginPage,
+      page: getLoginPage(),
       error: result.message,
       returnTo,
     });
