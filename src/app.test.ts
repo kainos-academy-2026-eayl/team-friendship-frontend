@@ -230,6 +230,7 @@ describe('HTTP application', () => {
     const response = await fetch(
       `${baseUrl}/reset_password?${new URLSearchParams({ email: '"><script>alert(1)</script>' })}`,
     );
+    expect(response.status).toBe(200);
     expect(await response.text()).not.toContain(
       'value=""><script>alert(1)</script>',
     );
