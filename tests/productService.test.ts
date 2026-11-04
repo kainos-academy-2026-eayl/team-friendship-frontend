@@ -5,7 +5,7 @@ import {
   getCategories,
   getProducts,
   sortProducts,
-} from './productService';
+} from '../src/services/productService.ts';
 
 const backendProduct = {
   productID: 1,
@@ -60,7 +60,7 @@ describe('productService', () => {
   });
 
   it('rejects responses that fail schema validation', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => { });
     mockFetch({ products: [{ ...backendProduct, productPrice: 'free' }] });
 
     const result = await getProducts('http://backend');
