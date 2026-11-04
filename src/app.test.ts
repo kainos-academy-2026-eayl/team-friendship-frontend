@@ -18,6 +18,18 @@ function createFakeBackend() {
   });
   return backend;
 }
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
+import { createApp } from './app';
+
+const nativeFetch = globalThis.fetch.bind(globalThis);
 
 describe('HTTP application', () => {
   let server: Server;
@@ -54,6 +66,10 @@ describe('HTTP application', () => {
         });
       }
     }
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('serves the login page', async () => {
@@ -111,12 +127,13 @@ describe('HTTP application', () => {
 
   it('renders the reset page with a locked email and masked passwords', async () => {
     const response = await fetch(
-      `${baseUrl}/reset_password?email=person%2Breset%40example.com`,
+      `${baseUrl}/reset_password?email=person%2Breset%40example.com&token=reset-token`,
     );
     const body = await response.text();
 
     expect(response.status).toBe(200);
     expect(body).toContain('value="person+reset@example.com" readonly');
+    expect(body).toContain('type="hidden" name="token" value="reset-token"');
     expect(body).toContain('method="post" action="/reset_password"');
     expect(body).toContain('name="newPassword" type="password"');
     expect(body).toContain('name="confirmPassword" type="password"');
@@ -126,12 +143,17 @@ describe('HTTP application', () => {
     expect(body).toContain('/scripts/reset-password.js');
   });
 
-  const postResetPassword = (newPassword: string, confirmPassword: string) =>
-    fetch(`${baseUrl}/reset_password`, {
+  const postResetPassword = (
+    newPassword: string,
+    confirmPassword: string,
+    token = 'reset-token',
+  ) =>
+    nativeFetch(`${baseUrl}/reset_password`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         email: 'person@example.com',
+        token,
         newPassword,
         confirmPassword,
       }),
@@ -161,13 +183,55 @@ describe('HTTP application', () => {
     expect(body).toContain('aria-describedby="confirm-password-error"');
   });
 
-  it('accepts a valid matching reset password', async () => {
+  it('saves a valid matching reset password through the backend', async () => {
+    let backendRequest: { url: string; init: RequestInit } | undefined;
+    vi.stubGlobal(
+      'fetch',
+      async (input: string | URL | Request, init?: RequestInit) => {
+        const url = String(input);
+        if (url === 'http://localhost:3000/reset-password') {
+          backendRequest = { url, init: init ?? {} };
+          return Response.json({ message: 'Password reset successfully.' });
+        }
+        return nativeFetch(input, init);
+      },
+    );
+
     const response = await postResetPassword('Valid123!', 'Valid123!');
     const body = await response.text();
 
     expect(response.status).toBe(200);
     expect(body).not.toContain('aria-invalid="true"');
-    expect(body).toContain('Your new password is valid.');
+    expect(body).toContain('Password reset successfully.');
+    expect(backendRequest?.url).toBe('http://localhost:3000/reset-password');
+    expect(backendRequest?.init?.method).toBe('POST');
+    expect(JSON.parse(String(backendRequest?.init?.body))).toEqual({
+      email: 'person@example.com',
+      token: 'reset-token',
+      password: 'Valid123!',
+    });
+  });
+
+  it('shows backend reset errors instead of reporting success', async () => {
+    vi.stubGlobal(
+      'fetch',
+      async (input: string | URL | Request, init?: RequestInit) => {
+        if (String(input) === 'http://localhost:3000/reset-password') {
+          return Response.json(
+            { error: 'Invalid or expired reset link' },
+            { status: 400 },
+          );
+        }
+        return nativeFetch(input, init);
+      },
+    );
+
+    const response = await postResetPassword('Valid123!', 'Valid123!');
+    const body = await response.text();
+
+    expect(response.status).toBe(400);
+    expect(body).toContain('Invalid or expired reset link');
+    expect(body).not.toContain('Password reset successfully.');
   });
 
   it('escapes the reset email supplied in the link', async () => {
