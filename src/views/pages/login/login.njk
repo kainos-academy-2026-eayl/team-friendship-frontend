@@ -11,6 +11,9 @@
 
 <form id="login-form" method="post" action="/login">
     {{ defaultSubmit('Login') }}
+    {% if returnTo %}
+    <input type="hidden" name="returnTo" value="{{ returnTo }}">
+    {% endif %}
     {% for field in page.fields %}
     <label for="{{ field.id }}">{{ field.label }}</label>
     {% if field.type == 'password' %}

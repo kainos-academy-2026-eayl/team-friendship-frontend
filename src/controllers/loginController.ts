@@ -11,6 +11,11 @@ import {
   getPasswordState,
   isPasswordVisibilityField,
 } from '../services/passwordVisibilityService';
+import {
+  backendUrl,
+  safeReturnTo,
+  setSessionCookies,
+} from './sessionController';
 
 const router = Router();
 const loginRateLimit = rateLimit({
@@ -18,9 +23,10 @@ const loginRateLimit = rateLimit({
   limit: 10,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  handler: (_req, res) =>
+  handler: (req, res) =>
     res.status(429).render('login/login', {
       page: getLoginPage(),
+      returnTo: safeReturnTo(req.body?.returnTo),
       error: 'Too many login attempts. Please try again later.',
     }),
 });
@@ -30,7 +36,12 @@ router.get('/', (req: Request, res: Response) => {
     typeof req.query.error === 'string' ? req.query.error : undefined;
   const success =
     typeof req.query.success === 'string' ? req.query.success : undefined;
-  res.render('login/login', { page: getLoginPage(), error, success });
+  res.render('login/login', {
+    page: getLoginPage(),
+    error,
+    success,
+    returnTo: safeReturnTo(req.query.returnTo),
+  });
 });
 
 router.post('/toggle-password', (req: Request, res: Response) => {
@@ -42,7 +53,10 @@ router.post('/toggle-password', (req: Request, res: Response) => {
   );
 
   res.set('Cache-Control', 'no-store');
-  res.render('login/login', { page: getLoginPage(passwordState) });
+  res.render('login/login', {
+    page: getLoginPage(passwordState),
+    returnTo: safeReturnTo(body.returnTo),
+  });
 });
 
 router.post('/', loginRateLimit, async (req: Request, res: Response) => {
@@ -58,7 +72,11 @@ router.post('/', loginRateLimit, async (req: Request, res: Response) => {
   const result = await login(backendUrl(), credentials);
 
   if (!result.ok) {
-    res.render('login/login', { page: getLoginPage(), error: result.message });
+    res.render('login/login', {
+      page: getLoginPage(),
+      error: result.message,
+      returnTo,
+    });
     return;
   }
 

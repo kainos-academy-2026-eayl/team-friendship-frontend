@@ -302,7 +302,7 @@ describe('HTTP application', () => {
     vi.stubGlobal(
       'fetch',
       async (input: string | URL | Request, init?: RequestInit) => {
-        if (String(input) === 'http://localhost:3000/login') {
+        if (String(input) === `${process.env.BACKEND_URL}/login`) {
           backendBody = JSON.parse(String(init?.body));
           return Response.json({ message: 'Login successful' });
         }
