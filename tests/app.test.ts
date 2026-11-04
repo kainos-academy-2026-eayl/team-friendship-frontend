@@ -3,7 +3,7 @@ import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import express from 'express';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { createApp } from './app';
+import { createApp } from '../src/app';
 
 const LOGGED_IN = 'access_token=test-access-token';
 
@@ -15,6 +15,18 @@ function createFakeBackend() {
       return;
     }
     res.json({ customerId: 1 });
+  });
+  backend.get('/products/:id', (_req, res) => {
+    res.json({
+      product: {
+        productID: 40,
+        productName: 'Marble',
+        productDescription: 'Bold and shiny',
+        productPrice: 30.88,
+        productImage: 'products_images/marble.jpeg',
+        productStock: 10,
+      },
+    });
   });
   return backend;
 }
@@ -272,7 +284,7 @@ describe('HTTP application', () => {
     },
   );
 
-  it.each(['/home', '/product_display', '/forgot_password'])(
+  it.each(['/home', '/products/40', '/forgot_password'])(
     'serves the page at %s',
     async (path) => {
       const response = await fetch(`${baseUrl}${path}`);
