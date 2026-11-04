@@ -1,14 +1,7 @@
 import cors from 'cors';
 import { type Request, type Response, Router } from 'express';
 import { z } from 'zod';
-import {
-  filterProducts,
-  filterProductsByCategory,
-  getCategories,
-  getProducts,
-  productSortOptions,
-  sortProducts,
-} from '../services/productService';
+import { filterProducts, getProducts } from '../services/productService';
 import productBrowse from '../views/pages/product_browse/product_browse';
 
 export const productSearchSchema = z.object({
@@ -18,8 +11,6 @@ export const productSearchSchema = z.object({
     .max(100, { error: 'Search term must be 100 characters or fewer' })
     .optional()
     .default(''),
-  sort: z.enum(productSortOptions).optional().catch(undefined),
-  category: z.string().trim().max(100).optional().catch(undefined),
 });
 
 const router = Router();
@@ -38,7 +29,7 @@ router.get('/', async (req: Request, res: Response) => {
     return;
   }
 
-  const { search: searchTerm, sort, category } = query.data;
+  const searchTerm = query.data.search;
   const result = await getProducts(
     process.env.BACKEND_URL ?? 'http://localhost:3000',
   );
@@ -48,9 +39,6 @@ router.get('/', async (req: Request, res: Response) => {
       page: productBrowse,
       products: [],
       searchTerm,
-      sort,
-      category,
-      categories: [],
       error: result.message,
     });
     return;
@@ -58,17 +46,8 @@ router.get('/', async (req: Request, res: Response) => {
 
   res.render('product_browse/product_browse', {
     page: productBrowse,
-    products: sortProducts(
-      filterProductsByCategory(
-        filterProducts(result.products, searchTerm),
-        category,
-      ),
-      sort,
-    ),
+    products: filterProducts(result.products, searchTerm),
     searchTerm,
-    sort,
-    category,
-    categories: getCategories(result.products),
   });
 });
 

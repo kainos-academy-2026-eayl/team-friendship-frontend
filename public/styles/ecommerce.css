@@ -182,30 +182,6 @@ button:disabled:hover {
   margin-bottom: 32px;
 }
 
-.sort-label {
-  margin-bottom: 8px;
-}
-
-.sort-select {
-  width: 100%;
-  margin-bottom: 20px;
-  padding: 13px 14px;
-  border: 1px solid #aebaca;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #17243b;
-  font: inherit;
-}
-
-.product-category {
-  margin: 4px 0;
-  color: #596579;
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));

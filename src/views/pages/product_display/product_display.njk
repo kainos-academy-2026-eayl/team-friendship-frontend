@@ -1,8 +1,10 @@
-{% extends "layouts/main.njk" %}
+{% extends "layouts/main.njk" %}​
+​
+{% block title %}{{ page.title }}{% endblock %}​
+​
+{% block content %}​
 
-{% block title %}{{ page.title }}{% endblock %}
-
-{% block content %}
+{% for product in products %}
 
 {% if error %}
 <p class="error-message" role="alert">{{ error }}</p>
@@ -27,8 +29,15 @@
     {{ product.description }}
 </p>
 
-<form id="product-form" method="post" action="/basket">
-    <label for="quantity">Quantity</label>
+  <button
+  class="add-to-basket"
+  data-product-id="{{ product.productID }}"
+>
+  Add To Basket
+</button>
+
+</div>
+
     <input id="quantity" name="quantity" type="number" min="1" value="1" required>
 
     <div class="actions">
@@ -41,6 +50,7 @@
         {% endif %}
         {% endfor %}
     </div>
+
 </form>
 
 <p id="status" role="status"></p>
