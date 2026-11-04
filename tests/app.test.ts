@@ -3,20 +3,12 @@ import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import express from 'express';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { createApp } from '../src/app';
+import { createApp } from './app';
 
 const LOGGED_IN = 'access_token=test-access-token';
 
 function createFakeBackend() {
   const backend = express();
-  const product = {
-    productID: 40,
-    productName: 'Marble',
-    productDescription: 'Bold and shiny',
-    productPrice: 30.88,
-    productImage: 'marble.jpeg',
-    productStock: 10,
-  };
   backend.get('/me', (req, res) => {
     if (req.get('authorization') !== 'Bearer test-access-token') {
       res.status(401).json({ error: 'Invalid or expired access token' });
@@ -24,8 +16,6 @@ function createFakeBackend() {
     }
     res.json({ customerId: 1 });
   });
-  backend.get('/products', (_req, res) => res.json({ products: [product] }));
-  backend.get('/products/40', (_req, res) => res.json({ product }));
   return backend;
 }
 
@@ -282,7 +272,7 @@ describe('HTTP application', () => {
     },
   );
 
-  it.each(['/home', '/product_browse', '/products/40', '/forgot_password'])(
+  it.each(['/home', '/product_display', '/forgot_password'])(
     'serves the page at %s',
     async (path) => {
       const response = await fetch(`${baseUrl}${path}`);

@@ -1,8 +1,11 @@
-{% extends "layouts/main.njk" %}
+{% extends "layouts/main.njk" %}​
+​
+{% block title %}{{ page.title }}{% endblock %}​
+​
+{% block content %}​
 
-{% block title %}{{ page.title }}{% endblock %}
+{% for product in products %}
 
-{% block content %}
 {% if error %}
 <p class="error-message" role="alert">{{ error }}</p>
 {% endif %}
@@ -26,24 +29,31 @@
     {{ product.description }}
 </p>
 
-<form id="product-form" action="/basket" method="post">
+  <button
+  class="add-to-basket"
+  data-product-id="{{ product.productID }}"
+>
+  Add To Basket
+</button>
+
+</div>
+
     <input id="quantity" name="quantity" type="number" min="1" value="1" required>
 
-    <button class="add-to-basket" type="submit" data-product-id="{{ product.id }}">
-        Add to Basket
-    </button>
-</form>
+    <div class="actions">
+        {% for action in page.actions %}
+        {% if action.href %}
+        <a href="{{ action.href }}" id="{{ action.id }}" class="{{ action.className }}">{{ action.label }}</a>
+        {% else %}
+        <button type="{{ action.type }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
+            {% endif %} {% if action.disabled %}disabled{% endif %}>{{ action.label }}</button>
+        {% endif %}
+        {% endfor %}
+    </div>
 
-<div class="actions">
-    {% for action in page.actions %}
-    {% if action.href %}
-    <a href="{{ action.href }}" id="{{ action.id }}" class="{{ action.className }}">{{ action.label }}</a>
-    {% else %}
-    <button type="{{ action.type }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"{% endif %} {% if action.disabled %}disabled{% endif %}>{{ action.label }}</button>
-    {% endif %}
-    {% endfor %}
-</div>
+</form>
 
 <p id="status" role="status"></p>
 {% endif %}
+
 {% endblock %}
