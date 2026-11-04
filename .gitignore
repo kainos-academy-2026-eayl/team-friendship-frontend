@@ -1,5 +1,6 @@
 node_modules
 dist/
-public/scripts/
+public/scripts/*
+!public/scripts/password-toggle.js
 .env
 .DS_Store

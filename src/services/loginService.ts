@@ -1,3 +1,9 @@
+import loginPage from '../views/pages/login/login_page';
+import {
+  applyPasswordState,
+  emptyPasswordState,
+  type PasswordState,
+} from './passwordVisibilityService';
 import { parseSessionTokens, type SessionTokens } from './sessionService';
 
 export type LoginCredentials = Record<string, string>;
@@ -43,4 +49,18 @@ export async function login(
       message: 'Unable to reach the server. Please try again.',
     };
   }
+}
+
+export const loginFieldNames = loginPage.fields.map((field) => field.name);
+export const loginPasswordFieldNames = loginPage.fields
+  .filter((field) => field.type === 'password')
+  .map((field) => field.name);
+
+export function getLoginPage(
+  passwordState: PasswordState = emptyPasswordState,
+) {
+  return {
+    ...loginPage,
+    fields: applyPasswordState(loginPage.fields, passwordState),
+  };
 }
