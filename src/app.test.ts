@@ -51,19 +51,78 @@ describe('HTTP application', () => {
     expect(body).toContain('href="/register"');
     expect(body).not.toContain('/scripts/login.js');
     expect(body).toContain('name="password" type="password"');
-    expect(body).toContain('data-password-toggle="password"');
-    expect(body).toContain('/scripts/password-toggle.js');
+    expect(body).toContain('name="togglePassword" value="password"');
+    expect(body).toContain('formaction="/login/toggle-password"');
+    expect(body).not.toContain('<script');
     expect(body).toContain(
       '<link rel="stylesheet" href="/styles/ecommerce.css">',
     );
   });
 
-  it('serves the password visibility toggle script', async () => {
-    const response = await fetch(`${baseUrl}/scripts/password-toggle.js`);
+  const postForm = (path: string, fields: string[][]) =>
+    fetch(`${baseUrl}${path}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(fields),
+    });
+
+  it('shows the login password when the eye is clicked', async () => {
+    const response = await postForm('/login/toggle-password', [
+      ['email', 'person@example.com'],
+      ['password', 'Secret123!'],
+      ['togglePassword', 'password'],
+    ]);
+    const body = await response.text();
 
     expect(response.status).toBe(200);
-    expect(response.headers.get('content-type')).toContain('javascript');
-    expect(await response.text()).toContain('data-password-toggle');
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(body).toContain('name="password" type="text"');
+    expect(body).toContain('value="Secret123!"');
+    expect(body).toContain('value="person@example.com"');
+    expect(body).toContain('aria-label="Hide password"');
+    expect(body).toContain('name="visiblePasswords" value="password"');
+  });
+
+  it('hides the login password when the eye is clicked again', async () => {
+    const response = await postForm('/login/toggle-password', [
+      ['password', 'Secret123!'],
+      ['visiblePasswords', 'password'],
+      ['togglePassword', 'password'],
+    ]);
+    const body = await response.text();
+
+    expect(body).toContain('name="password" type="password"');
+    expect(body).toContain('aria-label="Show password"');
+    expect(body).not.toContain('name="visiblePasswords"');
+  });
+
+  it('ignores toggles for fields that are not passwords', async () => {
+    const response = await postForm('/login/toggle-password', [
+      ['togglePassword', 'email'],
+      ['visiblePasswords', 'email'],
+    ]);
+    const body = await response.text();
+
+    expect(body).toContain('name="email" type="email"');
+    expect(body).not.toContain('name="visiblePasswords"');
+  });
+
+  it('only shows the reset password field whose eye was clicked', async () => {
+    const response = await postForm('/reset_password/toggle-password', [
+      ['email', 'person@example.com'],
+      ['token', 'reset-token'],
+      ['newPassword', 'Valid123!'],
+      ['confirmPassword', 'Valid123?'],
+      ['togglePassword', 'confirmPassword'],
+    ]);
+    const body = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(body).toContain('name="newPassword" type="password"');
+    expect(body).toContain('name="confirmPassword" type="text"');
+    expect(body).toContain('value="Valid123?"');
+    expect(body).toContain('type="hidden" name="token" value="reset-token"');
+    expect(body).not.toContain('aria-invalid="true"');
   });
 
   it('serves the registration page', async () => {
@@ -116,10 +175,11 @@ describe('HTTP application', () => {
     expect(body).toContain('method="post" action="/reset_password"');
     expect(body).toContain('name="newPassword" type="password"');
     expect(body).toContain('name="confirmPassword" type="password"');
-    expect(body).toContain('data-password-toggle="new-password"');
-    expect(body).toContain('data-password-toggle="confirm-password"');
+    expect(body).toContain('name="togglePassword" value="newPassword"');
+    expect(body).toContain('name="togglePassword" value="confirmPassword"');
+    expect(body).toContain('formaction="/reset_password/toggle-password"');
     expect(body).not.toContain('aria-invalid="true"');
-    expect(body).toContain('/scripts/password-toggle.js');
+    expect(body).not.toContain('<script');
   });
 
   const postResetPassword = (
@@ -211,6 +271,36 @@ describe('HTTP application', () => {
     expect(response.status).toBe(400);
     expect(body).toContain('Invalid or expired reset link');
     expect(body).not.toContain('Password reset successfully.');
+  });
+
+  it('does not send password visibility fields to the login backend', async () => {
+    let backendBody: unknown;
+    vi.stubGlobal(
+      'fetch',
+      async (input: string | URL | Request, init?: RequestInit) => {
+        if (String(input) === 'http://localhost:3000/login') {
+          backendBody = JSON.parse(String(init?.body));
+          return Response.json({ message: 'Login successful' });
+        }
+        return nativeFetch(input, init);
+      },
+    );
+
+    await fetch(`${baseUrl}/login`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        email: 'person@example.com',
+        password: 'Secret123!',
+        visiblePasswords: 'password',
+      }),
+      redirect: 'manual',
+    });
+
+    expect(backendBody).toEqual({
+      email: 'person@example.com',
+      password: 'Secret123!',
+    });
   });
 
   it('escapes the reset email supplied in the link', async () => {
