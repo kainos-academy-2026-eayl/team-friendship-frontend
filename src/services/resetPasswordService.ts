@@ -1,9 +1,3 @@
-import {
-  applyPasswordState,
-  emptyPasswordState,
-  type PasswordState,
-} from './passwordVisibilityService';
-
 const resetPasswordPage = {
   title: 'Reset Password',
   eyebrow: 'Account Recovery',
@@ -61,23 +55,10 @@ export function hasResetPasswordErrors(errors: ResetPasswordErrors) {
   return Boolean(errors.newPassword || errors.confirmPassword);
 }
 
-export const resetPasswordFieldNames = resetPasswordPage.fields.map(
-  (field) => field.name,
-);
-
 export function getResetPasswordPage(
   email: string,
   token = '',
   errors: ResetPasswordErrors = {},
-  passwordState: PasswordState = emptyPasswordState,
 ) {
-  return {
-    page: {
-      ...resetPasswordPage,
-      fields: applyPasswordState(resetPasswordPage.fields, passwordState),
-    },
-    email,
-    token,
-    errors,
-  };
+  return { page: resetPasswordPage, email, token, errors };
 }

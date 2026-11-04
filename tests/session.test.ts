@@ -225,20 +225,6 @@ describe('session authentication', () => {
     );
   });
 
-  it('keeps returnTo when toggling password visibility', async () => {
-    const response = await postForm(`${baseUrl}/login/toggle-password`, {
-      email: 'ada@example.com',
-      password: 'correct',
-      togglePassword: 'password',
-      returnTo: '/checkout',
-    });
-
-    expect(await response.text()).toContain(
-      '<input type="hidden" name="returnTo" value="/checkout">',
-    );
-    expect(calls).toEqual([]);
-  });
-
   it('refreshes an expired access token using the refresh cookie', async () => {
     const response = await fetch(`${baseUrl}/basket`, {
       headers: { cookie: 'refresh_token=refresh-expired-1' },

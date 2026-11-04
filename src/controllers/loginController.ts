@@ -1,16 +1,7 @@
 import { type Request, type Response, Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
-import {
-  getLoginPage,
-  type LoginCredentials,
-  login,
-  loginFieldNames,
-  loginPasswordFieldNames,
-} from '../services/loginService';
-import {
-  getPasswordState,
-  isPasswordVisibilityField,
-} from '../services/passwordVisibilityService';
+import { type LoginCredentials, login } from '../services/loginService';
+import loginPage from '../views/pages/login/login_page';
 import {
   backendUrl,
   safeReturnTo,
@@ -23,10 +14,9 @@ const loginRateLimit = rateLimit({
   limit: 10,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  handler: (req, res) =>
+  handler: (_req, res) =>
     res.status(429).render('login/login', {
-      page: getLoginPage(),
-      returnTo: safeReturnTo(req.body?.returnTo),
+      page: loginPage,
       error: 'Too many login attempts. Please try again later.',
     }),
 });
@@ -36,27 +26,8 @@ router.get('/', (req: Request, res: Response) => {
     typeof req.query.error === 'string' ? req.query.error : undefined;
   const success =
     typeof req.query.success === 'string' ? req.query.success : undefined;
-  res.render('login/login', {
-    page: getLoginPage(),
-    error,
-    success,
-    returnTo: safeReturnTo(req.query.returnTo),
-  });
-});
-
-router.post('/toggle-password', (req: Request, res: Response) => {
-  const body = req.body && typeof req.body === 'object' ? req.body : {};
-  const passwordState = getPasswordState(
-    body,
-    loginFieldNames,
-    loginPasswordFieldNames,
-  );
-
-  res.set('Cache-Control', 'no-store');
-  res.render('login/login', {
-    page: getLoginPage(passwordState),
-    returnTo: safeReturnTo(body.returnTo),
-  });
+  const returnTo = safeReturnTo(req.query.returnTo);
+  res.render('login/login', { page: loginPage, error, success, returnTo });
 });
 
 router.post('/', loginRateLimit, async (req: Request, res: Response) => {
@@ -64,16 +35,13 @@ router.post('/', loginRateLimit, async (req: Request, res: Response) => {
     req.body && typeof req.body === 'object' ? req.body : {};
   const returnTo = safeReturnTo(rawReturnTo);
   const credentials = Object.fromEntries(
-    Object.entries(body).filter(
-      ([key, value]) =>
-        typeof value === 'string' && !isPasswordVisibilityField(key),
-    ),
+    Object.entries(body).filter(([, value]) => typeof value === 'string'),
   ) as LoginCredentials;
   const result = await login(backendUrl(), credentials);
 
   if (!result.ok) {
     res.render('login/login', {
-      page: getLoginPage(),
+      page: loginPage,
       error: result.message,
       returnTo,
     });

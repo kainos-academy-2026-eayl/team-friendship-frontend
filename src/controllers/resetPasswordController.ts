@@ -1,9 +1,7 @@
 import { type Request, type Response, Router } from 'express';
-import { getPasswordState } from '../services/passwordVisibilityService';
 import {
   getResetPasswordPage,
   hasResetPasswordErrors,
-  resetPasswordFieldNames,
   validateResetPassword,
 } from '../services/resetPasswordService';
 
@@ -18,26 +16,6 @@ router.get('/', (req: Request, res: Response) => {
   res.render(
     'forget_password/reset_password',
     getResetPasswordPage(email, token),
-  );
-});
-
-router.post('/toggle-password', (req: Request, res: Response) => {
-  const body = req.body && typeof req.body === 'object' ? req.body : {};
-  const passwordState = getPasswordState(
-    body,
-    resetPasswordFieldNames,
-    resetPasswordFieldNames,
-  );
-
-  res.set('Cache-Control', 'no-store');
-  res.render(
-    'forget_password/reset_password',
-    getResetPasswordPage(
-      asString(body.email),
-      asString(body.token),
-      {},
-      passwordState,
-    ),
   );
 });
 

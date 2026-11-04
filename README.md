@@ -28,16 +28,16 @@ displayed read-only and the token is kept in a hidden form field. Each password
 field has its own Show/Hide control.
 The page is rendered server-side by [resetPasswordController.ts](src/controllers/resetPasswordController.ts)
 using [resetPasswordService.ts](src/services/resetPasswordService.ts).
-The password Show/Hide eye is also server-side: it is a submit button that posts
-to `/reset_password/toggle-password` (or `/login/toggle-password` on the login
-page), and [passwordVisibilityService.ts](src/services/passwordVisibilityService.ts)
-decides which fields to re-render as visible. No browser JavaScript is used.
+Only the password visibility toggle runs in the browser.
 Submitting the form posts to `/reset_password`, where the server checks that the
 new password has at least 8 characters, one number and one special character,
 and that both passwords match. The frontend then posts the email, token and new
 password to the backend's `/reset-password` endpoint. The backend validates the
 single-use token and saves the hashed password in the database; its response is
-shown on the reset page. Errors are shown under each field.
+shown on the reset page.
+and that both passwords match. Errors are shown under each field. Valid
+passwords are not sent to the backend yet, and the recovery email link is not
+connected yet.
 When reset submission is implemented, the account must be identified using a
 validated reset token, not the editable URL email parameter.
 
