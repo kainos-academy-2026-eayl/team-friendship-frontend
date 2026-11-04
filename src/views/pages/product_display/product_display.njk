@@ -6,6 +6,11 @@
 
 <p class="eyebrow">{{ page.eyebrow }}</p>
 
+{% if error %}
+<p class="error-message" role="alert">{{ error }}</p>
+{% endif %}
+
+{% if product %}
 <img class="product-image" src="{{ product.imageUrl }}" alt="{{ product.name }}">
 
 <h1 id="product-title">{{ product.name }}</h1>
@@ -46,5 +51,6 @@
 </form>
 
 <p id="status" role="status"></p>
+{% endif %}
 
 {% endblock %}
