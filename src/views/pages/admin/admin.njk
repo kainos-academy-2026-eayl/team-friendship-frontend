@@ -1,0 +1,88 @@
+{% extends "layouts/main.njk" %}
+
+{% block title %}{{ page.title }}{% endblock %}
+
+{% macro stockCard(product, outOfStock, period) %}
+<li class="admin-stock-card{% if outOfStock %} admin-stock-card--empty{% endif %}">
+    <div>
+        <span class="admin-stock-badge{% if outOfStock %} admin-stock-badge--empty{% endif %}">
+            {% if outOfStock %}Out of stock{% else %}Low stock{% endif %}
+        </span>
+        <h3>{{ product.productName }}</h3>
+        <p>{{ product.productStock }} units remaining</p>
+        {% if outOfStock %}<p class="admin-stock-urgent">Action needed: this product is unavailable to customers.</p>{% endif %}
+    </div>
+    <form method="post" action="/admin/products/{{ product.productID }}/reorder">
+        <input type="hidden" name="period" value="{{ period }}">
+        <button type="submit" aria-label="Reorder 20 units of {{ product.productName }}">Reorder +20</button>
+    </form>
+</li>
+{% endmacro %}
+
+{% block content %}
+<p class="eyebrow">Friendshop administration</p>
+<h1>{{ page.title }}</h1>
+<p class="intro">Review sales and keep your stock ready for customers.</p>
+
+{% if error %}
+<div class="admin-notice admin-notice--error" role="alert">{{ error }}</div>
+<p><a href="/admin">Return to the admin dashboard</a></p>
+{% else %}
+<form method="get" action="/admin" class="admin-period-form">
+    <div>
+        <label for="admin-period">Reporting period</label>
+        <select id="admin-period" name="period" class="sort-select" aria-describedby="admin-period-hint">
+            {% for option in periods %}
+            <option value="{{ option.value }}"{% if option.value == period %} selected{% endif %}>{{ option.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit">Update overview</button>
+    <p id="admin-period-hint">This week starts on Monday. This month starts on the first day of the month.</p>
+</form>
+
+{% if reordered %}
+<p class="admin-notice admin-notice--success" role="status">Stock updated successfully. The backend has added 20 units.</p>
+{% endif %}
+
+{% if dashboard %}
+<section aria-labelledby="admin-overview-title">
+    <h2 id="admin-overview-title">Sales overview <span class="admin-section-note">{{ periodLabel }}</span></h2>
+    <dl class="admin-metrics">
+        <div class="admin-metric">
+            <dt>Total orders</dt>
+            <dd>{{ dashboard.totalOrders }}</dd>
+        </div>
+        <div class="admin-metric">
+            <dt>Total revenue</dt>
+            <dd>{{ dashboard.revenue }}</dd>
+        </div>
+    </dl>
+</section>
+
+<section class="admin-stock-section" aria-labelledby="admin-out-of-stock-title">
+    <h2 id="admin-out-of-stock-title">Out of stock <span class="admin-section-note">{{ dashboard.outOfStock.length }} products</span></h2>
+    {% if dashboard.outOfStock.length %}
+    <p class="admin-notice admin-notice--error">Urgent: these products have no stock remaining.</p>
+    <ul class="admin-stock-list">
+        {% for product in dashboard.outOfStock %}{{ stockCard(product, true, period) }}{% endfor %}
+    </ul>
+    {% else %}
+    <p class="admin-empty">No products are out of stock.</p>
+    {% endif %}
+</section>
+
+<section class="admin-stock-section" aria-labelledby="admin-low-stock-title">
+    <h2 id="admin-low-stock-title">Low stock alerts <span class="admin-section-note">{{ dashboard.lowStock.length }} products</span></h2>
+    <p class="admin-stock-description">Products with fewer than 5 units. Stock alerts show current quantities, regardless of the reporting period.</p>
+    {% if dashboard.lowStock.length %}
+    <ul class="admin-stock-list">
+        {% for product in dashboard.lowStock %}{{ stockCard(product, false, period) }}{% endfor %}
+    </ul>
+    {% else %}
+    <p class="admin-empty">No low stock alerts.</p>
+    {% endif %}
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

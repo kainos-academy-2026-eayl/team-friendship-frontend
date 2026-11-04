@@ -9,10 +9,11 @@ import { parseSessionTokens, type SessionTokens } from './sessionService';
 export type LoginCredentials = Record<string, string>;
 
 export type LoginResult =
-  | { ok: true; message: string; tokens: SessionTokens }
+  | { ok: true; message: string; tokens: SessionTokens; isAdmin: boolean }
   | { ok: false; message: string };
 
 interface LoginResponseBody {
+  customer?: { role?: string };
   message?: string;
   error?: string;
   details?: Record<string, string[]>;
@@ -35,7 +36,12 @@ export async function login(
       if (!tokens) {
         return { ok: false, message: 'Login failed.' };
       }
-      return { ok: true, message: body.message ?? 'Login successful', tokens };
+      return {
+        ok: true,
+        message: body.message ?? 'Login successful',
+        tokens,
+        isAdmin: body.customer?.role === 'admin',
+      };
     }
 
     const fieldErrors = Object.values(body.details ?? {}).flat();

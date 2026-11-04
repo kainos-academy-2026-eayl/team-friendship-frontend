@@ -251,6 +251,7 @@ describe('session authentication', () => {
     expect(cookies.refresh_token).toMatch(/^refresh_token=refresh-refreshed;/);
     expect(calls).toEqual([
       { path: '/auth/refresh', body: { refreshToken: 'refresh-expired-1' } },
+      { path: '/me', body: {} },
     ]);
   });
 
@@ -371,6 +372,10 @@ describe('session authentication', () => {
     expect(cookiesFrom(response).access_token).toMatch(
       /^access_token=access-refreshed;/,
     );
-    expect(calls.map((call) => call.path)).toEqual(['/me', '/auth/refresh']);
+    expect(calls.map((call) => call.path)).toEqual([
+      '/me',
+      '/auth/refresh',
+      '/me',
+    ]);
   });
 });

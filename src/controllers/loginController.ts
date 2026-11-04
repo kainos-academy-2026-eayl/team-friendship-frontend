@@ -81,7 +81,7 @@ router.post('/', loginRateLimit, async (req: Request, res: Response) => {
   }
 
   setSessionCookies(res, result.tokens);
-  res.redirect(returnTo ?? '/product_browse');
+  res.redirect(result.isAdmin ? '/admin' : (returnTo ?? '/product_browse'));
 });
 
 export default router;
