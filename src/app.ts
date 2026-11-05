@@ -12,14 +12,22 @@ import productDisplayController from './controllers/productDisplayController';
 import registerController from './controllers/registerController';
 import resetPasswordController from './controllers/resetPasswordController';
 import { loadSession, requireLogin } from './controllers/sessionController';
+import { getBasket } from './services/basketService';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
 import homePage from './views/pages/home/home_page';
 import orderHistoryPage from './views/pages/order_history/order_history';
 import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
-import { getBasket } from './services/basketService';
 
+type BasketItem = {
+  quantity: number;
+  product: {
+    productName: string;
+    productPrice: number;
+    productImage: string;
+  };
+};
 export function createApp(): Express {
   const app = express();
   const viewsDirectory = resolve(process.cwd(), 'src/views');
@@ -66,12 +74,10 @@ export function createApp(): Express {
     const customerId = 1;
     const basket = await getBasket(customerId);
 
-    const products = basket.basket.map((item: any) => ({
+    const products = basket.basket.map((item: BasketItem) => ({
       name: item.product.productName,
       quantity: String(item.quantity),
-      totalPrice: `£${(
-        item.product.productPrice * item.quantity
-      ).toFixed(2)}`,
+      totalPrice: `£${(item.product.productPrice * item.quantity).toFixed(2)}`,
       image: {
         src: `/images/${item.product.productImage}`,
         alt: item.product.productName,
@@ -79,7 +85,7 @@ export function createApp(): Express {
     }));
 
     const basketTotal = basket.basket.reduce(
-      (total: number, item: any) =>
+      (total: number, item: BasketItem) =>
         total + item.product.productPrice * item.quantity,
       0,
     );
@@ -112,4 +118,4 @@ export function createApp(): Express {
   });
 
   return app;
-};
+}

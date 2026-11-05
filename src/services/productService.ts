@@ -25,8 +25,8 @@ export interface Product {
 }
 
 export type ProductsResult =
-  | { ok: true; products: Product[]; }
-  | { ok: false; message: string; };
+  | { ok: true; products: Product[] }
+  | { ok: false; message: string };
 
 function toProduct(product: z.infer<typeof backendProductSchema>): Product {
   return {
@@ -95,9 +95,9 @@ export function sortProducts(
   return [...products].sort(
     (a, b) =>
       direction *
-      a.category.localeCompare(b.category, undefined, {
-        sensitivity: 'base',
-      }) || a.name.localeCompare(b.name),
+        a.category.localeCompare(b.category, undefined, {
+          sensitivity: 'base',
+        }) || a.name.localeCompare(b.name),
   );
 }
 
