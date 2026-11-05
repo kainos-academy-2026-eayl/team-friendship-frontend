@@ -2,6 +2,11 @@ import { type Request, type Response, Router } from 'express';
 import { z } from 'zod';
 import type { OrderItem } from '../models/orderModel';
 import { getHomeAddress } from '../services/customerService';
+import {
+  calculateDiscount,
+  type Discount,
+  getDiscount,
+} from '../services/discountService';
 import { createOrder } from '../services/orderService';
 import { getProducts } from '../services/productService';
 import checkoutPage from '../views/pages/checkout/checkout';
@@ -38,6 +43,11 @@ export const checkoutFormSchema = z
     }),
     address: z.string().trim().optional(),
     postcode: z.string().trim().optional(),
+    discountCode: z
+      .string()
+      .trim()
+      .max(50, 'That discount code is not valid')
+      .optional(),
     cardNumber: z
       .string({ error: 'Enter a 16-digit card number' })
       .transform((value) => value.replace(/[\s-]/g, ''))
@@ -78,36 +88,53 @@ export const checkoutFormSchema = z
 
 type FieldErrors = Partial<Record<string, string>>;
 
+const VALUE_FIELDS = [
+  'firstName',
+  'surname',
+  'deliveryOption',
+  'address',
+  'postcode',
+  'discountCode',
+] as const;
+
 // Card details are deliberately excluded so they are never echoed back into the page.
-type FormValues = Partial<
-  Record<
-    'firstName' | 'surname' | 'deliveryOption' | 'address' | 'postcode',
-    string
-  >
->;
+type FormValues = Partial<Record<(typeof VALUE_FIELDS)[number], string>>;
 
 function formatPrice(amount: number): string {
   return `£${amount.toFixed(2)}`;
 }
 
-async function loadSummary() {
+async function loadSummary(discount: Discount | undefined) {
   const result = await getProducts(backendUrl());
   if (!result.ok) return undefined;
 
   const lines = [];
-  let total = 0;
+  let subtotal = 0;
   for (const item of DUMMY_ORDER_ITEMS) {
     const product = result.products.find((p) => p.id === item.productID);
     if (!product) return undefined;
     const lineTotal = Number(product.price) * item.quantity;
-    total += lineTotal;
+    subtotal += lineTotal;
     lines.push({
       name: product.name,
       quantity: item.quantity,
       lineTotal: formatPrice(lineTotal),
     });
   }
-  return { lines, total: formatPrice(total) };
+
+  const discountAmount = discount
+    ? calculateDiscount(subtotal, discount.percentOff)
+    : 0;
+  return {
+    lines,
+    subtotal: formatPrice(subtotal),
+    discount: discount && {
+      code: discount.code,
+      percentOff: discount.percentOff,
+      amount: formatPrice(discountAmount),
+    },
+    total: formatPrice(subtotal - discountAmount),
+  };
 }
 
 async function renderCheckout(
@@ -116,12 +143,27 @@ async function renderCheckout(
   status: number,
   form: { values?: FormValues; errors?: FieldErrors; formError?: string } = {},
 ): Promise<void> {
+  const values = form.values ?? {};
+  const errors = { ...form.errors };
+  const discountCode = values.discountCode?.trim();
+
+  const discountLookup = discountCode
+    ? await getDiscount(backendUrl(), res.locals.accessToken, discountCode)
+    : undefined;
+  if (discountLookup && !discountLookup.ok) {
+    errors.discountCode ??= discountLookup.message;
+  }
+  const discount = discountLookup?.ok ? discountLookup.discount : undefined;
+
   const [summary, homeAddress] = await Promise.all([
-    loadSummary(),
+    loadSummary(discount),
     getHomeAddress(backendUrl(), res.locals.accessToken),
   ]);
 
-  if (!homeAddress.ok && homeAddress.status === 401) {
+  if (
+    (!homeAddress.ok && homeAddress.status === 401) ||
+    (discountLookup?.ok === false && discountLookup.status === 401)
+  ) {
     res.redirect(`/login?returnTo=${encodeURIComponent(req.originalUrl)}`);
     return;
   }
@@ -132,21 +174,15 @@ async function renderCheckout(
     error: summary ? undefined : 'Unable to load your order summary.',
     homeAddress: homeAddress.ok ? homeAddress.address : undefined,
     homeAddressError: homeAddress.ok ? undefined : homeAddress.message,
-    values: form.values ?? {},
-    errors: form.errors ?? {},
+    values: discount ? { ...values, discountCode: discount.code } : values,
+    errors,
     formError: form.formError,
   });
 }
 
 function pickValues(body: Record<string, unknown>): FormValues {
   const values: FormValues = {};
-  for (const key of [
-    'firstName',
-    'surname',
-    'deliveryOption',
-    'address',
-    'postcode',
-  ] as const) {
+  for (const key of VALUE_FIELDS) {
     const value = body[key];
     if (typeof value === 'string') values[key] = value;
   }
@@ -162,6 +198,14 @@ router.post('/', async (req: Request, res: Response) => {
     req.body && typeof req.body === 'object' ? req.body : {};
   const values = pickValues(body);
   res.set('Cache-Control', 'no-store');
+
+  if (body.action === 'applyDiscount') {
+    const errors: FieldErrors = values.discountCode?.trim()
+      ? {}
+      : { discountCode: 'Enter a discount code' };
+    await renderCheckout(req, res, 200, { values, errors });
+    return;
+  }
 
   const parsed = checkoutFormSchema.safeParse(body);
   if (!parsed.success) {
@@ -183,15 +227,36 @@ router.post('/', async (req: Request, res: Response) => {
     return;
   }
 
-  const { deliveryOption, address, postcode } = parsed.data;
+  const { deliveryOption, address, postcode, discountCode } = parsed.data;
+
+  let canonicalCode: string | undefined;
+  if (discountCode) {
+    const discount = await getDiscount(
+      backendUrl(),
+      res.locals.accessToken,
+      discountCode,
+    );
+    if (!discount.ok) {
+      // renderCheckout repeats the lookup and shows the error beside the discount field.
+      await renderCheckout(req, res, discount.status === 404 ? 400 : 502, {
+        values,
+      });
+      return;
+    }
+    canonicalCode = discount.discount.code;
+  }
+
   const result = await createOrder(
     backendUrl(),
     res.locals.accessToken,
     customerID,
     DUMMY_ORDER_ITEMS,
-    deliveryOption === 'other' && address && postcode
-      ? { address, postcode }
-      : undefined,
+    {
+      ...(deliveryOption === 'other' && address && postcode
+        ? { deliveryAddress: { address, postcode } }
+        : {}),
+      ...(canonicalCode ? { discountCode: canonicalCode } : {}),
+    },
   );
 
   if (!result.ok) {

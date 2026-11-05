@@ -23,6 +23,8 @@ export interface Order {
   status: string;
   address: string;
   postcode: string;
+  discountCode: string | null;
+  discountAmount: number;
   orderServices: OrderService[];
 }
 
@@ -39,7 +41,13 @@ export interface DeliveryAddress {
 // Omitting address/postcode makes the backend use the customer's saved home address.
 export interface CreateOrderRequest extends Partial<DeliveryAddress> {
   customerID: number;
+  discountCode?: string;
   orderServices: OrderItem[];
+}
+
+export interface CreateOrderOptions {
+  deliveryAddress?: DeliveryAddress;
+  discountCode?: string;
 }
 
 export type OrderFailure = { ok: false; status: number; message: string };

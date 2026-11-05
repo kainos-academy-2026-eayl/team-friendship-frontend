@@ -19,6 +19,8 @@
 </p>
 
 <div class="checkout-container">
+  {# The Apply button sits before the form's own buttons, so this hidden button keeps Enter as "Place Order". #}
+  <button type="submit" form="checkout-form" class="default-submit" tabindex="-1" aria-hidden="true">Place Order</button>
 
   <section class="checkout-section">
     <h2>Order Summary</h2>
@@ -33,7 +35,30 @@
     </div>
     {% endfor %}
 
+    {% if summary.discount %}
+    <div class="checkout-item checkout-subtotal">
+      <span>Subtotal</span>
+      <span>{{ summary.subtotal }}</span>
+    </div>
+    <div id="checkout-discount" class="checkout-item checkout-discount">
+      <span>Discount ({{ summary.discount.code }}, {{ summary.discount.percentOff }}% off)</span>
+      <span>−{{ summary.discount.amount }}</span>
+    </div>
+    {% endif %}
+
     <h3>Total: {{ summary.total }}</h3>
+
+    <div class="discount-code">
+      <label for="discount-code">Discount code</label>
+      {{ fieldError('discount-code', errors.discountCode) }}
+      <div class="discount-code-row">
+        <input id="discount-code" name="discountCode" form="checkout-form" type="text" placeholder="Enter code" autocomplete="off" maxlength="50" value="{{ values.discountCode }}"{{ invalid('discount-code', errors.discountCode) }}>
+        <button type="submit" form="checkout-form" name="action" value="applyDiscount" formnovalidate>Apply</button>
+      </div>
+      {% if summary.discount %}
+      <p class="discount-applied" role="status">{{ summary.discount.code }} applied.</p>
+      {% endif %}
+    </div>
     {% else %}
     <p id="checkout-empty">Your basket is empty. <a href="/product_browse">Browse products</a></p>
     {% endif %}

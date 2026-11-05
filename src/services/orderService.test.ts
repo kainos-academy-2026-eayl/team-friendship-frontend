@@ -16,6 +16,8 @@ const backendOrder = {
   status: 'pending',
   address: '123 Town Street',
   postcode: 'BT16 AAA',
+  discountCode: null,
+  discountAmount: 0,
   orderServices: [
     {
       orderID: 7,
@@ -82,8 +84,7 @@ describe('createOrder', () => {
     const fetchMock = mockFetch({ order: backendOrder }, 201);
 
     await createOrder(API, TOKEN, 3, [{ productID: 1, quantity: 2 }], {
-      address: '14 Gift Lane',
-      postcode: 'BT9 5AB',
+      deliveryAddress: { address: '14 Gift Lane', postcode: 'BT9 5AB' },
     });
 
     const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
@@ -93,6 +94,35 @@ describe('createOrder', () => {
       postcode: 'BT9 5AB',
       orderServices: [{ productID: 1, quantity: 2 }],
     });
+  });
+
+  it('sends a discount code when one is given', async () => {
+    const fetchMock = mockFetch(
+      {
+        order: {
+          ...backendOrder,
+          discountCode: 'FRIENDSHIP12',
+          discountAmount: 1.8,
+        },
+      },
+      201,
+    );
+
+    const result = await createOrder(
+      API,
+      TOKEN,
+      3,
+      [{ productID: 1, quantity: 2 }],
+      { discountCode: 'FRIENDSHIP12' },
+    );
+
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(init.body as string)).toEqual({
+      customerID: 3,
+      discountCode: 'FRIENDSHIP12',
+      orderServices: [{ productID: 1, quantity: 2 }],
+    });
+    expect(result.ok && result.order.discountAmount).toBe(1.8);
   });
 
   it('surfaces backend error messages such as insufficient stock', async () => {

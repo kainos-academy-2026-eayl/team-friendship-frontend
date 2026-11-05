@@ -991,3 +991,41 @@ header a:hover {
   background: transparent;
   color: #1c3e7d;
 }
+
+.checkout-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.checkout-subtotal {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e5ee;
+}
+
+.checkout-discount {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.discount-code {
+  margin-top: 24px;
+}
+
+.discount-code-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.discount-code-row input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.discount-applied {
+  margin: 8px 0 0;
+  color: #2e7d32;
+}

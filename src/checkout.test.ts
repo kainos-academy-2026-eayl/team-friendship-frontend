@@ -8,6 +8,7 @@ import { DUMMY_ORDER_ITEMS } from './controllers/checkoutController';
 import { checkoutProducts } from './testFixtures';
 
 const orderRequests: { authorization?: string; body: unknown }[] = [];
+const discountLookups: string[] = [];
 
 function createFakeBackend() {
   const backend = express();
@@ -32,6 +33,14 @@ function createFakeBackend() {
       return;
     }
     res.json({ address: { address: '123 Town Street', postcode: 'BT16 AAA' } });
+  });
+  backend.get('/discounts/:code', (req, res) => {
+    discountLookups.push(req.params.code);
+    if (req.params.code.trim().toUpperCase() !== 'FRIENDSHIP12') {
+      res.status(404).json({ error: 'Invalid discount code' });
+      return;
+    }
+    res.json({ discount: { code: 'FRIENDSHIP12', percentOff: 12 } });
   });
   backend.post('/orders', (req, res) => {
     const authorization = req.get('authorization');
@@ -58,6 +67,8 @@ function createFakeBackend() {
         status: 'pending',
         address: req.body.address ?? '123 Town Street',
         postcode: req.body.postcode ?? 'BT16 AAA',
+        discountCode: req.body.discountCode ?? null,
+        discountAmount: req.body.discountCode ? 21.6 : 0,
         orderServices: [],
       },
     });
@@ -116,6 +127,7 @@ describe('checkout', () => {
 
   beforeEach(() => {
     orderRequests.length = 0;
+    discountLookups.length = 0;
   });
 
   afterAll(async () => {
@@ -172,6 +184,95 @@ describe('checkout', () => {
 
       expect(page).toMatch(/<input id="delivery-home"[^>]*disabled>/);
       expect(page).toContain('Unable to load your home address.');
+    });
+  });
+
+  describe('discount codes', () => {
+    it('applies FRIENDSHIP12 and shows subtotal, discount and total', async () => {
+      const response = await post({
+        action: 'applyDiscount',
+        firstName: 'John',
+        discountCode: ' friendship12 ',
+      });
+      const page = await response.text();
+
+      expect(response.status).toBe(200);
+      expect(orderRequests).toHaveLength(0);
+      expect(page).toMatch(/Subtotal<\/span>\s*<span>£179.97/);
+      expect(page).toContain('Discount (FRIENDSHIP12, 12% off)');
+      expect(page).toContain('−£21.60');
+      expect(page).toContain('Total: £158.37');
+      expect(page).toContain('FRIENDSHIP12 applied.');
+      expect(page).toContain('value="FRIENDSHIP12"');
+      expect(page).toContain('value="John"');
+    });
+
+    it('shows an error for an unknown code and keeps the full price', async () => {
+      const response = await post({
+        action: 'applyDiscount',
+        discountCode: 'FREESTUFF',
+      });
+      const page = await response.text();
+
+      expect(page).toContain('That discount code is not valid');
+      expect(page).toContain('Total: £179.97');
+      expect(page).not.toContain('id="checkout-discount"');
+    });
+
+    it('asks for a code when Apply is pressed with an empty box', async () => {
+      const response = await post({
+        action: 'applyDiscount',
+        discountCode: '',
+      });
+
+      expect(await response.text()).toContain('Enter a discount code');
+      expect(discountLookups).toHaveLength(0);
+    });
+
+    it('keeps Place Order as the default Enter action', async () => {
+      const page = await (await get()).text();
+      const defaultButton = page.indexOf('class="default-submit"');
+      const applyButton = page.indexOf('value="applyDiscount"');
+
+      expect(defaultButton).toBeGreaterThan(-1);
+      expect(defaultButton).toBeLessThan(applyButton);
+    });
+
+    it('sends the code with the order', async () => {
+      const response = await post({
+        ...VALID_FORM,
+        discountCode: 'friendship12',
+      });
+
+      expect(response.status).toBe(303);
+      expect(orderRequests[0]?.body).toEqual({
+        customerID: 3,
+        discountCode: 'FRIENDSHIP12',
+        orderServices: DUMMY_ORDER_ITEMS,
+      });
+    });
+
+    it('does not place an order with an invalid code', async () => {
+      const response = await post({ ...VALID_FORM, discountCode: 'NOPE' });
+
+      expect(response.status).toBe(400);
+      expect(await response.text()).toContain(
+        'That discount code is not valid',
+      );
+      expect(orderRequests).toHaveLength(0);
+    });
+
+    it('keeps the discount applied when other fields fail validation', async () => {
+      const response = await post({
+        ...VALID_FORM,
+        cvv: '',
+        discountCode: 'FRIENDSHIP12',
+      });
+      const page = await response.text();
+
+      expect(response.status).toBe(400);
+      expect(page).toContain('Total: £158.37');
+      expect(page).toContain('Enter the 3-digit CVV');
     });
   });
 

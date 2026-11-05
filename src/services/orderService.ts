@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type {
+  CreateOrderOptions,
   CreateOrderRequest,
-  DeliveryAddress,
   Order,
   OrderFailure,
   OrderItem,
@@ -33,6 +33,8 @@ const orderSchema = z.object({
   status: z.string(),
   address: z.string(),
   postcode: z.string(),
+  discountCode: z.string().nullable(),
+  discountAmount: z.number().nonnegative(),
   orderServices: z.array(orderServiceSchema),
 }) satisfies z.ZodType<Order>;
 
@@ -101,11 +103,12 @@ export async function createOrder(
   accessToken: string,
   customerID: number,
   items: OrderItem[],
-  deliveryAddress?: DeliveryAddress,
+  { deliveryAddress, discountCode }: CreateOrderOptions = {},
 ): Promise<OrderResult> {
   const payload: CreateOrderRequest = {
     customerID,
     ...deliveryAddress,
+    ...(discountCode ? { discountCode } : {}),
     orderServices: items,
   };
   const result = await orderRequest(
