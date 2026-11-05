@@ -1,25 +1,22 @@
 import { type Request, type Response, Router } from 'express';
 import { getOrderHistory } from '../services/orderHistoryService';
 import orderHistoryPage from '../views/pages/order_history/order_history';
+import { backendUrl } from './sessionController';
 
 const router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
-    const customerID = Number(req.query.customerID);
+    const customerID = Number(req.cookies.customerID);
 
-    if (Number.isNaN(customerID)) {
-        res.render('order_history/order_history', {
-            page: {
-                ...orderHistoryPage,
-                orders: [],
-            },
-            error: 'Invalid customer id.',
-        });
+
+    if (!customerID) {
+        res.redirect('/login');
         return;
     }
 
     const result = await getOrderHistory(
-        process.env.BACKEND_URL ?? 'http://localhost:3000',
+        backendUrl(),
+        res.locals.accessToken,
         customerID,
     );
 
@@ -41,5 +38,6 @@ router.get('/', async (req: Request, res: Response) => {
         },
     });
 });
+
 
 export default router;

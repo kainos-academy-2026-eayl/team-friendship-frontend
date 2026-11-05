@@ -14,10 +14,13 @@ export interface GetOrderHistoryResult {
 
 export async function getOrderHistory(
   apiUrl: string,
+  accessToken: string,
   customerID: number,
 ): Promise<GetOrderHistoryResult> {
   try {
-    const response = await fetch(`${apiUrl}/order-history/${customerID}`);
+    const response = await fetch(`${apiUrl}/order-history/${customerID}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
 
     const body = await response.json().catch(() => ({}));
 

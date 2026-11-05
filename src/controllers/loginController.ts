@@ -71,6 +71,7 @@ router.post('/', loginRateLimit, async (req: Request, res: Response) => {
   ) as LoginCredentials;
   const result = await login(backendUrl(), credentials);
 
+
   if (!result.ok) {
     res.render('login/login', {
       page: getLoginPage(),
@@ -81,7 +82,18 @@ router.post('/', loginRateLimit, async (req: Request, res: Response) => {
   }
 
   setSessionCookies(res, result.tokens);
+  console.log(result.customerID);
+  res.cookie(
+    'customerID',
+    String(result.customerID),
+    {
+      httpOnly: true,
+      sameSite: 'lax',
+    },
+  );
   res.redirect(result.isAdmin ? '/admin' : (returnTo ?? '/product_browse'));
 });
+
+
 
 export default router;
