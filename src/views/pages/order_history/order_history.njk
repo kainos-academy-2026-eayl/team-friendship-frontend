@@ -28,9 +28,13 @@
     <h2>Order #{{ order.orderId }}</h2>
 
     <p>Date: {{ order.date }}</p>
-    <p>Product: {{ order.product }}</p>
-    <p>Quantity: {{ order.quantity }}</p>
     <p>Status: {{ order.status }}</p>
+
+    <ul>
+      {% for item in order.items %}
+      <li>{{ item.product }} (Quantity: {{ item.quantity }})</li>
+      {% endfor %}
+    </ul>
   </div>
 
   {% endfor %}
@@ -42,8 +46,6 @@
   </p>
 
   {% endif %}
-
-</div>
 
 </div>
 
