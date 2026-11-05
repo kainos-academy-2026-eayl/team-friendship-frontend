@@ -6,6 +6,7 @@ import adminController from './controllers/adminController';
 import forgotPasswordController from './controllers/forgot-password-controller';
 import loginController from './controllers/loginController';
 import logoutController from './controllers/logoutController';
+import orderController from './controllers/orderController';
 import { requireSameOrigin } from './controllers/originGuard';
 import productController from './controllers/productController';
 import productDisplayController from './controllers/productDisplayController';
@@ -48,6 +49,7 @@ export function createApp(): Express {
   app.use('/admin', adminController);
   app.use('/register', registerController);
   app.use('/products', productDisplayController);
+  app.use('/orders', orderController);
 
   app.get('/', (_req, res) => {
     res.redirect('/home');
