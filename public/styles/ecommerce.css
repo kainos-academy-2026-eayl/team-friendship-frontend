@@ -296,7 +296,9 @@ button:disabled:hover {
 /* Product Display Styles */
 
 .product-image {
+  height: 180px;
   width: 100%;
+  object-fit: contain;
   display: block;
   margin-bottom: 24px;
   border-radius: 12px;
