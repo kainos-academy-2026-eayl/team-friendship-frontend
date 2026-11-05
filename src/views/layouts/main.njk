@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/styles/ecommerce.css">
 </head>
 
-<body>
+<body class="{% block bodyClass %}{% endblock %}">
     {% include "partials/sidebar.njk" %}
 
     {% include "partials/header.njk" %}

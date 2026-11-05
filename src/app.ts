@@ -4,6 +4,7 @@ import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import adminController from './controllers/adminController';
 import forgotPasswordController from './controllers/forgot-password-controller';
+import homeController from './controllers/homeController';
 import loginController from './controllers/loginController';
 import logoutController from './controllers/logoutController';
 import orderHistoryController from './controllers/orderHistoryController';
@@ -13,12 +14,22 @@ import productDisplayController from './controllers/productDisplayController';
 import registerController from './controllers/registerController';
 import resetPasswordController from './controllers/resetPasswordController';
 import { loadSession, requireLogin } from './controllers/sessionController';
+import { getBasket } from './services/basketService';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
 import homePage from './views/pages/home/home_page';
+import orderHistoryPage from './views/pages/order_history/order_history';
 import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
 
+type BasketItem = {
+  quantity: number;
+  product: {
+    productName: string;
+    productPrice: number;
+    productImage: string;
+  };
+};
 export function createApp(): Express {
   const app = express();
   const viewsDirectory = resolve(process.cwd(), 'src/views');
@@ -57,12 +68,35 @@ export function createApp(): Express {
     res.json({ status: 'ok', uptime: process.uptime() });
   });
 
-  app.get('/home', (_req, res) => {
-    res.render('home/home', { page: homePage });
-  });
+  app.use('/home', homeController);
 
-  app.get('/basket', requireLogin, (_req: Request, res: Response) => {
-    res.render('basket/basket', { page: basketPage });
+  app.get('/basket', requireLogin, async (_req: Request, res: Response) => {
+    const customerId = 1;
+    const basket = await getBasket(customerId);
+
+    const products = basket.basket.map((item: BasketItem) => ({
+      name: item.product.productName,
+      quantity: String(item.quantity),
+      totalPrice: `£${(item.product.productPrice * item.quantity).toFixed(2)}`,
+      image: {
+        src: `/images/${item.product.productImage}`,
+        alt: item.product.productName,
+      },
+    }));
+
+    const basketTotal = basket.basket.reduce(
+      (total: number, item: BasketItem) =>
+        total + item.product.productPrice * item.quantity,
+      0,
+    );
+
+    res.render('basket/basket', {
+      page: {
+        ...basketPage,
+        products,
+        basketTotal: `£${basketTotal.toFixed(2)}`,
+      },
+    });
   });
 
   app.get('/checkout', requireLogin, (_req: Request, res: Response) => {
@@ -77,7 +111,7 @@ export function createApp(): Express {
 
   app.use('/forgot_password', forgotPasswordController);
 
-  app.use('/reset_password', requireLogin, resetPasswordController);
+  app.use('/reset_password', resetPasswordController);
 
   app.use('/order_history', requireLogin, orderHistoryController);
 
