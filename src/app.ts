@@ -71,30 +71,6 @@ export function createApp(): Express {
     res.render('register/register', { page: registerPage });
   });
 
-  //  app.get('/product_display', async (_req: Request, res: Response) => {
-  //    try {
-  //      const response = await fetch(
-  //        `${process.env.BACKEND_URL ?? 'http://localhost:3000'}/products`,
-  //      );
-
-  //      if (!response.ok) {
-  //        throw new Error('Unable to load products');
-  //      }
-
-  //      const data = await response.json();
-
-  //      res.render('product_display/product_display', {
-  //        page: { title: 'Products' },
-  //        products: data.products,
-  //      });
-  //    } catch {
-  //      res.render('product_display/product_display', {
-  //        page: { title: 'Products' },
-  //        products: [],
-  //      });
-  //    }
-  //  });
-
   app.use('/product_browse', productController);
 
   app.use('/forgot_password', forgotPasswordController);
