@@ -8,7 +8,6 @@ export type LoginResult =
     message: string;
     tokens: SessionTokens;
     isAdmin: boolean;
-    customerID: number;
   }
   | {
     ok: false;

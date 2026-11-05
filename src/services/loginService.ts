@@ -33,7 +33,6 @@ export async function login(
         message: body.message ?? 'Login successful',
         tokens,
         isAdmin: body.customer?.role === 'admin',
-        customerID: body.customer?.customerID ?? 0,
       };
     }
 
