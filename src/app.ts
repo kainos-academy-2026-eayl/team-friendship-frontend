@@ -67,9 +67,7 @@ export function createApp(): Express {
     res.json({ status: 'ok', uptime: process.uptime() });
   });
 
-  app.get('/home', (_req, res) => {
-    res.render('home/home', { page: homePage });
-  });
+  app.use('/home', homeController);
 
   app.get('/basket', async (_req: Request, res: Response) => {
     const customerId = 1;
