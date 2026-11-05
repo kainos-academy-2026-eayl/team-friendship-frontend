@@ -4,15 +4,15 @@ export type LoginCredentials = Record<string, string>;
 
 export type LoginResult =
   | {
-    ok: true;
-    message: string;
-    tokens: SessionTokens;
-    isAdmin: boolean;
-  }
+      ok: true;
+      message: string;
+      tokens: SessionTokens;
+      isAdmin: boolean;
+    }
   | {
-    ok: false;
-    message: string;
-  };
+      ok: false;
+      message: string;
+    };
 
 export interface LoginResponseBody {
   customer?: {
