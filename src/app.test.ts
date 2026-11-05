@@ -142,6 +142,20 @@ describe('HTTP application', () => {
     expect(body).toContain('id="view-all-products"');
   });
 
+  it('provides browser-side eye controls for both registration passwords', async () => {
+    const response = await fetch(`${baseUrl}/register`);
+    const html = await response.text();
+    expect(html.match(/data-password-toggle/g)).toHaveLength(2);
+    expect(html).toContain('aria-controls="password"');
+    expect(html).toContain('aria-controls="confirm-password"');
+    expect(html).toContain('type="button" class="password-toggle"');
+    expect(html).toContain('src="/scripts/password-toggle.js" defer');
+    expect(html).not.toContain('name="togglePassword"');
+    expect((await fetch(`${baseUrl}/scripts/password-toggle.js`)).status).toBe(
+      200,
+    );
+  });
+
   it('serves the login page', async () => {
     const response = await fetch(`${baseUrl}/login`);
     const body = await response.text();

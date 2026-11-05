@@ -443,6 +443,10 @@ button:disabled:hover {
   color: #2853a2;
 }
 
+.password-field .password-toggle[hidden] {
+  display: none;
+}
+
 .password-eye-slash {
   display: none;
 }
