@@ -5,8 +5,6 @@ import productDisplay from '../views/pages/product_display/product_display_page'
 
 const router = Router();
 
-const BACKEND_URL = process.env.BACKEND_URL ?? 'http://localhost:3000';
-
 const productIdSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
@@ -22,7 +20,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     return;
   }
 
-  const result = await getProduct(BACKEND_URL, params.data.id);
+  const result = await getProduct(params.data.id);
 
   if (!result.ok) {
     res.status(result.status).render('product_display/product_display', {
