@@ -4,6 +4,10 @@
 ​
 {% block content %}​
 
+<a href="/home" class="back-button">
+  ← Back to Home
+</a>
+
 {% if error %}
 <p class="error-message" role="alert">{{ error }}</p>
 {% endif %}
@@ -31,23 +35,13 @@
 
 <div class="actions">
 
-  <form
-    method="post"
-    action="/products/{{ product.id }}/add-to-basket"
-  >
-    <button
-      type="submit"
-      id="add-to-basket"
-    >
+  <form method="post" action="/products/{{ product.id }}/add-to-basket">
+    <button type="submit" id="add-to-basket">
       Add To Basket
     </button>
   </form>
 
-  <a
-    href="/product_browse"
-    id="continue-shopping"
-    class="secondary"
-  >
+  <a href="/product_browse" id="continue-shopping" class="secondary">
     Continue Shopping
   </a>
 

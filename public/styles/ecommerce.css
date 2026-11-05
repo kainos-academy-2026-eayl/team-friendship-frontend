@@ -888,3 +888,24 @@ header a:hover {
     transition: none;
   }
 }
+
+/* Order History styles */
+.back-button {
+  display: inline-block;
+  min-height: auto;
+  margin-bottom: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #2853a2;
+  font-size: 13px;
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.back-button:hover {
+  background: transparent;
+  color: #1c3e7d;
+}
