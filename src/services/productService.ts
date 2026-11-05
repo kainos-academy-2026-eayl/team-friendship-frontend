@@ -4,7 +4,7 @@ const backendProductSchema = z.object({
   productID: z.number().int().positive(),
   productName: z.string(),
   productDescription: z.string(),
-  productCategory: z.string(),
+  productCategory: z.string().nullable(),
   productPrice: z.number().nonnegative(),
   productImage: z.string(),
   productStock: z.number().int().nonnegative(),
@@ -18,24 +18,23 @@ export interface Product {
   id: number;
   name: string;
   description: string;
-  category: string;
+  category: string | null;
   price: string;
   imageUrl: string;
   stock: number;
 }
 
 export type ProductsResult =
-  | { ok: true; products: Product[] }
-  | { ok: false; message: string };
+  | { ok: true; products: Product[]; }
+  | { ok: false; message: string; };
 
 function toProduct(product: z.infer<typeof backendProductSchema>): Product {
   return {
     id: product.productID,
     name: product.productName,
     description: product.productDescription,
-    category: product.productCategory,
+    category: product.productCategory ?? 'Uncategorised',
     price: product.productPrice.toFixed(2),
-    // Backend may send a full URL or relative path; images are served from public/images.
     imageUrl: `/images/products_images/${product.productImage.split('/').pop()}`,
     stock: product.productStock,
   };
@@ -96,9 +95,9 @@ export function sortProducts(
   return [...products].sort(
     (a, b) =>
       direction *
-        a.category.localeCompare(b.category, undefined, {
-          sensitivity: 'base',
-        }) || a.name.localeCompare(b.name),
+      a.category.localeCompare(b.category, undefined, {
+        sensitivity: 'base',
+      }) || a.name.localeCompare(b.name),
   );
 }
 
