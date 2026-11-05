@@ -60,6 +60,9 @@ function createFakeBackend() {
     }
     res.json({ customerId: 1 });
   });
+  backend.get('/basket/:customerId', (_req, res) => {
+    res.json({ basket: [] });
+  });
   return backend;
 }
 
@@ -252,6 +255,7 @@ describe('session authentication', () => {
     expect(calls).toEqual([
       { path: '/auth/refresh', body: { refreshToken: 'refresh-expired-1' } },
       { path: '/me', body: {} },
+      { path: '/basket/1', body: {} },
     ]);
   });
 
@@ -357,7 +361,7 @@ describe('session authentication', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(calls.map((call) => call.path)).toEqual(['/me']);
+    expect(calls.map((call) => call.path)).toEqual(['/me', '/basket/1']);
   });
 
   it('refreshes when the access token is rejected', async () => {
@@ -376,6 +380,7 @@ describe('session authentication', () => {
       '/me',
       '/auth/refresh',
       '/me',
+      '/basket/1',
     ]);
   });
 });

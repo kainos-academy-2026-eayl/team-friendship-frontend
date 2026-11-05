@@ -30,14 +30,27 @@
 <input id="quantity" name="quantity" type="number" min="1" value="1" required>
 
 <div class="actions">
-  {% for action in page.actions %}
-  {% if action.href %}
-  <a href="{{ action.href }}" id="{{ action.id }}" class="{{ action.className }}">{{ action.label }}</a>
-  {% else %}
-  <button type="{{ action.type }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
-    {% endif %} {% if action.disabled %}disabled{% endif %}>{{ action.label }}</button>
-  {% endif %}
-  {% endfor %}
+
+  <form
+    method="post"
+    action="/products/{{ product.id }}/add-to-basket"
+  >
+    <button
+      type="submit"
+      id="add-to-basket"
+    >
+      Add To Basket
+    </button>
+  </form>
+
+  <a
+    href="/product_browse"
+    id="continue-shopping"
+    class="secondary"
+  >
+    Continue Shopping
+  </a>
+
 </div>
 
 <p id="status" role="status"></p>

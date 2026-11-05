@@ -19,6 +19,9 @@ function createFakeBackend() {
   backend.get('/products', (_req, res) => {
     res.json({ products: [] });
   });
+  backend.get('/basket/:customerId', (_req, res) => {
+    res.json({ basket: [] });
+  });
   return backend;
 }
 
@@ -65,6 +68,65 @@ describe('HTTP application', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it('shows featured product images and a browse link on the home page', async () => {
+    const response = await fetch(`${baseUrl}/home`);
+    const body = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(body).toContain('Best selling products');
+    expect(body).toContain(
+      'href="/product_browse" id="view-all-products">View all products</a>',
+    );
+    expect(body).toContain('href="/login"');
+    expect(body).toContain('href="/register"');
+    for (const [image, name] of [
+      ['monopoly.webp', 'Monopoly'],
+      ['catan.webp', 'Catan'],
+      ['cluedo.webp', 'Cluedo'],
+    ]) {
+      expect(body).toContain(
+        `src="/images/products_images/${image}" alt="${name}"`,
+      );
+      const imageResponse = await fetch(
+        `${baseUrl}/images/products_images/${image}`,
+      );
+      expect(imageResponse.status).toBe(200);
+      expect(imageResponse.headers.get('content-type')).toContain('image/webp');
+    }
+  });
+
+  it('renders a continuous carousel without pagination links', async () => {
+    const body = await (await fetch(`${baseUrl}/home`)).text();
+    expect(body.match(/class="product-card"/g)).toHaveLength(6);
+    expect(body).not.toContain('featuredPage');
+    expect(body).not.toContain('Page 1 of');
+    expect(body).toContain('aria-label="Next product"');
+    expect(body).toContain('aria-label="Previous product" disabled');
+    expect(body).toContain('src="/scripts/home-carousel.js" defer');
+    expect(body).toContain('id="home-products" tabindex="0"');
+    const script = await fetch(`${baseUrl}/scripts/home-carousel.js`);
+    expect(script.status).toBe(200);
+    expect(await script.text()).toContain('carousel.scrollTo');
+  });
+
+  it('includes the remaining featured images for sliding without a reload', async () => {
+    const body = await (await fetch(`${baseUrl}/home`)).text();
+    for (const [image, name] of [
+      ['furby.webp', 'Furby'],
+      ['hulaHoop.webp', 'Hula hoop'],
+      ['gameOfLife.webp', 'Game of Life'],
+    ]) {
+      expect(body).toContain(
+        `src="/images/products_images/${image}" alt="${name}"`,
+      );
+      expect(
+        (await fetch(`${baseUrl}/images/products_images/${image}`)).status,
+      ).toBe(200);
+    }
+    expect(body).toContain('alt="Monopoly"');
+    expect(body).toContain('id="view-all-products"');
   });
 
   it('serves the login page', async () => {
@@ -138,17 +200,13 @@ describe('HTTP application', () => {
   });
 
   it('only shows the reset password field whose eye was clicked', async () => {
-    const response = await postForm(
-      '/reset_password/toggle-password',
-      [
-        ['email', 'person@example.com'],
-        ['token', 'reset-token'],
-        ['newPassword', 'Valid123!'],
-        ['confirmPassword', 'Valid123?'],
-        ['togglePassword', 'confirmPassword'],
-      ],
-      LOGGED_IN,
-    );
+    const response = await postForm('/reset_password/toggle-password', [
+      ['email', 'person@example.com'],
+      ['token', 'reset-token'],
+      ['newPassword', 'Valid123!'],
+      ['confirmPassword', 'Valid123?'],
+      ['togglePassword', 'confirmPassword'],
+    ]);
     const body = await response.text();
 
     expect(response.status).toBe(200);
@@ -197,10 +255,9 @@ describe('HTTP application', () => {
     );
   });
 
-  it('renders the reset page with a locked email and masked passwords', async () => {
+  it('renders the reset page without login with a locked email and masked passwords', async () => {
     const response = await fetch(
       `${baseUrl}/reset_password?email=person%2Breset%40example.com&token=reset-token`,
-      { headers: { cookie: LOGGED_IN } },
     );
     const body = await response.text();
 
@@ -226,7 +283,6 @@ describe('HTTP application', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/x-www-form-urlencoded',
-        cookie: LOGGED_IN,
       },
       body: new URLSearchParams({
         email: 'person@example.com',
@@ -260,7 +316,7 @@ describe('HTTP application', () => {
     expect(body).toContain('aria-describedby="confirm-password-error"');
   });
 
-  it('saves a valid matching reset password through the backend', async () => {
+  it('saves a valid matching reset password through the backend without login', async () => {
     let backendRequest: { url: string; init: RequestInit } | undefined;
     vi.stubGlobal(
       'fetch',
@@ -344,7 +400,6 @@ describe('HTTP application', () => {
   it('escapes the reset email supplied in the link', async () => {
     const response = await fetch(
       `${baseUrl}/reset_password?${new URLSearchParams({ email: '"><script>alert(1)</script>' })}`,
-      { headers: { cookie: LOGGED_IN } },
     );
     expect(response.status).toBe(200);
     expect(await response.text()).not.toContain(
@@ -376,27 +431,10 @@ describe('HTTP application', () => {
     expect(await response.text()).toContain('id="basket-title"');
   });
 
-  it.each(['/basket', '/checkout', '/order_history', '/reset_password'])(
+  it.each(['/basket', '/checkout', '/order_history'])(
     'redirects %s to login when logged out',
     async (path) => {
       const response = await fetch(`${baseUrl}${path}`, { redirect: 'manual' });
-
-      expect(response.status).toBe(302);
-      expect(response.headers.get('location')).toBe(
-        `/login?returnTo=${encodeURIComponent(path)}`,
-      );
-    },
-  );
-
-  it.each(['/reset_password', '/reset_password/toggle-password'])(
-    'redirects POST %s to login when logged out',
-    async (path) => {
-      const response = await fetch(`${baseUrl}${path}`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ newPassword: 'Valid123!' }),
-        redirect: 'manual',
-      });
 
       expect(response.status).toBe(302);
       expect(response.headers.get('location')).toBe(

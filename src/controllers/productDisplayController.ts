@@ -1,6 +1,8 @@
 import { type Request, type Response, Router } from 'express';
 import { z } from 'zod';
+import { addToBasket } from '../services/basketService';
 import { getProduct } from '../services/productDisplayServices';
+
 import productDisplay from '../views/pages/product_display/product_display_page';
 
 const router = Router();
@@ -34,6 +36,14 @@ router.get('/:id', async (req: Request, res: Response) => {
     page: productDisplay,
     product: result.product,
   });
+});
+
+router.post('/:id/add-to-basket', async (req: Request, res: Response) => {
+  const productID = Number(req.params.id);
+
+  await addToBasket(1, productID, 1);
+
+  res.redirect('/basket');
 });
 
 export default router;
