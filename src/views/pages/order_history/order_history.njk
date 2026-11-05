@@ -20,7 +20,9 @@
 
 <div class="order-history-container">
 
-  {% if page.orders.length > 0 %}
+  {% if error %}
+  <p role="alert">{{ error }}</p>
+  {% elif page.orders.length > 0 %}
 
   {% for order in page.orders %}
 
