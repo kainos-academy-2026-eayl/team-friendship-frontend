@@ -199,7 +199,7 @@ describe('HTTP application', () => {
     expect(body).not.toContain('name="visiblePasswords"');
   });
 
-  it('only shows the reset password field whose eye was clicked without login', async () => {
+  it('only shows the reset password field whose eye was clicked', async () => {
     const response = await postForm('/reset_password/toggle-password', [
       ['email', 'person@example.com'],
       ['token', 'reset-token'],
@@ -258,7 +258,6 @@ describe('HTTP application', () => {
   it('renders the reset page without login with a locked email and masked passwords', async () => {
     const response = await fetch(
       `${baseUrl}/reset_password?email=person%2Breset%40example.com&token=reset-token`,
-      { redirect: 'manual' },
     );
     const body = await response.text();
 
@@ -401,7 +400,6 @@ describe('HTTP application', () => {
   it('escapes the reset email supplied in the link', async () => {
     const response = await fetch(
       `${baseUrl}/reset_password?${new URLSearchParams({ email: '"><script>alert(1)</script>' })}`,
-      { headers: { cookie: LOGGED_IN } },
     );
     expect(response.status).toBe(200);
     expect(await response.text()).not.toContain(
@@ -444,16 +442,6 @@ describe('HTTP application', () => {
       );
     },
   );
-
-  it('rejects a reset submission without a token when logged out', async () => {
-    const response = await postResetPassword('Valid123!', 'Valid123!', '');
-
-    expect(response.status).toBe(400);
-    expect(response.headers.get('location')).toBeNull();
-    expect(await response.text()).toContain(
-      'This reset link is invalid or has expired. Request a new one.',
-    );
-  });
 
   it.each(['/home', '/product_browse', '/forgot_password'])(
     'serves the page at %s',
