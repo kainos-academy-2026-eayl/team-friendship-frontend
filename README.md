@@ -1,5 +1,18 @@
 # Team Friendship Frontend
 
+## Colour theme
+
+The sidebar's **Dark mode** switch applies to all pages, including admin and
+authentication pages. The shared layout loads `public/scripts/theme.js` before
+the stylesheet to restore the saved theme without a light-theme flash.
+The browser stores the choice under `friendshop-theme` in localStorage. Until a
+choice is saved, the theme follows the device's colour preference. Open tabs
+synchronise preference changes. If storage is blocked, the switch still works
+on the current page and displays a warning that the preference cannot be saved.
+Shared CSS colour variables cover surfaces, forms, navigation, buttons and
+semantic alerts. Product images are not inverted. Theme settings are local to
+the browser, not the user's account or other devices.
+
 ## Development checks
 
 The home page's featured products use a small browser-side carousel script.

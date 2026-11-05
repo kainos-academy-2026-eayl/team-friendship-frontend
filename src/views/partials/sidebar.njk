@@ -27,6 +27,13 @@
             {% else %}
             {% for item in navigation %}{% if item.pinToBottom %}{{ navLink(item) }}{% endif %}{% endfor %}
             {% endif %}
+            <li>
+                <button type="button" id="theme-toggle" class="theme-toggle" role="switch" aria-checked="false" hidden>
+                    <span>Dark mode</span>
+                    <span class="theme-switch-track" aria-hidden="true"></span>
+                </button>
+                <p id="theme-status" class="theme-status" role="status"></p>
+            </li>
         </ul>
     </nav>
 
