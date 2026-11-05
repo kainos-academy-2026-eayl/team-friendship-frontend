@@ -70,7 +70,7 @@ export function createApp(): Express {
     res.render('home/home', { page: homePage });
   });
 
-  app.get('/basket', async (_req: Request, res: Response) => {
+  app.get('/basket', requireLogin, async (_req: Request, res: Response) => {
     const customerId = 1;
     const basket = await getBasket(customerId);
 

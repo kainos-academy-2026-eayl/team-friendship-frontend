@@ -1,8 +1,10 @@
-const BACKEND_URL = process.env.BACKEND_URL ?? 'http://localhost:3000';
+function backendUrl() {
+  return process.env.BACKEND_URL ?? 'http://localhost:3000';
+}
 
 export async function getBasket(customerId: number) {
   try {
-    const response = await fetch(`${BACKEND_URL}/basket/${customerId}`, {
+    const response = await fetch(`${backendUrl()}/basket/${customerId}`, {
       headers: {
         accept: 'application/json',
       },
@@ -20,7 +22,7 @@ export async function addToBasket(
   productID: number,
   quantity: number,
 ) {
-  const response = await fetch(`${BACKEND_URL}/basket`, {
+  const response = await fetch(`${backendUrl()}/basket`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
