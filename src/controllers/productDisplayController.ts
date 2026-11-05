@@ -22,10 +22,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     return;
   }
 
-  const result = await getProduct(
-    BACKEND_URL,
-    params.data.id,
-  );
+  const result = await getProduct(BACKEND_URL, params.data.id);
 
   if (!result.ok) {
     res.status(result.status).render('product_display/product_display', {
