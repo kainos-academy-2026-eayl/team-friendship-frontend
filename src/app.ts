@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import adminController from './controllers/adminController';
+import checkoutController from './controllers/checkoutController';
 import forgotPasswordController from './controllers/forgot-password-controller';
 import homeController from './controllers/homeController';
 import loginController from './controllers/loginController';
@@ -17,7 +18,6 @@ import resetPasswordController from './controllers/resetPasswordController';
 import { loadSession, requireLogin } from './controllers/sessionController';
 import { getBasket } from './services/basketService';
 import basketPage from './views/pages/basket/basket_page';
-import checkoutPage from './views/pages/checkout/checkout';
 import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
 
@@ -99,9 +99,7 @@ export function createApp(): Express {
     });
   });
 
-  app.get('/checkout', requireLogin, (_req: Request, res: Response) => {
-    res.render('checkout/checkout', { page: checkoutPage });
-  });
+  app.use('/checkout', requireLogin, checkoutController);
 
   app.get('/register', (_req: Request, res: Response) => {
     res.render('register/register', { page: registerPage });

@@ -1,8 +1,8 @@
-{% extends "layouts/main.njk" %}​
-​
-{% block title %}{{ page.title }}{% endblock %}​
-​
-{% block content %}​
+{% extends "layouts/main.njk" %}
+
+{% block title %}{{ page.title }}{% endblock %}
+
+{% block content %}
 
 
 <p class="eyebrow">{{ page.eyebrow }}</p>
@@ -20,17 +20,20 @@
   <section class="checkout-section">
     <h2>Order Summary</h2>
 
+    {% if error %}
+    <p class="error-message" role="alert">{{ error }}</p>
+    {% elif summary and summary.lines | length %}
+    {% for line in summary.lines %}
     <div class="checkout-item">
-      <span>Gaming Mouse</span>
-      <span>£20.00</span>
+      <span>{{ line.name }} × {{ line.quantity }}</span>
+      <span>{{ line.lineTotal }}</span>
     </div>
+    {% endfor %}
 
-    <div class="checkout-item">
-      <span>Keyboard</span>
-      <span>£50.00</span>
-    </div>
-
-    <h3>Total: £70.00</h3>
+    <h3>Total: {{ summary.total }}</h3>
+    {% else %}
+    <p id="checkout-empty">Your basket is empty. <a href="/product_browse">Browse products</a></p>
+    {% endif %}
   </section>
 
   <section class="checkout-section">
