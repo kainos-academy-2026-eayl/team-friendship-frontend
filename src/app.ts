@@ -7,6 +7,7 @@ import forgotPasswordController from './controllers/forgot-password-controller';
 import homeController from './controllers/homeController';
 import loginController from './controllers/loginController';
 import logoutController from './controllers/logoutController';
+import orderConfirmationController from './controllers/orderConfirmationController';
 import orderHistoryController from './controllers/orderHistoryController';
 import { requireSameOrigin } from './controllers/originGuard';
 import productController from './controllers/productController';
@@ -112,6 +113,7 @@ export function createApp(): Express {
   app.use('/reset_password', resetPasswordController);
 
   app.use('/order_history', requireLogin, orderHistoryController);
+  app.use('/order_confirmation', orderConfirmationController);
 
   return app;
 }

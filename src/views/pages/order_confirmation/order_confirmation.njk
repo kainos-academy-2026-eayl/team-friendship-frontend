@@ -1,0 +1,31 @@
+{% extends "layouts/main.njk" %}
+
+{% block title %}{{ page.title }}{% endblock %}
+
+{% block content %}
+<p class="eyebrow">Your order</p>
+<h1>{{ page.title }}</h1>
+{% if error %}
+<p class="status-error" role="alert">{{ error }}</p>
+{% else %}
+<p class="intro">Thank you for shopping with Team Friendship. Your order details are below.</p>
+<section class="order-card" aria-labelledby="confirmation-reference">
+    <h2 id="confirmation-reference">Order #{{ order.reference }}</h2>
+    <p>Placed on {{ order.date }} (UK time)</p>
+    <p><strong>Status:</strong> {{ order.status }}</p>
+    {% if order.pending %}
+    <p class="checkout-note">Your order is pending. This page does not confirm successful payment.</p>
+    {% endif %}
+    <h3>Order items</h3>
+    <ul>
+        {% for item in order.items %}
+        <li>{{ item.name }} &mdash; Quantity: {{ item.quantity }}</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+<div class="actions">
+    <a href="/order_history">View order history</a>
+    <a href="/product_browse" class="secondary">Continue shopping</a>
+</div>
+{% endblock %}
