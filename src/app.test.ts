@@ -19,6 +19,9 @@ function createFakeBackend() {
   backend.get('/products', (_req, res) => {
     res.json({ products: [] });
   });
+  backend.get('/basket/:customerId', (_req, res) => {
+    res.json({ basket: [] });
+  });
   return backend;
 }
 
