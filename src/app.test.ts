@@ -137,18 +137,14 @@ describe('HTTP application', () => {
     expect(body).not.toContain('name="visiblePasswords"');
   });
 
-  it('only shows the reset password field whose eye was clicked', async () => {
-    const response = await postForm(
-      '/reset_password/toggle-password',
-      [
-        ['email', 'person@example.com'],
-        ['token', 'reset-token'],
-        ['newPassword', 'Valid123!'],
-        ['confirmPassword', 'Valid123?'],
-        ['togglePassword', 'confirmPassword'],
-      ],
-      LOGGED_IN,
-    );
+  it('only shows the reset password field whose eye was clicked without login', async () => {
+    const response = await postForm('/reset_password/toggle-password', [
+      ['email', 'person@example.com'],
+      ['token', 'reset-token'],
+      ['newPassword', 'Valid123!'],
+      ['confirmPassword', 'Valid123?'],
+      ['togglePassword', 'confirmPassword'],
+    ]);
     const body = await response.text();
 
     expect(response.status).toBe(200);
@@ -197,10 +193,10 @@ describe('HTTP application', () => {
     );
   });
 
-  it('renders the reset page with a locked email and masked passwords', async () => {
+  it('renders the reset page without login with a locked email and masked passwords', async () => {
     const response = await fetch(
       `${baseUrl}/reset_password?email=person%2Breset%40example.com&token=reset-token`,
-      { headers: { cookie: LOGGED_IN } },
+      { redirect: 'manual' },
     );
     const body = await response.text();
 
@@ -226,7 +222,6 @@ describe('HTTP application', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/x-www-form-urlencoded',
-        cookie: LOGGED_IN,
       },
       body: new URLSearchParams({
         email: 'person@example.com',
@@ -260,7 +255,7 @@ describe('HTTP application', () => {
     expect(body).toContain('aria-describedby="confirm-password-error"');
   });
 
-  it('saves a valid matching reset password through the backend', async () => {
+  it('saves a valid matching reset password through the backend without login', async () => {
     let backendRequest: { url: string; init: RequestInit } | undefined;
     vi.stubGlobal(
       'fetch',
@@ -376,7 +371,7 @@ describe('HTTP application', () => {
     expect(await response.text()).toContain('id="basket-title"');
   });
 
-  it.each(['/basket', '/checkout', '/order_history', '/reset_password'])(
+  it.each(['/basket', '/checkout', '/order_history'])(
     'redirects %s to login when logged out',
     async (path) => {
       const response = await fetch(`${baseUrl}${path}`, { redirect: 'manual' });
@@ -388,22 +383,15 @@ describe('HTTP application', () => {
     },
   );
 
-  it.each(['/reset_password', '/reset_password/toggle-password'])(
-    'redirects POST %s to login when logged out',
-    async (path) => {
-      const response = await fetch(`${baseUrl}${path}`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ newPassword: 'Valid123!' }),
-        redirect: 'manual',
-      });
+  it('rejects a reset submission without a token when logged out', async () => {
+    const response = await postResetPassword('Valid123!', 'Valid123!', '');
 
-      expect(response.status).toBe(302);
-      expect(response.headers.get('location')).toBe(
-        `/login?returnTo=${encodeURIComponent(path)}`,
-      );
-    },
-  );
+    expect(response.status).toBe(400);
+    expect(response.headers.get('location')).toBeNull();
+    expect(await response.text()).toContain(
+      'This reset link is invalid or has expired. Request a new one.',
+    );
+  });
 
   it.each(['/home', '/product_browse', '/forgot_password'])(
     'serves the page at %s',

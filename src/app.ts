@@ -77,7 +77,7 @@ export function createApp(): Express {
 
   app.use('/forgot_password', forgotPasswordController);
 
-  app.use('/reset_password', requireLogin, resetPasswordController);
+  app.use('/reset_password', resetPasswordController);
 
   app.get('/order_history', requireLogin, (_req: Request, res: Response) => {
     res.render('order_history/order_history', { page: orderHistoryPage });
