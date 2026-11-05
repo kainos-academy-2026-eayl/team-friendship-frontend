@@ -2,6 +2,12 @@
 
 ## Development checks
 
+The home page's featured products use a small browser-side carousel script.
+Three products are visible and each arrow moves by one product without navigating.
+The row also supports touch/trackpad scrolling and keyboard arrows, and respects
+reduced-motion preferences. Without JavaScript, the product row remains scrollable.
+These are curated featured products, not automatically ranked by sales.
+
 Use Node.js 22 (see [.nvmrc](.nvmrc)) and install dependencies with `npm ci`.
 
 | Command | Purpose |

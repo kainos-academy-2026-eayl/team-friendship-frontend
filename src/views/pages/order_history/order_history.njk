@@ -6,28 +6,48 @@
 
 <p class="eyebrow">{{ page.eyebrow }}</p>
 
+<a href="/home" class="back-button">
+  ← Back to Home
+</a>
+
 <h1 id="order-history-title">
-    {{ page.title }}
+  {{ page.title }}
 </h1>
 
 <p class="intro">
-    {{ page.intro }}
+  {{ page.intro }}
 </p>
 
 <div class="order-history-container">
 
+  {% if error %}
+  <p role="alert">{{ error }}</p>
+  {% elif page.orders.length > 0 %}
+
   {% for order in page.orders %}
 
-<div class="order-card">
-  <h2>Order #{{ order.orderId }}</h2>
+  <div class="order-card">
+    <h2>Order #{{ order.orderId }}</h2>
 
-  <p>Date: {{ order.date }}</p>
-  <p>Product: {{ order.product }}</p>
-  <p>Quantity: {{ order.quantity }}</p>
-  <p>Status: {{ order.status }}</p>
-</div>
+    <p>Date: {{ order.date }}</p>
+    <p>Status: {{ order.status }}</p>
 
-{% endfor %}
+    <ul>
+      {% for item in order.items %}
+      <li>{{ item.product }} (Quantity: {{ item.quantity }})</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  {% endfor %}
+
+  {% else %}
+
+  <p class="empty-order-history">
+    You have no existing or past orders.
+  </p>
+
+  {% endif %}
 
 </div>
 

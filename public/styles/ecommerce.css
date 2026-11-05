@@ -608,6 +608,97 @@ header a:hover {
 
 /* Home Styles */
 
+.home-page {
+  align-content: start;
+  padding-top: 0;
+}
+
+.home-page header {
+  margin-bottom: 12px;
+}
+
+.home-page main {
+  padding-top: 24px;
+}
+
+.home-best-sellers {
+  margin-top: 32px;
+}
+
+.home-best-sellers .product-image {
+  object-fit: contain;
+}
+
+.home-product-carousel {
+  --home-product-image-height: 180px;
+  position: relative;
+  padding: 0 56px;
+  margin-bottom: 24px;
+}
+
+.home-product-grid {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.home-product-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.home-product-grid .product-card {
+  flex: 0 0 calc((100% - 40px) / 3);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  scroll-snap-align: start;
+}
+
+.home-product-grid .product-image {
+  height: var(--home-product-image-height);
+  margin-bottom: 12px;
+}
+
+.home-product-navigation[hidden] {
+  display: none;
+}
+
+.home-product-navigation {
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--home-product-image-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.home-product-arrow {
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid #2853a2;
+  border-radius: 8px;
+  background: #2853a2;
+  color: #ffffff;
+  font-size: 24px;
+  text-decoration: none;
+}
+
+.home-product-arrow:hover {
+  background: #1c3e7d;
+}
+
+.home-product-arrow:disabled {
+  border-color: #e0e5ee;
+  background: #f4f6fa;
+  color: #697589;
+}
+
 .actions a {
   display: block;
   min-height: 48px;
@@ -796,4 +887,25 @@ header a:hover {
   .sidebar-arrow {
     transition: none;
   }
+}
+
+/* Order History styles */
+.back-button {
+  display: inline-block;
+  min-height: auto;
+  margin-bottom: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #2853a2;
+  font-size: 13px;
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.back-button:hover {
+  background: transparent;
+  color: #1c3e7d;
 }

@@ -46,7 +46,7 @@ export async function refreshSession(
 export async function getSessionUser(
   apiUrl: string,
   accessToken: string,
-): Promise<{ isAdmin: boolean } | null> {
+): Promise<{ isAdmin: boolean; customerId: number | undefined } | null> {
   const response = await fetch(`${apiUrl}/me`, {
     headers: { authorization: `Bearer ${accessToken}` },
   });
@@ -64,6 +64,13 @@ export async function getSessionUser(
       body !== null &&
       'role' in body &&
       body.role === 'admin',
+    customerId:
+      typeof body === 'object' &&
+      body !== null &&
+      'customerId' in body &&
+      typeof body.customerId === 'number'
+        ? body.customerId
+        : undefined,
   };
 }
 
