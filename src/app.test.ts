@@ -67,6 +67,65 @@ describe('HTTP application', () => {
     vi.unstubAllGlobals();
   });
 
+  it('shows featured product images and a browse link on the home page', async () => {
+    const response = await fetch(`${baseUrl}/home`);
+    const body = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(body).toContain('Best selling products');
+    expect(body).toContain(
+      'href="/product_browse" id="view-all-products">View all products</a>',
+    );
+    expect(body).toContain('href="/login"');
+    expect(body).toContain('href="/register"');
+    for (const [image, name] of [
+      ['monopoly.webp', 'Monopoly'],
+      ['catan.webp', 'Catan'],
+      ['cluedo.webp', 'Cluedo'],
+    ]) {
+      expect(body).toContain(
+        `src="/images/products_images/${image}" alt="${name}"`,
+      );
+      const imageResponse = await fetch(
+        `${baseUrl}/images/products_images/${image}`,
+      );
+      expect(imageResponse.status).toBe(200);
+      expect(imageResponse.headers.get('content-type')).toContain('image/webp');
+    }
+  });
+
+  it('renders a continuous carousel without pagination links', async () => {
+    const body = await (await fetch(`${baseUrl}/home`)).text();
+    expect(body.match(/class="product-card"/g)).toHaveLength(6);
+    expect(body).not.toContain('featuredPage');
+    expect(body).not.toContain('Page 1 of');
+    expect(body).toContain('aria-label="Next product"');
+    expect(body).toContain('aria-label="Previous product" disabled');
+    expect(body).toContain('src="/scripts/home-carousel.js" defer');
+    expect(body).toContain('id="home-products" tabindex="0"');
+    const script = await fetch(`${baseUrl}/scripts/home-carousel.js`);
+    expect(script.status).toBe(200);
+    expect(await script.text()).toContain('carousel.scrollTo');
+  });
+
+  it('includes the remaining featured images for sliding without a reload', async () => {
+    const body = await (await fetch(`${baseUrl}/home`)).text();
+    for (const [image, name] of [
+      ['furby.webp', 'Furby'],
+      ['hulaHoop.webp', 'Hula hoop'],
+      ['gameOfLife.webp', 'Game of Life'],
+    ]) {
+      expect(body).toContain(
+        `src="/images/products_images/${image}" alt="${name}"`,
+      );
+      expect(
+        (await fetch(`${baseUrl}/images/products_images/${image}`)).status,
+      ).toBe(200);
+    }
+    expect(body).toContain('alt="Monopoly"');
+    expect(body).toContain('id="view-all-products"');
+  });
+
   it('serves the login page', async () => {
     const response = await fetch(`${baseUrl}/login`);
     const body = await response.text();

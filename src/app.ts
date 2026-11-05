@@ -4,6 +4,7 @@ import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import adminController from './controllers/adminController';
 import forgotPasswordController from './controllers/forgot-password-controller';
+import homeController from './controllers/homeController';
 import loginController from './controllers/loginController';
 import logoutController from './controllers/logoutController';
 import { requireSameOrigin } from './controllers/originGuard';
@@ -14,7 +15,6 @@ import resetPasswordController from './controllers/resetPasswordController';
 import { loadSession, requireLogin } from './controllers/sessionController';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
-import homePage from './views/pages/home/home_page';
 import orderHistoryPage from './views/pages/order_history/order_history';
 import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
@@ -57,9 +57,7 @@ export function createApp(): Express {
     res.json({ status: 'ok', uptime: process.uptime() });
   });
 
-  app.get('/home', (_req, res) => {
-    res.render('home/home', { page: homePage });
-  });
+  app.use('/home', homeController);
 
   app.get('/basket', requireLogin, (_req: Request, res: Response) => {
     res.render('basket/basket', { page: basketPage });
