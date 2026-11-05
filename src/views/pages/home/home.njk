@@ -8,38 +8,47 @@
 <h1 id="home-title">{{ page.title }}</h1>
 <p class="intro">{{ page.intro }}</p>
 
-    <div class="actions">
-        {% for action in page.actions %}
-        <a href="{{ action.href }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
-            {% endif %}>
-            {{ action.label }}
-        </a>
-        {% endfor %}
-    </div>
+<div class="actions">
+    {% for action in page.actions %}
+    <a href="{{ action.href }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
+        {% endif %}>
+        {{ action.label }}
+    </a>
+    {% endfor %}
+</div>
 
 <section class="home-best-sellers" aria-labelledby="best-selling-title">
     <h2 id="best-selling-title">Best selling products</h2>
     <div class="home-product-carousel">
-    <div class="home-product-grid" id="home-products" tabindex="0" role="region" aria-label="Best selling products carousel">
-        {% for product in page.featuredProducts %}
-        <article class="product-card">
-            <img src="{{ product.imageUrl }}" alt="{{ product.name }}" class="product-image">
-            <h3 class="product-name">{{ product.name }}</h3>
-        </article>
-        {% endfor %}
-    </div>
-    <div class="home-product-navigation" hidden>
-        <button type="button" class="home-product-arrow" id="previous-product" aria-controls="home-products" aria-label="Previous product" disabled>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                <path d="m16 4-8 8 8 8"/>
-            </svg>
-        </button>
-        <button type="button" class="home-product-arrow" id="next-product" aria-controls="home-products" aria-label="Next product">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                <path d="m8 4 8 8-8 8"/>
-            </svg>
-        </button>
-    </div>
+        <div class="home-product-grid" id="home-products" tabindex="0" role="region"
+            aria-label="Best selling products carousel">
+            {% for product in page.featuredProducts %}
+            <article class="product-card">
+                <a href="/products/{{ product.id }}">
+                    <img src="{{ product.imageUrl }}" alt="{{ product.name }}" class="product-image">
+                </a>
+                <h3 class="product-name">
+                    <a href="/products/{{ product.id }}">{{ product.name }}</a>
+                </h3>
+            </article>
+            {% endfor %}
+        </div>
+        <div class="home-product-navigation" hidden>
+            <button type="button" class="home-product-arrow" id="previous-product" aria-controls="home-products"
+                aria-label="Previous product" disabled>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="m16 4-8 8 8 8" />
+                </svg>
+            </button>
+            <button type="button" class="home-product-arrow" id="next-product" aria-controls="home-products"
+                aria-label="Next product">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="m8 4 8 8-8 8" />
+                </svg>
+            </button>
+        </div>
     </div>
     <div class="actions">
         <a href="/product_browse" id="view-all-products">View all products</a>
