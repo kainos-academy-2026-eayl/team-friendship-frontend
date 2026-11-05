@@ -21,6 +21,8 @@ export interface Order {
   customerID: number;
   dateCreated: Date;
   status: string;
+  address: string;
+  postcode: string;
   orderServices: OrderService[];
 }
 
@@ -29,7 +31,13 @@ export interface OrderItem {
   quantity: number;
 }
 
-export interface CreateOrderRequest {
+export interface DeliveryAddress {
+  address: string;
+  postcode: string;
+}
+
+// Omitting address/postcode makes the backend use the customer's saved home address.
+export interface CreateOrderRequest extends Partial<DeliveryAddress> {
   customerID: number;
   orderServices: OrderItem[];
 }

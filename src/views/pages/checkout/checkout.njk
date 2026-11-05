@@ -45,15 +45,35 @@
     <label for="surname">Surname</label>
     <input id="surname" type="text" placeholder="Surname">
 
-    <label for="address">Address</label>
-    <input id="address" type="text" placeholder="Address">
+    <fieldset class="delivery-fieldset">
+      <legend>Delivery Address</legend>
 
-    <label for="postcode">Postcode</label>
-    <input id="postcode" type="text" placeholder="Postcode">
+      <div class="delivery-choice">
+        <input id="delivery-home" class="delivery-radio" type="radio" name="deliveryOption" value="home"{% if not homeAddress %} disabled{% endif %}>
+        <label for="delivery-home">Use my home address</label>
 
-    <label for="email">Email Address</label>
-    <input id="email" type="email" placeholder="Email Address">
+        <input id="delivery-other" class="delivery-radio" type="radio" name="deliveryOption" value="other">
+        <label for="delivery-other">Enter a different address</label>
 
+        {% if homeAddressError %}
+        <p class="delivery-unavailable" role="status">{{ homeAddressError }}</p>
+        {% endif %}
+
+        {% if homeAddress %}
+        <div id="home-address-panel" class="delivery-panel">
+          <p class="home-address">{{ homeAddress.address }}<br>{{ homeAddress.postcode }}</p>
+        </div>
+        {% endif %}
+
+        <div id="other-address-panel" class="delivery-panel">
+          <label for="address">Address</label>
+          <input id="address" name="address" type="text" placeholder="Address" autocomplete="street-address" maxlength="255">
+
+          <label for="postcode">Postcode</label>
+          <input id="postcode" name="postcode" type="text" placeholder="Postcode" autocomplete="postal-code" maxlength="10">
+        </div>
+      </div>
+    </fieldset>
 
     <h2>Payment Details</h2>
 

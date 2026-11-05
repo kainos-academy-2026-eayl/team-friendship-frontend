@@ -64,6 +64,14 @@ function createFakeBackend() {
     }
     res.json(basket);
   });
+  backend.get('/customers/me/address', (req, res) => {
+    const customerID = customerFor(req.get('authorization'));
+    if (customerID === '4') {
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    res.json({ address: { address: '123 Town Street', postcode: 'BT16 AAA' } });
+  });
   return backend;
 }
 
@@ -118,6 +126,39 @@ describe('checkout page', () => {
     expect(page).toContain('£35.50');
     expect(page).toContain('Total: £75.50');
     expect(page).not.toContain('Gaming Mouse');
+  });
+
+  it('offers home or alternative address with neither pre-selected', async () => {
+    const page = await (await get(3)).text();
+
+    expect(page).toMatch(
+      /<input id="delivery-home"[^>]*name="deliveryOption" value="home">/,
+    );
+    expect(page).toMatch(
+      /<input id="delivery-other"[^>]*name="deliveryOption" value="other">/,
+    );
+    expect(page).not.toMatch(/name="deliveryOption"[^>]*checked/);
+    expect(page).toContain('123 Town Street<br>BT16 AAA');
+    expect(page).toContain('id="address" name="address"');
+    expect(page).toContain('id="postcode" name="postcode"');
+    expect(page).not.toContain('type="email"');
+  });
+
+  it('keeps address details hidden until an option is chosen', async () => {
+    const css = await (await fetch(`${baseUrl}/styles/ecommerce.css`)).text();
+
+    expect(css).toMatch(/\.delivery-panel \{\s*display: none;/);
+    expect(css).toContain('#delivery-home:checked ~ #home-address-panel');
+    expect(css).toContain('#delivery-other:checked ~ #other-address-panel');
+  });
+
+  it('disables the home option when the address cannot be loaded', async () => {
+    const page = await (await get(4)).text();
+
+    expect(page).toMatch(/<input id="delivery-home"[^>]*disabled>/);
+    expect(page).toContain('Unable to load your home address.');
+    expect(page).not.toContain('id="home-address-panel"');
+    expect(page).toContain('id="other-address-panel"');
   });
 
   it('shows an empty-basket message when there is nothing to check out', async () => {

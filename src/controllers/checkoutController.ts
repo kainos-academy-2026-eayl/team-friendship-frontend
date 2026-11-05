@@ -1,5 +1,6 @@
 import { type Request, type Response, Router } from 'express';
 import { type BasketItem, getCheckoutBasket } from '../services/basketService';
+import { getHomeAddress } from '../services/customerService';
 import checkoutPage from '../views/pages/checkout/checkout';
 import { backendUrl } from './sessionController';
 
@@ -34,17 +35,20 @@ router.get('/', async (req: Request, res: Response) => {
     return;
   }
 
-  const result = await getCheckoutBasket(
-    backendUrl(),
-    res.locals.accessToken,
-    customerID,
-  );
+  const [result, homeAddress] = await Promise.all([
+    getCheckoutBasket(backendUrl(), res.locals.accessToken, customerID),
+    getHomeAddress(backendUrl(), res.locals.accessToken),
+  ]);
+
+  if (
+    (!result.ok && result.status === 401) ||
+    (!homeAddress.ok && homeAddress.status === 401)
+  ) {
+    res.redirect(`/login?returnTo=${encodeURIComponent(req.originalUrl)}`);
+    return;
+  }
 
   if (!result.ok) {
-    if (result.status === 401) {
-      res.redirect(`/login?returnTo=${encodeURIComponent(req.originalUrl)}`);
-      return;
-    }
     res.status(502).render('checkout/checkout', {
       page: checkoutPage,
       error: result.message,
@@ -55,6 +59,8 @@ router.get('/', async (req: Request, res: Response) => {
   res.render('checkout/checkout', {
     page: checkoutPage,
     summary: checkoutSummary(result.items),
+    homeAddress: homeAddress.ok ? homeAddress.address : undefined,
+    homeAddressError: homeAddress.ok ? undefined : homeAddress.message,
   });
 });
 

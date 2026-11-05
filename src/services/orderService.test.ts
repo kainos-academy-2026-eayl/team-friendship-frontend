@@ -14,6 +14,8 @@ const backendOrder = {
   customerID: 3,
   dateCreated: '2026-11-04T12:00:00.000Z',
   status: 'pending',
+  address: '123 Town Street',
+  postcode: 'BT16 AAA',
   orderServices: [
     {
       orderID: 7,
@@ -73,6 +75,23 @@ describe('createOrder', () => {
         ...backendOrder,
         dateCreated: new Date('2026-11-04T12:00:00.000Z'),
       },
+    });
+  });
+
+  it('sends an alternative delivery address when one is given', async () => {
+    const fetchMock = mockFetch({ order: backendOrder }, 201);
+
+    await createOrder(API, TOKEN, 3, [{ productID: 1, quantity: 2 }], {
+      address: '14 Gift Lane',
+      postcode: 'BT9 5AB',
+    });
+
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(init.body as string)).toEqual({
+      customerID: 3,
+      address: '14 Gift Lane',
+      postcode: 'BT9 5AB',
+      orderServices: [{ productID: 1, quantity: 2 }],
     });
   });
 
