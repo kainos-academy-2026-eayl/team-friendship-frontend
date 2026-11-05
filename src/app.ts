@@ -7,6 +7,7 @@ import forgotPasswordController from './controllers/forgot-password-controller';
 import homeController from './controllers/homeController';
 import loginController from './controllers/loginController';
 import logoutController from './controllers/logoutController';
+import orderHistoryController from './controllers/orderHistoryController';
 import { requireSameOrigin } from './controllers/originGuard';
 import productController from './controllers/productController';
 import productDisplayController from './controllers/productDisplayController';
@@ -16,7 +17,6 @@ import { loadSession, requireLogin } from './controllers/sessionController';
 import { getBasket } from './services/basketService';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
-import orderHistoryPage from './views/pages/order_history/order_history';
 import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
 
@@ -111,9 +111,7 @@ export function createApp(): Express {
 
   app.use('/reset_password', resetPasswordController);
 
-  app.get('/order_history', requireLogin, (_req: Request, res: Response) => {
-    res.render('order_history/order_history', { page: orderHistoryPage });
-  });
+  app.use('/order_history', requireLogin, orderHistoryController);
 
   return app;
 }
