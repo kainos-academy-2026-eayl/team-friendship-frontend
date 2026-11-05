@@ -4,6 +4,7 @@ const basketPage = {
   intro: 'Review the items in your basket before checkout.',
   products: [
     {
+      basketID: 1,
       name: 'Product Name',
       quantity: '1',
       totalPrice: '£0.00',
