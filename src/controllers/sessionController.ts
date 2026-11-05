@@ -68,6 +68,7 @@ export async function loadSession(
   let isLoggedIn = false;
   let isAdmin = false;
   let customerId: number | undefined;
+  let displayName: string | undefined;
 
   try {
     if (accessToken) {
@@ -75,6 +76,7 @@ export async function loadSession(
       isLoggedIn = user !== null;
       isAdmin = user?.isAdmin ?? false;
       customerId = user?.customerId;
+      displayName = user?.displayName;
     }
     if (!isLoggedIn && refreshToken) {
       const tokens = await refreshOnce(refreshToken);
@@ -85,6 +87,7 @@ export async function loadSession(
         isLoggedIn = user !== null;
         isAdmin = user?.isAdmin ?? false;
         customerId = user?.customerId;
+        displayName = user?.displayName;
       } else {
         clearSessionCookies(res);
       }
@@ -99,6 +102,10 @@ export async function loadSession(
   res.locals.isLoggedIn = isLoggedIn;
   res.locals.isAdmin = isAdmin;
   res.locals.customerId = isLoggedIn ? customerId : undefined;
+  res.locals.displayName = isLoggedIn ? displayName : undefined;
+  if (isLoggedIn) {
+    res.set('Cache-Control', 'no-store');
+  }
   next();
 }
 

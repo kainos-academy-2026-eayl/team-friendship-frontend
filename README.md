@@ -1,5 +1,11 @@
 # Team Friendship Frontend
 
+The shared header shows the authenticated user's first name and surname as
+"Signed in as". The backend's `GET /me` response supplies `firstName` and
+`surname` alongside the existing account ID and role, for both customers and
+staff. Names are HTML-escaped, are reloaded after session refresh, and are not
+displayed when logged out. Authenticated pages use `Cache-Control: no-store`.
+
 ## Development checks
 
 The home page's featured products use a small browser-side carousel script.

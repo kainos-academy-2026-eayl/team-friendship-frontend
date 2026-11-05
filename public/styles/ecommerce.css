@@ -595,6 +595,28 @@ header {
   border-radius: 8px;
 }
 
+.signed-in-user {
+  margin: 0 0 0 auto;
+  color: #596579;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.signed-in-user strong {
+  color: #17243b;
+}
+
+@media (max-width: 600px) {
+  header {
+    flex-wrap: wrap;
+  }
+
+  .signed-in-user {
+    flex-basis: 100%;
+    margin-bottom: 12px;
+  }
+}
+
 header a {
   color: #2853a2;
   font-size: 20px;

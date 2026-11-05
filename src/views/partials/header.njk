@@ -4,4 +4,7 @@
     </a>
 
     <a href="/">Team Friendship</a>
+    {% if isLoggedIn and displayName %}
+    <p class="signed-in-user">Signed in as <strong>{{ displayName }}</strong></p>
+    {% endif %}
 </header>

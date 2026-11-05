@@ -12,6 +12,7 @@ interface BackendCall {
 
 const calls: BackendCall[] = [];
 let refreshStatus = 200;
+let profile = { firstName: 'Ada', surname: 'Lovelace' };
 const validAccessTokens = new Set(
   ['access-login', 'access-refreshed', 'access-current', 'access-valid'].map(
     (token) => `Bearer ${token}`,
@@ -58,7 +59,7 @@ function createFakeBackend() {
       res.status(401).json({ error: 'Invalid or expired access token' });
       return;
     }
-    res.json({ customerId: 1 });
+    res.json({ customerId: 1, ...profile });
   });
   backend.get('/basket/:customerId', (_req, res) => {
     res.json({ basket: [] });
@@ -124,6 +125,41 @@ describe('session authentication', () => {
   beforeEach(() => {
     calls.length = 0;
     refreshStatus = 200;
+    profile = { firstName: 'Ada', surname: 'Lovelace' };
+  });
+
+  it('shows the signed-in first name and surname in the shared header', async () => {
+    const response = await fetch(`${baseUrl}/home`, {
+      headers: { cookie: 'access_token=access-valid' },
+    });
+    expect(await response.text()).toContain(
+      'Signed in as <strong>Ada Lovelace</strong>',
+    );
+    expect(response.headers.get('cache-control')).toBe('no-store');
+  });
+
+  it('does not show an identity when logged out', async () => {
+    const response = await fetch(`${baseUrl}/home`);
+    expect(await response.text()).not.toContain('Signed in as');
+  });
+
+  it('escapes names returned by the backend', async () => {
+    profile = { firstName: '<script>alert(1)</script>', surname: 'Test' };
+    const response = await fetch(`${baseUrl}/home`, {
+      headers: { cookie: 'access_token=access-valid' },
+    });
+    const html = await response.text();
+    expect(html).toContain('&lt;script&gt;');
+    expect(html).not.toContain('<script>alert(1)</script>');
+  });
+
+  it('shows the signed-in name after refreshing a session', async () => {
+    const response = await fetch(`${baseUrl}/home`, {
+      headers: { cookie: 'refresh_token=refresh-header-test' },
+    });
+    expect(await response.text()).toContain(
+      'Signed in as <strong>Ada Lovelace</strong>',
+    );
   });
 
   it('sets HttpOnly session cookies and redirects to returnTo on login', async () => {
