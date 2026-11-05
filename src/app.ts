@@ -17,8 +17,6 @@ import { loadSession, requireLogin } from './controllers/sessionController';
 import { getBasket } from './services/basketService';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
-import homePage from './views/pages/home/home_page';
-import orderHistoryPage from './views/pages/order_history/order_history';
 import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
 
