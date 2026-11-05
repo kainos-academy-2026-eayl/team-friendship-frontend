@@ -67,12 +67,14 @@ export async function loadSession(
   const refreshToken = cookie(req, REFRESH_COOKIE);
   let isLoggedIn = false;
   let isAdmin = false;
+  let customerId: number | undefined;
 
   try {
     if (accessToken) {
       const user = await getSessionUser(backendUrl(), accessToken);
       isLoggedIn = user !== null;
       isAdmin = user?.isAdmin ?? false;
+      customerId = user?.customerId;
     }
     if (!isLoggedIn && refreshToken) {
       const tokens = await refreshOnce(refreshToken);
@@ -82,6 +84,7 @@ export async function loadSession(
         const user = await getSessionUser(backendUrl(), accessToken);
         isLoggedIn = user !== null;
         isAdmin = user?.isAdmin ?? false;
+        customerId = user?.customerId;
       } else {
         clearSessionCookies(res);
       }
@@ -95,6 +98,7 @@ export async function loadSession(
   res.locals.accessToken = isLoggedIn ? accessToken : undefined;
   res.locals.isLoggedIn = isLoggedIn;
   res.locals.isAdmin = isAdmin;
+  res.locals.customerId = isLoggedIn ? customerId : undefined;
   next();
 }
 

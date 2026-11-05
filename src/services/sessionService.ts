@@ -42,11 +42,29 @@ export async function refreshSession(
   return parseSessionTokens(await response.json()) ?? null;
 }
 
-// Roles must come from the backend, never from form fields or unsigned cookies.
+export interface SessionUser {
+  isAdmin: boolean;
+  // Only customer accounts have one; staff accounts get undefined.
+  customerId: number | undefined;
+}
+
+function parseCustomerId(body: unknown): number | undefined {
+  if (typeof body !== 'object' || body === null || !('customerId' in body)) {
+    return undefined;
+  }
+  const { customerId } = body;
+  return typeof customerId === 'number' &&
+    Number.isInteger(customerId) &&
+    customerId > 0
+    ? customerId
+    : undefined;
+}
+
+// Roles and IDs must come from the backend, never from form fields or unsigned cookies.
 export async function getSessionUser(
   apiUrl: string,
   accessToken: string,
-): Promise<{ isAdmin: boolean } | null> {
+): Promise<SessionUser | null> {
   const response = await fetch(`${apiUrl}/me`, {
     headers: { authorization: `Bearer ${accessToken}` },
   });
@@ -64,6 +82,7 @@ export async function getSessionUser(
       body !== null &&
       'role' in body &&
       body.role === 'admin',
+    customerId: parseCustomerId(body),
   };
 }
 
