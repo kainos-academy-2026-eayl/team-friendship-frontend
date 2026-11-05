@@ -4,6 +4,7 @@ import type { AddressInfo } from 'node:net';
 import express from 'express';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from './app';
+import { checkoutProducts } from './testFixtures';
 
 interface BackendCall {
   path: string;
@@ -62,6 +63,9 @@ function createFakeBackend() {
   });
   backend.get('/basket/:customerId', (_req, res) => {
     res.json({ basket: [] });
+  });
+  backend.get('/products', (_req, res) => {
+    res.json({ products: checkoutProducts });
   });
   return backend;
 }

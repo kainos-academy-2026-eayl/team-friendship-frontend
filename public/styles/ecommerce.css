@@ -800,6 +800,26 @@ header a:hover {
   background: #f4f6fa;
 }
 
+.field-error {
+  margin: -4px 0 8px;
+  color: #c62828;
+  font-size: 14px;
+}
+
+.error-message {
+  color: #c62828;
+}
+
+.order-placed {
+  margin-bottom: 20px;
+  padding: 13px 14px;
+  border: 1px solid #2e7d32;
+  border-radius: 8px;
+  background: #edf7ee;
+  color: #1b5e20;
+  font-weight: 600;
+}
+
 .order-card {
   border: 1px solid #ddd;
   padding: 16px;

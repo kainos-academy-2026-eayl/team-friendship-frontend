@@ -107,6 +107,26 @@ describe('order history page', () => {
     historyCalls.length = 0;
   });
 
+  it('shows a success banner after an order is placed', async () => {
+    const response = await fetch(`${baseUrl}/order_history?placed=42`, {
+      headers: { cookie: LOGGED_IN },
+    });
+
+    expect(await response.text()).toContain('Order #42 placed successfully.');
+  });
+
+  it.each(['abc', '-1', '<script>'])(
+    'ignores an invalid placed value (%s)',
+    async (placed) => {
+      const response = await fetch(
+        `${baseUrl}/order_history?placed=${encodeURIComponent(placed)}`,
+        { headers: { cookie: LOGGED_IN } },
+      );
+
+      expect(await response.text()).not.toContain('id="order-placed"');
+    },
+  );
+
   it('requests the history of the session customer with the access token', async () => {
     const response = await fetch(`${baseUrl}/order_history`, {
       headers: { cookie: LOGGED_IN },

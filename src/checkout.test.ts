@@ -2,40 +2,16 @@ import { once } from 'node:events';
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import express from 'express';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from './app';
+import { DUMMY_ORDER_ITEMS } from './controllers/checkoutController';
+import { checkoutProducts } from './testFixtures';
 
-const basketLine = (
-  basketID: number,
-  name: string,
-  price: number,
-  qty = 1,
-) => ({
-  basketID,
-  customerID: 3,
-  productID: basketID,
-  quantity: qty,
-  product: {
-    productID: basketID,
-    productName: name,
-    productDescription: 'A toy',
-    productCategory: 'Toys',
-    productPrice: price,
-    productImage: 'toy.jpeg',
-    productStock: 5,
-  },
-});
-
-const basketsByCustomer: Record<string, unknown> = {
-  '3': {
-    basket: [basketLine(1, 'Furby', 20, 2), basketLine(2, 'Catan', 35.5)],
-  },
-  '4': { basket: [] },
-  '6': { basket: [{ basketID: 'oops' }] },
-};
+const orderRequests: { authorization?: string; body: unknown }[] = [];
 
 function createFakeBackend() {
   const backend = express();
+  backend.use(express.json());
   const customerFor = (authorization: string | undefined) =>
     authorization?.match(/^Bearer customer-(\d+)$/)?.[1];
 
@@ -47,30 +23,44 @@ function createFakeBackend() {
     }
     res.json({ customerId: Number(customerId), role: 'customer' });
   });
-  backend.get('/basket/:customerID', (req, res) => {
-    const { customerID } = req.params;
-    if (customerFor(req.get('authorization')) !== customerID) {
-      res.status(401).json({ error: 'Authentication required' });
-      return;
-    }
-    if (customerID === '7') {
-      res.status(401).json({ error: 'Invalid or expired access token' });
-      return;
-    }
-    const basket = basketsByCustomer[customerID];
-    if (!basket) {
-      res.status(500).json({ error: 'Internal server error' });
-      return;
-    }
-    res.json(basket);
+  backend.get('/products', (_req, res) => {
+    res.json({ products: checkoutProducts });
   });
   backend.get('/customers/me/address', (req, res) => {
-    const customerID = customerFor(req.get('authorization'));
-    if (customerID === '4') {
+    if (customerFor(req.get('authorization')) === '4') {
       res.status(500).json({ error: 'Internal server error' });
       return;
     }
     res.json({ address: { address: '123 Town Street', postcode: 'BT16 AAA' } });
+  });
+  backend.post('/orders', (req, res) => {
+    const authorization = req.get('authorization');
+    orderRequests.push({
+      ...(authorization ? { authorization } : {}),
+      body: req.body,
+    });
+    const customerId = customerFor(authorization);
+    if (customerId === '5') {
+      res
+        .status(409)
+        .json({ error: 'Not enough stock for product 4', productID: 4 });
+      return;
+    }
+    if (customerId === '7') {
+      res.status(401).json({ error: 'Invalid or expired access token' });
+      return;
+    }
+    res.status(201).json({
+      order: {
+        orderID: 42,
+        customerID: Number(customerId),
+        dateCreated: '2026-11-05T22:00:00.000Z',
+        status: 'pending',
+        address: req.body.address ?? '123 Town Street',
+        postcode: req.body.postcode ?? 'BT16 AAA',
+        orderServices: [],
+      },
+    });
   });
   return backend;
 }
@@ -82,15 +72,38 @@ async function listen(app: express.Express): Promise<[Server, string]> {
   return [server, `http://127.0.0.1:${port}`];
 }
 
-describe('checkout page', () => {
+const VALID_FORM = {
+  firstName: 'John',
+  surname: 'Doe',
+  deliveryOption: 'home',
+  cardNumber: '4242 4242 4242 4242',
+  expiryDate: '12/99',
+  cvv: '123',
+};
+
+describe('checkout', () => {
   let backendServer: Server;
   let frontendServer: Server;
   let baseUrl: string;
   const originalBackendUrl = process.env.BACKEND_URL;
 
-  const get = (customerId: number) =>
+  const cookie = (customerId: number) => `access_token=customer-${customerId}`;
+
+  const get = (customerId = 3) =>
     fetch(`${baseUrl}/checkout`, {
-      headers: { cookie: `access_token=customer-${customerId}` },
+      headers: { cookie: cookie(customerId) },
+      redirect: 'manual',
+    });
+
+  const post = (form: Record<string, string>, customerId = 3) =>
+    fetch(`${baseUrl}/checkout`, {
+      method: 'POST',
+      headers: {
+        cookie: cookie(customerId),
+        'content-type': 'application/x-www-form-urlencoded',
+        origin: baseUrl,
+      },
+      body: new URLSearchParams(form).toString(),
       redirect: 'manual',
     });
 
@@ -99,6 +112,10 @@ describe('checkout page', () => {
     [backendServer, backendUrl] = await listen(createFakeBackend());
     process.env.BACKEND_URL = backendUrl;
     [frontendServer, baseUrl] = await listen(createApp());
+  });
+
+  beforeEach(() => {
+    orderRequests.length = 0;
   });
 
   afterAll(async () => {
@@ -114,85 +131,160 @@ describe('checkout page', () => {
     }
   });
 
-  it("summarises the logged-in customer's basket from the backend", async () => {
-    const response = await get(3);
-    const page = await response.text();
+  describe('GET /checkout', () => {
+    it('summarises the dummy order using real product names and prices', async () => {
+      const response = await get();
+      const page = await response.text();
 
-    expect(response.status).toBe(200);
-    expect(page).toContain('id="checkout-title"');
-    expect(page).toContain('Furby × 2');
-    expect(page).toContain('£40.00');
-    expect(page).toContain('Catan × 1');
-    expect(page).toContain('£35.50');
-    expect(page).toContain('Total: £75.50');
-    expect(page).not.toContain('Gaming Mouse');
+      expect(response.status).toBe(200);
+      expect(page).toContain('Furby × 1');
+      expect(page).toContain('£99.99');
+      expect(page).toContain('Catan × 2');
+      expect(page).toContain('£79.98');
+      expect(page).toContain('Total: £179.97');
+      expect(page).toMatch(/<button type="submit" class="checkout-button">/);
+    });
+
+    it('offers home or alternative address with neither pre-selected', async () => {
+      const page = await (await get()).text();
+
+      expect(page).toMatch(
+        /<input id="delivery-home"[^>]*name="deliveryOption" value="home">/,
+      );
+      expect(page).toMatch(
+        /<input id="delivery-other"[^>]*name="deliveryOption" value="other">/,
+      );
+      expect(page).not.toMatch(/name="deliveryOption"[^>]*checked/);
+      expect(page).toContain('123 Town Street<br>BT16 AAA');
+      expect(page).not.toContain('type="email"');
+    });
+
+    it('keeps address details hidden until an option is chosen', async () => {
+      const css = await (await fetch(`${baseUrl}/styles/ecommerce.css`)).text();
+
+      expect(css).toMatch(/\.delivery-panel \{\s*display: none;/);
+      expect(css).toContain('#delivery-home:checked ~ #home-address-panel');
+      expect(css).toContain('#delivery-other:checked ~ #other-address-panel');
+    });
+
+    it('disables the home option when the address cannot be loaded', async () => {
+      const page = await (await get(4)).text();
+
+      expect(page).toMatch(/<input id="delivery-home"[^>]*disabled>/);
+      expect(page).toContain('Unable to load your home address.');
+    });
   });
 
-  it('offers home or alternative address with neither pre-selected', async () => {
-    const page = await (await get(3)).text();
+  describe('POST /checkout', () => {
+    it('creates the order with the home address and redirects to order history', async () => {
+      const response = await post(VALID_FORM);
 
-    expect(page).toMatch(
-      /<input id="delivery-home"[^>]*name="deliveryOption" value="home">/,
-    );
-    expect(page).toMatch(
-      /<input id="delivery-other"[^>]*name="deliveryOption" value="other">/,
-    );
-    expect(page).not.toMatch(/name="deliveryOption"[^>]*checked/);
-    expect(page).toContain('123 Town Street<br>BT16 AAA');
-    expect(page).toContain('id="address" name="address"');
-    expect(page).toContain('id="postcode" name="postcode"');
-    expect(page).not.toContain('type="email"');
-  });
+      expect(response.status).toBe(303);
+      expect(response.headers.get('location')).toBe('/order_history?placed=42');
+      expect(orderRequests).toEqual([
+        {
+          authorization: 'Bearer customer-3',
+          body: { customerID: 3, orderServices: DUMMY_ORDER_ITEMS },
+        },
+      ]);
+    });
 
-  it('keeps address details hidden until an option is chosen', async () => {
-    const css = await (await fetch(`${baseUrl}/styles/ecommerce.css`)).text();
+    it('sends an alternative address when chosen', async () => {
+      const response = await post({
+        ...VALID_FORM,
+        deliveryOption: 'other',
+        address: '  14 Gift Lane ',
+        postcode: 'BT9 5AB',
+      });
 
-    expect(css).toMatch(/\.delivery-panel \{\s*display: none;/);
-    expect(css).toContain('#delivery-home:checked ~ #home-address-panel');
-    expect(css).toContain('#delivery-other:checked ~ #other-address-panel');
-  });
+      expect(response.status).toBe(303);
+      expect(orderRequests[0]?.body).toEqual({
+        customerID: 3,
+        address: '14 Gift Lane',
+        postcode: 'BT9 5AB',
+        orderServices: DUMMY_ORDER_ITEMS,
+      });
+    });
 
-  it('disables the home option when the address cannot be loaded', async () => {
-    const page = await (await get(4)).text();
+    it('never sends card details to the backend', async () => {
+      await post(VALID_FORM);
 
-    expect(page).toMatch(/<input id="delivery-home"[^>]*disabled>/);
-    expect(page).toContain('Unable to load your home address.');
-    expect(page).not.toContain('id="home-address-panel"');
-    expect(page).toContain('id="other-address-panel"');
-  });
+      const sent = JSON.stringify(orderRequests);
+      expect(sent).not.toContain('4242');
+      expect(sent).not.toContain('cvv');
+    });
 
-  it('shows an empty-basket message when there is nothing to check out', async () => {
-    const response = await get(4);
-    const page = await response.text();
+    it('shows field errors, keeps safe values and does not create an order', async () => {
+      const response = await post({
+        firstName: 'John',
+        surname: '',
+        deliveryOption: 'other',
+        address: '',
+        postcode: 'BT9 5AB',
+        cardNumber: '4242',
+        expiryDate: '13/30',
+        cvv: '12',
+      });
+      const page = await response.text();
 
-    expect(response.status).toBe(200);
-    expect(page).toContain('id="checkout-empty"');
-    expect(page).not.toContain('Total:');
-  });
+      expect(response.status).toBe(400);
+      expect(orderRequests).toHaveLength(0);
+      expect(page).toContain('Enter your surname');
+      expect(page).toContain('Enter your delivery address');
+      expect(page).toContain('Enter a 16-digit card number');
+      expect(page).toContain('Enter the expiry date as MM/YY');
+      expect(page).toContain('Enter the 3-digit CVV');
+      expect(page).toContain('value="John"');
+      expect(page).toContain('value="BT9 5AB"');
+      expect(page).toMatch(/id="delivery-other"[^>]*checked/);
+      expect(page).not.toContain('4242');
+    });
 
-  it('shows an error when the backend fails', async () => {
-    const response = await get(5);
-    const page = await response.text();
+    it('requires a delivery option', async () => {
+      const { deliveryOption: _omit, ...form } = VALID_FORM;
+      const response = await post(form);
 
-    expect(response.status).toBe(502);
-    expect(page).toContain('Unable to load your basket.');
-    expect(page).not.toContain('Total:');
-  });
+      expect(response.status).toBe(400);
+      expect(await response.text()).toContain('Choose a delivery address');
+      expect(orderRequests).toHaveLength(0);
+    });
 
-  it('shows an error when the basket response is malformed', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    const response = await get(6);
+    it('rejects an expired card', async () => {
+      const response = await post({ ...VALID_FORM, expiryDate: '01/20' });
 
-    expect(response.status).toBe(502);
-    expect(await response.text()).toContain('Unable to load your basket.');
-  });
+      expect(response.status).toBe(400);
+      expect(await response.text()).toContain('This card has expired');
+    });
 
-  it('redirects to login when the backend rejects the session', async () => {
-    const response = await get(7);
+    it('shows the backend error when an item is out of stock', async () => {
+      const response = await post(VALID_FORM, 5);
 
-    expect(response.status).toBe(302);
-    expect(response.headers.get('location')).toBe(
-      '/login?returnTo=%2Fcheckout',
-    );
+      expect(response.status).toBe(409);
+      expect(await response.text()).toContain('Not enough stock for product 4');
+    });
+
+    it('redirects to login when the backend rejects the session', async () => {
+      const response = await post(VALID_FORM, 7);
+
+      expect(response.status).toBe(302);
+      expect(response.headers.get('location')).toBe(
+        '/login?returnTo=%2Fcheckout',
+      );
+    });
+
+    it('rejects cross-site submissions', async () => {
+      const response = await fetch(`${baseUrl}/checkout`, {
+        method: 'POST',
+        headers: {
+          cookie: cookie(3),
+          'content-type': 'application/x-www-form-urlencoded',
+          origin: 'https://evil.example',
+        },
+        body: new URLSearchParams(VALID_FORM).toString(),
+      });
+
+      expect(response.status).toBe(403);
+      expect(orderRequests).toHaveLength(0);
+    });
   });
 });
