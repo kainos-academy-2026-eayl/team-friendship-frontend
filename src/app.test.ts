@@ -19,6 +19,9 @@ function createFakeBackend() {
   backend.get('/products', (_req, res) => {
     res.json({ products: [] });
   });
+  backend.get('/basket/:customerId', (_req, res) => {
+    res.json({ basket: [] });
+  });
   return backend;
 }
 
@@ -252,7 +255,7 @@ describe('HTTP application', () => {
     );
   });
 
-  it('renders the reset page with a locked email and masked passwords', async () => {
+  it('renders the reset page without login with a locked email and masked passwords', async () => {
     const response = await fetch(
       `${baseUrl}/reset_password?email=person%2Breset%40example.com&token=reset-token`,
     );
@@ -313,7 +316,7 @@ describe('HTTP application', () => {
     expect(body).toContain('aria-describedby="confirm-password-error"');
   });
 
-  it('saves a valid matching reset password through the backend', async () => {
+  it('saves a valid matching reset password through the backend without login', async () => {
     let backendRequest: { url: string; init: RequestInit } | undefined;
     vi.stubGlobal(
       'fetch',

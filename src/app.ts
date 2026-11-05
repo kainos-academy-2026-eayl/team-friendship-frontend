@@ -13,12 +13,21 @@ import productDisplayController from './controllers/productDisplayController';
 import registerController from './controllers/registerController';
 import resetPasswordController from './controllers/resetPasswordController';
 import { loadSession, requireLogin } from './controllers/sessionController';
+import { getBasket } from './services/basketService';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
 import orderHistoryPage from './views/pages/order_history/order_history';
 import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
 
+type BasketItem = {
+  quantity: number;
+  product: {
+    productName: string;
+    productPrice: number;
+    productImage: string;
+  };
+};
 export function createApp(): Express {
   const app = express();
   const viewsDirectory = resolve(process.cwd(), 'src/views');
@@ -59,8 +68,33 @@ export function createApp(): Express {
 
   app.use('/home', homeController);
 
-  app.get('/basket', requireLogin, (_req: Request, res: Response) => {
-    res.render('basket/basket', { page: basketPage });
+  app.get('/basket', requireLogin, async (_req: Request, res: Response) => {
+    const customerId = 1;
+    const basket = await getBasket(customerId);
+
+    const products = basket.basket.map((item: BasketItem) => ({
+      name: item.product.productName,
+      quantity: String(item.quantity),
+      totalPrice: `£${(item.product.productPrice * item.quantity).toFixed(2)}`,
+      image: {
+        src: `/images/${item.product.productImage}`,
+        alt: item.product.productName,
+      },
+    }));
+
+    const basketTotal = basket.basket.reduce(
+      (total: number, item: BasketItem) =>
+        total + item.product.productPrice * item.quantity,
+      0,
+    );
+
+    res.render('basket/basket', {
+      page: {
+        ...basketPage,
+        products,
+        basketTotal: `£${basketTotal.toFixed(2)}`,
+      },
+    });
   });
 
   app.get('/checkout', requireLogin, (_req: Request, res: Response) => {
