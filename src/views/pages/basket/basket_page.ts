@@ -20,7 +20,7 @@ const basketPage = {
       id: 'checkout',
       type: 'button',
       label: 'Checkout',
-      disabled: true,
+      href: '/checkout',
     },
   ],
 };

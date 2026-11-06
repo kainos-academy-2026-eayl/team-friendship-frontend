@@ -127,7 +127,7 @@
     {{ fieldError('cvv', errors.cvv) }}
     <input id="cvv" name="cvv" type="text" inputmode="numeric" placeholder="CVV" autocomplete="cc-csc" maxlength="3"{{ invalid('cvv', errors.cvv) }}>
 
-    <button type="submit" class="checkout-button"{% if not summary %} disabled{% endif %}>
+    <button type="submit" class="checkout-button"{% if not summary or not summary.lines.length %} disabled{% endif %}>
       Place Order
     </button>
 

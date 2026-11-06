@@ -1,4 +1,4 @@
-// Backend-shaped products matching DUMMY_ORDER_ITEMS so checkout can render in tests.
+// Backend-shaped sample products used by HTTP tests.
 export const checkoutProducts = [
   {
     productID: 4,

@@ -1,8 +1,6 @@
 import { z } from 'zod';
 import type { Product, ProductResult } from '../models/productDisplayModel';
 
-const BACKEND_URL = process.env.BACKEND_URL ?? 'http://localhost:3000';
-
 const backendProductSchema = z.object({
   productID: z.number().int().positive(),
   productName: z.string(),
@@ -29,9 +27,12 @@ function toProduct(product: z.infer<typeof backendProductSchema>): Product {
 
 export async function getProduct(productId: number): Promise<ProductResult> {
   try {
-    const response = await fetch(`${BACKEND_URL}/products/${productId}`, {
-      headers: { accept: 'application/json' },
-    });
+    const response = await fetch(
+      `${process.env.BACKEND_URL ?? 'http://localhost:3000'}/products/${productId}`,
+      {
+        headers: { accept: 'application/json' },
+      },
+    );
 
     if (!response.ok) {
       return {

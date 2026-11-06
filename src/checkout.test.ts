@@ -4,11 +4,18 @@ import type { AddressInfo } from 'node:net';
 import express from 'express';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from './app';
-import { DUMMY_ORDER_ITEMS } from './controllers/checkoutController';
 import { checkoutProducts } from './testFixtures';
 
 const orderRequests: { authorization?: string; body: unknown }[] = [];
 const discountLookups: string[] = [];
+const basketAdds: unknown[] = [];
+const selectedItems = [
+  { productID: 4, quantity: 1 },
+  { productID: 12, quantity: 2 },
+];
+let basketItems = selectedItems.map((item) => ({ ...item }));
+let basketStatus = 200;
+let addStatus = 201;
 
 function createFakeBackend() {
   const backend = express();
@@ -26,6 +33,43 @@ function createFakeBackend() {
   });
   backend.get('/products', (_req, res) => {
     res.json({ products: checkoutProducts });
+  });
+  backend.get('/products/:id', (req, res) => {
+    const product = checkoutProducts.find(
+      (product) => product.productID === Number(req.params.id),
+    );
+    if (!product) {
+      res.sendStatus(404);
+      return;
+    }
+    res.json({ product });
+  });
+  backend.get('/basket/:customerID', (req, res) => {
+    if (customerFor(req.get('authorization')) !== req.params.customerID) {
+      res.sendStatus(403);
+      return;
+    }
+    res.status(basketStatus).json({
+      basket: basketItems.map((item, index) => ({
+        ...item,
+        basketID: index + 1,
+        product: checkoutProducts.find(
+          (product) => product.productID === item.productID,
+        ),
+      })),
+    });
+  });
+  backend.post('/basket', (req, res) => {
+    basketAdds.push(req.body);
+    if (addStatus !== 201) {
+      res.status(addStatus).json({ error: 'Could not add product' });
+      return;
+    }
+    basketItems.push({
+      productID: req.body.productID,
+      quantity: req.body.quantity,
+    });
+    res.status(201).json({ basketID: 3, ...req.body });
   });
   backend.get('/customers/me/address', (req, res) => {
     if (customerFor(req.get('authorization')) === '4') {
@@ -128,6 +172,10 @@ describe('checkout', () => {
   beforeEach(() => {
     orderRequests.length = 0;
     discountLookups.length = 0;
+    basketAdds.length = 0;
+    basketItems = selectedItems.map((item) => ({ ...item }));
+    basketStatus = 200;
+    addStatus = 201;
   });
 
   afterAll(async () => {
@@ -143,8 +191,85 @@ describe('checkout', () => {
     }
   });
 
+  describe('browse to basket', () => {
+    const add = (quantity: string, id = '12', auth = cookie(3)) =>
+      fetch(`${baseUrl}/products/${id}/add-to-basket`, {
+        method: 'POST',
+        headers: {
+          cookie: auth,
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ quantity }),
+        redirect: 'manual',
+      });
+
+    it('submits the selected quantity and returns to browse with a working checkout link', async () => {
+      const details = await (await fetch(`${baseUrl}/products/12`)).text();
+      expect(details).toMatch(
+        /<form method="post" action="\/products\/12\/add-to-basket">[\s\S]*name="quantity"/,
+      );
+      const response = await add('3');
+      expect(response.status).toBe(303);
+      expect(response.headers.get('location')).toBe('/product_browse');
+      expect(basketAdds).toEqual([
+        { customerID: 3, productID: 12, quantity: 3 },
+      ]);
+      const basket = await (
+        await fetch(`${baseUrl}/basket`, { headers: { cookie: cookie(3) } })
+      ).text();
+      expect(basket).toContain('Quantity: 3');
+      expect(basket).toContain('href="/checkout" id="checkout"');
+      expect(await (await get()).text()).toContain('Catan × 3');
+    });
+
+    it.each(['0', '-1', '1.5', '', 'abc', '9007199254740992'])(
+      'rejects invalid quantity %j without adding',
+      async (quantity) => {
+        expect((await add(quantity)).status).toBe(400);
+        expect(basketAdds).toHaveLength(0);
+      },
+    );
+
+    it('rejects invalid product IDs and quantities exceeding stock', async () => {
+      expect((await add('1', 'invalid')).status).toBe(400);
+      expect((await add('16')).status).toBe(409);
+      expect(basketAdds).toHaveLength(0);
+    });
+
+    it('requires login before adding products', async () => {
+      const response = await add('3', '12', '');
+      expect(response.status).toBe(302);
+      expect(response.headers.get('location')).toContain('/login?returnTo=');
+      expect(basketAdds).toHaveLength(0);
+    });
+
+    it('does not redirect as successful when adding fails', async () => {
+      addStatus = 409;
+      const response = await add('3');
+      expect(response.status).toBe(409);
+      expect(response.headers.get('location')).toBeNull();
+      const html = await response.text();
+      expect(html).toContain('Unable to add this product');
+      expect(html).toContain('value="3"');
+    });
+
+    it('keeps checkout disabled when the basket is empty or unavailable', async () => {
+      basketItems = [];
+      let html = await (
+        await fetch(`${baseUrl}/basket`, { headers: { cookie: cookie(3) } })
+      ).text();
+      expect(html).toContain('id="checkout" disabled');
+      basketStatus = 500;
+      html = await (
+        await fetch(`${baseUrl}/basket`, { headers: { cookie: cookie(3) } })
+      ).text();
+      expect(html).toContain('id="checkout" disabled');
+      expect(html).not.toContain('href="/checkout"');
+    });
+  });
+
   describe('GET /checkout', () => {
-    it('summarises the dummy order using real product names and prices', async () => {
+    it('summarises the customer basket using its product names, quantities and prices', async () => {
       const response = await get();
       const page = await response.text();
 
@@ -248,7 +373,7 @@ describe('checkout', () => {
       expect(orderRequests[0]?.body).toEqual({
         customerID: 3,
         discountCode: 'FRIENDSHIP12',
-        orderServices: DUMMY_ORDER_ITEMS,
+        orderServices: selectedItems,
       });
     });
 
@@ -277,6 +402,39 @@ describe('checkout', () => {
   });
 
   describe('POST /checkout', () => {
+    it('orders the current basket rather than sample or submitted items, grouping repeated products', async () => {
+      basketItems = [
+        { productID: 12, quantity: 3 },
+        { productID: 12, quantity: 2 },
+      ];
+      const response = await post({
+        ...VALID_FORM,
+        customerID: '99',
+        orderServices: 'forged',
+      });
+      expect(response.status).toBe(303);
+      expect(orderRequests[0]?.body).toEqual({
+        customerID: 3,
+        orderServices: [{ productID: 12, quantity: 5 }],
+      });
+    });
+
+    it('blocks empty baskets and disables place order', async () => {
+      basketItems = [];
+      const page = await (await get()).text();
+      expect(page).toContain('Your basket is empty');
+      expect(page).toMatch(/class="checkout-button" disabled/);
+      expect((await post(VALID_FORM)).status).toBe(400);
+      expect(orderRequests).toHaveLength(0);
+    });
+
+    it('blocks checkout when the basket API fails', async () => {
+      basketStatus = 500;
+      expect((await get()).status).toBe(502);
+      expect((await post(VALID_FORM)).status).toBe(502);
+      expect(orderRequests).toHaveLength(0);
+    });
+
     it('creates the order with the home address and redirects to order history', async () => {
       const response = await post(VALID_FORM);
 
@@ -285,7 +443,7 @@ describe('checkout', () => {
       expect(orderRequests).toEqual([
         {
           authorization: 'Bearer customer-3',
-          body: { customerID: 3, orderServices: DUMMY_ORDER_ITEMS },
+          body: { customerID: 3, orderServices: selectedItems },
         },
       ]);
     });
@@ -303,7 +461,7 @@ describe('checkout', () => {
         customerID: 3,
         address: '14 Gift Lane',
         postcode: 'BT9 5AB',
-        orderServices: DUMMY_ORDER_ITEMS,
+        orderServices: selectedItems,
       });
     });
 

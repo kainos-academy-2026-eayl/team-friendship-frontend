@@ -1,5 +1,16 @@
 # Team Friendship Frontend
 
+## Basket and checkout
+
+The product-detail quantity field submits a positive whole-number quantity to
+the add-to-basket endpoint. Successful additions return to Browse Products;
+failed requests display an error instead of redirecting as successful.
+The basket's Checkout link opens `/checkout` when the basket is available and
+nonempty. Checkout displays the signed-in customer's basket and reloads it
+before submitting the order, using those product IDs and quantities rather than
+sample items or values supplied by the browser. Repeated product rows are
+combined into one order line. Empty or unavailable baskets cannot be ordered.
+
 ## Order confirmation
 
 `/order_confirmation/:id` renders a saved order in Nunjucks, using the

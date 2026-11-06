@@ -68,10 +68,11 @@
 
     {% for action in page.actions %}
 
-    <button type="{{ action.type }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
-        {% endif %} {% if action.disabled %}disabled{% endif %}>
-        {{ action.label }}
-    </button>
+    {% if not error and page.products.length %}
+    <a href="{{ action.href }}" id="{{ action.id }}">{{ action.label }}</a>
+    {% else %}
+    <button type="button" id="{{ action.id }}" disabled>{{ action.label }}</button>
+    {% endif %}
 
     {% endfor %}
 

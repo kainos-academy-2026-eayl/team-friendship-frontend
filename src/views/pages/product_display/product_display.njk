@@ -31,12 +31,12 @@
   {{ product.description }}
 </p>
 
-<input id="quantity" name="quantity" type="number" min="1" value="1" required>
-
 <div class="actions">
 
   <form method="post" action="/products/{{ product.id }}/add-to-basket">
-    <button type="submit" id="add-to-basket">
+    <label for="quantity">Quantity</label>
+    <input id="quantity" name="quantity" type="number" min="1" max="{{ product.stock }}" step="1" value="{{ quantity or 1 }}" required{% if product.stock == 0 %} disabled{% endif %}>
+    <button type="submit" id="add-to-basket"{% if product.stock == 0 %} disabled{% endif %}>
       Add To Basket
     </button>
   </form>
