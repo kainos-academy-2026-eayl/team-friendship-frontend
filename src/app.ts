@@ -16,22 +16,13 @@ import productDisplayController from './controllers/productDisplayController';
 import registerController from './controllers/registerController';
 import resetPasswordController from './controllers/resetPasswordController';
 import { loadSession, requireLogin } from './controllers/sessionController';
-import { getBasket } from './services/basketService';
+import { type BasketItem, getBasket } from './services/basketService';
 import { capitaliseName } from './utils/name';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
 import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
 
-type BasketItem = {
-  basketID: number;
-  quantity: number;
-  product: {
-    productName: string;
-    productPrice: number;
-    productImage: string;
-  };
-};
 export function createApp(): Express {
   const app = express();
   const viewsDirectory = resolve(process.cwd(), 'src/views');
@@ -78,8 +69,10 @@ export function createApp(): Express {
   app.use('/home', homeController);
 
   app.get('/basket', requireLogin, async (_req: Request, res: Response) => {
-    const customerId = 1;
-    const basket = await getBasket(customerId);
+    const basket = await getBasket(
+      res.locals.accessToken,
+      res.locals.customerId,
+    );
 
     const products = basket.basket.map((item: BasketItem) => ({
       basketID: item.basketID,
@@ -87,7 +80,7 @@ export function createApp(): Express {
       quantity: String(item.quantity),
       totalPrice: `£${(item.product.productPrice * item.quantity).toFixed(2)}`,
       image: {
-        src: `/images/${item.product.productImage}`,
+        src: `/images/products_images/${item.product.productImage.split('/').pop()}`,
         alt: item.product.productName,
       },
     }));
@@ -104,6 +97,7 @@ export function createApp(): Express {
         products,
         basketTotal: `£${basketTotal.toFixed(2)}`,
       },
+      error: basket.ok ? undefined : basket.message,
     });
   });
 
