@@ -4,6 +4,7 @@
 ​
 {% block content %}​
 
+<div data-product-content>
 <a href="/product_browse" class="back-button">
   ← Back to Browse
 </a>
@@ -34,7 +35,7 @@
 
 <div class="actions">
 
-  <form method="post" action="/products/{{ product.id }}/add-to-basket">
+  <form method="post" action="/products/{{ product.id }}/add-to-basket" data-product-quantity-form>
     {% set selectedQuantity = quantity or 1 %}
     {% if remainingStock > 0 and selectedQuantity > remainingStock %}{% set selectedQuantity = remainingStock %}{% endif %}
     <p id="quantity-label">Quantity</p>
@@ -54,5 +55,7 @@
 
 <p id="status" role="status"></p>
 {% endif %}
+</div>
+<script src="/scripts/product-quantity.js" defer></script>
 
 {% endblock %}

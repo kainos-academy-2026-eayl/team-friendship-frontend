@@ -278,7 +278,7 @@ describe('checkout', () => {
     it('submits the selected quantity and returns to browse with a working checkout link', async () => {
       const details = await (await fetch(`${baseUrl}/products/12`)).text();
       expect(details).toMatch(
-        /<form method="post" action="\/products\/12\/add-to-basket">[\s\S]*name="quantity"/,
+        /<form method="post" action="\/products\/12\/add-to-basket" data-product-quantity-form>[\s\S]*name="quantity"/,
       );
       const response = await add('3');
       expect(response.status).toBe(303);
