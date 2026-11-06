@@ -18,6 +18,7 @@ import productDisplayController from './controllers/productDisplayController';
 import registerController from './controllers/registerController';
 import resetPasswordController from './controllers/resetPasswordController';
 import { loadSession, requireLogin } from './controllers/sessionController';
+import { getBasket } from './services/basketService';
 import { capitaliseName } from './utils/name';
 import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
@@ -43,6 +44,25 @@ export function createApp(): Express {
   // Before loadSession so logout revokes the existing refresh token instead of rotating it first.
   app.use('/logout', logoutController);
   app.use(loadSession);
+
+  app.use(async (req, res, next) => {
+    if (
+      req.path !== '/health' &&
+      res.locals.customerId &&
+      !res.locals.isAdmin
+    ) {
+      const basket = await getBasket(
+        res.locals.accessToken,
+        res.locals.customerId,
+      );
+      res.locals.basketResult = basket;
+      res.locals.basketCount = basket.ok
+        ? basket.basket.reduce((count, item) => count + item.quantity, 0)
+        : undefined;
+      res.locals.basketCountUnavailable = !basket.ok;
+    }
+    next();
+  });
 
   app.use((req, res, next) => {
     res.locals.navigation = sidebarNavigation;

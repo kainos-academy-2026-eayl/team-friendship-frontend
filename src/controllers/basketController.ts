@@ -2,6 +2,7 @@ import { type Response, Router } from 'express';
 import { z } from 'zod';
 import {
   changeBasketQuantity,
+  type GetBasketResult,
   getBasket,
   quantityInBasket,
   removeBasketItem,
@@ -22,7 +23,9 @@ router.use((_req, res, next) => {
 });
 
 async function renderBasket(res: Response, status = 200, error?: string) {
-  const basket = await getBasket(res.locals.accessToken, res.locals.customerId);
+  const basket: GetBasketResult =
+    res.locals.basketResult ??
+    (await getBasket(res.locals.accessToken, res.locals.customerId));
   const products = basket.basket.map((item) => ({
     basketID: item.basketID,
     name: item.product.productName,
@@ -66,6 +69,7 @@ router.post('/:id/quantity', async (req, res) => {
     direction.data === 'increase' ? 1 : -1,
   );
   if (!result.ok) {
+    delete res.locals.basketResult;
     await renderBasket(res, result.status, result.message);
     return;
   }
@@ -80,6 +84,7 @@ router.post('/:id/remove', async (req, res) => {
   }
   const result = await removeBasketItem(res.locals.accessToken, id.data);
   if (!result.ok) {
+    delete res.locals.basketResult;
     await renderBasket(res, result.status, result.message);
     return;
   }

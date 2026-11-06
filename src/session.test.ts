@@ -209,7 +209,11 @@ describe('session authentication', () => {
     expect(html).not.toContain('never-display-this-hash');
     expect(html).not.toContain('<dt>Customer ID</dt>');
     expect(html).not.toContain('<script>alert(1)</script>');
-    expect(calls.map((call) => call.path)).toEqual(['/me', '/customers/me']);
+    expect(calls.map((call) => call.path)).toEqual([
+      '/me',
+      '/basket/1',
+      '/customers/me',
+    ]);
   });
 
   it('requires login for customer details', async () => {
@@ -297,7 +301,7 @@ describe('session authentication', () => {
       expect(html).toContain(`name="password" type="${expectedType}"`);
       expect(html).toContain('value="correct-password"');
       expect(html).toContain('12 New Street');
-      expect(calls.map((call) => call.path)).toEqual(['/me']);
+      expect(calls.map((call) => call.path)).toEqual(['/me', '/basket/1']);
     }
   });
 

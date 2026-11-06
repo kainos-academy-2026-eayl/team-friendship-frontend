@@ -2,6 +2,14 @@
 
 ## Basket and checkout
 
+The shared header links to the basket and counts individual units (not distinct
+products) from the signed-in customer's saved basket. A `?` indicates an unavailable
+count rather than incorrectly showing an empty basket. Product quantity selection
+uses only minus/plus buttons, with no editable input. These server-rendered buttons
+update the selection without adding anything. Stock messaging distinguishes total
+stock from units already in the basket and the remaining number that can be added.
+Browse cards label products with zero database stock as **Out of Stock**.
+
 The product-detail quantity field submits a positive whole-number quantity to
 the add-to-basket endpoint. Successful additions return to Browse Products;
 failed requests display an error instead of redirecting as successful.

@@ -35,7 +35,13 @@ function createFakeBackend() {
     res.json({ customerId: Number(customerId), role: 'customer' });
   });
   backend.get('/products', (_req, res) => {
-    res.json({ products: checkoutProducts });
+    res.json({
+      products: checkoutProducts.map((product) => ({
+        ...product,
+        productStock:
+          stockLevels.get(product.productID) ?? product.productStock,
+      })),
+    });
   });
   backend.get('/products/:id', (req, res) => {
     const product = checkoutProducts.find(
@@ -335,6 +341,88 @@ describe('checkout', () => {
   });
 
   describe('stock controls', () => {
+    it('shows the total basket unit count and updates it after adding and removing', async () => {
+      const readHeader = async () =>
+        (
+          await fetch(`${baseUrl}/home`, {
+            headers: { cookie: cookie(3) },
+          })
+        ).text();
+      expect(await readHeader()).toContain('aria-label="View basket, 3 items"');
+      await fetch(`${baseUrl}/products/12/add-to-basket`, {
+        method: 'POST',
+        headers: {
+          cookie: cookie(3),
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ quantity: '2' }),
+        redirect: 'manual',
+      });
+      expect(await readHeader()).toContain('aria-label="View basket, 5 items"');
+      await fetch(`${baseUrl}/basket/3/remove`, {
+        method: 'POST',
+        headers: { cookie: cookie(3) },
+        redirect: 'manual',
+      });
+      expect(await readHeader()).toContain('aria-label="View basket, 3 items"');
+    });
+
+    it('explicitly marks an unavailable basket count instead of showing zero', async () => {
+      basketStatus = 500;
+      const html = await (
+        await fetch(`${baseUrl}/home`, {
+          headers: { cookie: cookie(3) },
+        })
+      ).text();
+      expect(html).toContain('View basket, item count unavailable');
+      expect(html).toContain(
+        'class="basket-count" aria-hidden="true">?</span>',
+      );
+    });
+
+    it('uses arrow-only selection to select and add both units when two are available', async () => {
+      basketItems = [];
+      stockLevels.set(12, 2);
+      const select = (quantity: string, direction: string) =>
+        fetch(`${baseUrl}/products/12/quantity`, {
+          method: 'POST',
+          headers: {
+            cookie: cookie(3),
+            'content-type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({ quantity, direction }),
+        });
+      let html = await (await select('1', 'increase')).text();
+      expect(html).toContain('<input type="hidden" name="quantity" value="2">');
+      expect(html).not.toContain('type="number"');
+      expect(html).toMatch(/aria-label="Increase selected quantity" disabled/);
+      expect(basketAdds).toHaveLength(0);
+      html = await (await select('2', 'increase')).text();
+      expect(html).toContain('<input type="hidden" name="quantity" value="2">');
+      html = await (await select('2', 'decrease')).text();
+      expect(html).toContain('<input type="hidden" name="quantity" value="1">');
+      expect(html).toMatch(/aria-label="Decrease selected quantity" disabled/);
+      const response = await fetch(`${baseUrl}/products/12/add-to-basket`, {
+        method: 'POST',
+        headers: {
+          cookie: cookie(3),
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ quantity: '2' }),
+        redirect: 'manual',
+      });
+      expect(response.status).toBe(303);
+      expect(basketAdds).toEqual([
+        { customerID: 3, productID: 12, quantity: 2 },
+      ]);
+    });
+
+    it('labels zero-stock products on the browse page', async () => {
+      stockLevels.set(12, 0);
+      const html = await (await fetch(`${baseUrl}/product_browse`)).text();
+      expect(html).toContain('<p class="availability">Out of Stock</p>');
+    });
+
     it('shows compact plus/minus and bin controls and removes the selected item', async () => {
       const before = await basketPage();
       expect(before).toMatch(
@@ -418,7 +506,7 @@ describe('checkout', () => {
 
     it('uses only remaining stock as the product input limit', async () => {
       const html = await productPage();
-      expect(html).toContain('max="13"');
+      expect(html).toContain('2 already in your basket; 13 more can be added.');
       const response = await fetch(`${baseUrl}/products/12/add-to-basket`, {
         method: 'POST',
         headers: {

@@ -22,6 +22,7 @@
 <p class="availability">
   {% if product.stock > 0 %}
   In Stock ({{ product.stock }} available)
+  {% if inBasket > 0 %}<span>{{ inBasket }} already in your basket; {{ remainingStock }} more can be added.</span>{% endif %}
   {% else %}
   Out of Stock
   {% endif %}
@@ -34,8 +35,15 @@
 <div class="actions">
 
   <form method="post" action="/products/{{ product.id }}/add-to-basket">
-    <label for="quantity">Quantity</label>
-    <input id="quantity" name="quantity" type="number" min="1" max="{{ remainingStock }}" step="1" value="{{ quantity or 1 }}" required{% if remainingStock <= 0 %} disabled{% endif %}>
+    {% set selectedQuantity = quantity or 1 %}
+    {% if remainingStock > 0 and selectedQuantity > remainingStock %}{% set selectedQuantity = remainingStock %}{% endif %}
+    <p id="quantity-label">Quantity</p>
+    <div class="product-quantity-controls" role="group" aria-labelledby="quantity-label">
+      <button type="submit" name="direction" value="decrease" formaction="/products/{{ product.id }}/quantity" aria-label="Decrease selected quantity"{% if selectedQuantity <= 1 or remainingStock <= 0 %} disabled{% endif %}>&#8722;</button>
+      <output id="quantity" aria-live="polite">{{ selectedQuantity if remainingStock > 0 else 0 }}</output>
+      <input type="hidden" name="quantity" value="{{ selectedQuantity }}">
+      <button type="submit" name="direction" value="increase" formaction="/products/{{ product.id }}/quantity" aria-label="Increase selected quantity"{% if selectedQuantity >= remainingStock %} disabled{% endif %}>+</button>
+    </div>
     {% if product.stock > 0 and remainingStock == 0 and not error %}<p role="status">Stock limit reached. You already have all available units in your basket.</p>{% endif %}
     <button type="submit" id="add-to-basket"{% if remainingStock <= 0 %} disabled{% endif %}>
       Add To Basket
