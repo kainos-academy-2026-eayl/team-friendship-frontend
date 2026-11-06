@@ -1063,9 +1063,10 @@ header a:hover {
 .home-address {
   margin: 0;
   padding: 13px 14px;
-  border: 1px solid #aebaca;
+  border: 1px solid var(--input-border);
   border-radius: 8px;
-  background: #f4f6fa;
+  background: var(--page-bg);
+  color: var(--text);
 }
 
 .field-error {
