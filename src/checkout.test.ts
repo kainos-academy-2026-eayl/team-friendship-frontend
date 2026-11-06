@@ -9,6 +9,7 @@ import { checkoutProducts } from './testFixtures';
 const orderRequests: { authorization?: string; body: unknown }[] = [];
 const discountLookups: string[] = [];
 const basketAdds: unknown[] = [];
+let savedOrder: unknown;
 const selectedItems = [
   { productID: 4, quantity: 1 },
   { productID: 12, quantity: 2 },
@@ -103,19 +104,29 @@ function createFakeBackend() {
       res.status(401).json({ error: 'Invalid or expired access token' });
       return;
     }
-    res.status(201).json({
-      order: {
-        orderID: 42,
-        customerID: Number(customerId),
-        dateCreated: '2026-11-05T22:00:00.000Z',
-        status: 'pending',
-        address: req.body.address ?? '123 Town Street',
-        postcode: req.body.postcode ?? 'BT16 AAA',
-        discountCode: req.body.discountCode ?? null,
-        discountAmount: req.body.discountCode ? 21.6 : 0,
-        orderServices: [],
-      },
-    });
+    savedOrder = {
+      orderID: 42,
+      customerID: Number(customerId),
+      dateCreated: '2026-11-05T22:00:00.000Z',
+      status: 'pending',
+      address: req.body.address ?? '123 Town Street',
+      postcode: req.body.postcode ?? 'BT16 AAA',
+      discountCode: req.body.discountCode ?? null,
+      discountAmount: req.body.discountCode ? 21.6 : 0,
+      orderServices: req.body.orderServices.map(
+        (item: { productID: number; quantity: number }) => ({
+          ...item,
+          orderID: 42,
+          product: checkoutProducts.find(
+            (product) => product.productID === item.productID,
+          ),
+        }),
+      ),
+    };
+    res.status(201).json({ order: savedOrder });
+  });
+  backend.get('/orders/:id', (_req, res) => {
+    res.json({ order: savedOrder });
   });
   return backend;
 }
@@ -171,6 +182,7 @@ describe('checkout', () => {
 
   beforeEach(() => {
     orderRequests.length = 0;
+    savedOrder = undefined;
     discountLookups.length = 0;
     basketAdds.length = 0;
     basketItems = selectedItems.map((item) => ({ ...item }));
@@ -435,17 +447,30 @@ describe('checkout', () => {
       expect(orderRequests).toHaveLength(0);
     });
 
-    it('creates the order with the home address and redirects to order history', async () => {
+    it('creates the order with the home address and redirects to its confirmation', async () => {
       const response = await post(VALID_FORM);
 
       expect(response.status).toBe(303);
-      expect(response.headers.get('location')).toBe('/order_history?placed=42');
+      expect(response.headers.get('location')).toBe('/order_confirmation/42');
       expect(orderRequests).toEqual([
         {
           authorization: 'Bearer customer-3',
           body: { customerID: 3, orderServices: selectedItems },
         },
       ]);
+      const confirmation = await fetch(
+        `${baseUrl}${response.headers.get('location')}`,
+        {
+          headers: { cookie: cookie(3) },
+        },
+      );
+      expect(confirmation.status).toBe(200);
+      const html = await confirmation.text();
+      expect(html).toContain('42');
+      expect(html).toContain('Furby');
+      expect(html).toContain('Catan');
+      expect(html).toContain('pending');
+      expect(orderRequests).toHaveLength(1);
     });
 
     it('sends an alternative address when chosen', async () => {

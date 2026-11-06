@@ -285,7 +285,7 @@ router.post('/', async (req: Request, res: Response) => {
     return;
   }
 
-  res.redirect(303, `/order_history?placed=${result.order.orderID}`);
+  res.redirect(303, `/order_confirmation/${result.order.orderID}`);
 });
 
 export default router;
