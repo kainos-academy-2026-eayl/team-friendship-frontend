@@ -1,5 +1,18 @@
 # Team Friendship Frontend
 
+## Order confirmation
+
+`/order_confirmation/:id` renders a saved order in Nunjucks, using the
+authenticated backend `GET /orders/:id` endpoint. It checks that the returned
+order belongs to the session customer and matches the requested reference.
+It shows the saved status, creation date and item quantities, not a payment
+success claim. Historical prices are not available in the order schema, so this
+page does not present current product prices as the amount paid.
+
+Checkout is unchanged: its Place Order button remains disabled. When order
+placement is implemented, redirect to `/order_confirmation/<orderID>` only after
+the backend successfully creates the order. The confirmation GET never creates
+an order, so refreshing it cannot place another order.
 The registration form's password and confirm-password eyes use
 `public/scripts/password-toggle.js` to independently show or hide their fields
 without submitting the form or sending passwords to the server. They share the
