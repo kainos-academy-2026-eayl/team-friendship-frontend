@@ -521,6 +521,10 @@ button:disabled:hover {
   color: var(--link);
 }
 
+.password-field .password-toggle[hidden] {
+  display: none;
+}
+
 .password-eye-slash {
   display: none;
 }

@@ -8,16 +8,22 @@
 <p class="intro">{{ page.intro }}</p>
 
 <form id="registration-form" method="post" action="{{ page.formAction }}">
+    {% from "partials/password_toggle.njk" import browserPasswordToggle %}
 
     {% for field in page.fields %}
     <div>
         <label for="{{ field.id }}">{{ field.label }}</label>
 
+        {% if field.type == 'password' %}<div class="password-field">{% endif %}
         <input id="{{ field.id }}" name="{{ field.name }}" type="{{ field.type }}"
             autocomplete="{{ field.autocomplete }}" {% if field.placeholder %}placeholder="{{ field.placeholder }}"
             {% endif %} {% if field.minlength %}minlength="{{ field.minlength }}" {% endif %}
             {% if field.maxlength %}maxlength="{{ field.maxlength }}" {% endif %}
             {% if field.ariaDescribedBy %}aria-describedby="{{ field.ariaDescribedBy }}" {% endif %} required>
+        {% if field.type == 'password' %}
+            {{ browserPasswordToggle(field) }}
+        </div>
+        {% endif %}
 
         {% if field.errorId %}
         <p id="{{ field.errorId }}" class="error" aria-live="polite" {% if not passwordError %}hidden{% endif %}>{{ passwordError }}</p>
@@ -40,4 +46,5 @@
 
     <p id="registration-status" role="status" {% if not error and not success %}hidden{% endif %}>{% if error %}{{ error }}{% elif success %}{{ success }}{% endif %}</p>
 </form>
+<script src="/scripts/password-toggle.js" defer></script>
 {% endblock %}

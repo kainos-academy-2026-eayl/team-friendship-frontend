@@ -13,6 +13,11 @@ Checkout is unchanged: its Place Order button remains disabled. When order
 placement is implemented, redirect to `/order_confirmation/<orderID>` only after
 the backend successfully creates the order. The confirmation GET never creates
 an order, so refreshing it cannot place another order.
+The registration form's password and confirm-password eyes use
+`public/scripts/password-toggle.js` to independently show or hide their fields
+without submitting the form or sending passwords to the server. They share the
+existing eye icons and styling with login/reset, which keep their server-side
+visibility behaviour. Without JavaScript, registration passwords remain masked.
 ## Colour theme
 
 The sidebar's **Dark mode** switch applies to all pages, including admin and
