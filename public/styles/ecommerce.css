@@ -190,7 +190,7 @@ button:hover {
 
 .basket-quantity-controls {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 12px;
 }
 
@@ -198,8 +198,16 @@ button:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  padding: 8px;
+  width: 34px;
+  min-height: 34px;
+  height: 34px;
+  padding: 4px;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.basket-quantity-controls .basket-remove {
+  margin-left: 4px;
 }
 
 button:disabled {

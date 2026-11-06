@@ -158,3 +158,22 @@ export async function changeBasketQuantity(
     };
   }
 }
+
+export async function removeBasketItem(accessToken: string, basketID: number) {
+  try {
+    const response = await fetch(`${backendUrl()}/basket/${basketID}`, {
+      method: 'DELETE',
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) return await basketFailure(response);
+    return { ok: true as const };
+  } catch (error) {
+    console.error('Unable to confirm basket item removal', error);
+    return {
+      ok: false as const,
+      status: 502,
+      message:
+        'Unable to confirm whether the item was removed. Reload your basket before trying again.',
+    };
+  }
+}

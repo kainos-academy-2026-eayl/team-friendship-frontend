@@ -4,11 +4,17 @@ import {
   changeBasketQuantity,
   getBasket,
   quantityInBasket,
+  removeBasketItem,
 } from '../services/basketService';
 import basketPage from '../views/pages/basket/basket_page';
 import { requireLogin } from './sessionController';
 
 const router = Router();
+const basketIdSchema = z
+  .string()
+  .regex(/^[1-9]\d*$/)
+  .transform(Number)
+  .pipe(z.int32().positive());
 router.use(requireLogin);
 router.use((_req, res, next) => {
   res.set('Cache-Control', 'no-store');
@@ -46,12 +52,7 @@ router.get('/', async (_req, res) => {
 });
 
 router.post('/:id/quantity', async (req, res) => {
-  const id = z
-    .string()
-    .regex(/^[1-9]\d*$/)
-    .transform(Number)
-    .pipe(z.int32().positive())
-    .safeParse(req.params.id);
+  const id = basketIdSchema.safeParse(req.params.id);
   const direction = z
     .enum(['increase', 'decrease'])
     .safeParse(req.body?.direction);
@@ -64,6 +65,20 @@ router.post('/:id/quantity', async (req, res) => {
     id.data,
     direction.data === 'increase' ? 1 : -1,
   );
+  if (!result.ok) {
+    await renderBasket(res, result.status, result.message);
+    return;
+  }
+  res.redirect(303, '/basket');
+});
+
+router.post('/:id/remove', async (req, res) => {
+  const id = basketIdSchema.safeParse(req.params.id);
+  if (!id.success) {
+    await renderBasket(res, 400, 'Invalid basket item.');
+    return;
+  }
+  const result = await removeBasketItem(res.locals.accessToken, id.data);
   if (!result.ok) {
     await renderBasket(res, result.status, result.message);
     return;

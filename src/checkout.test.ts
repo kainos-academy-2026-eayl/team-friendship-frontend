@@ -87,33 +87,42 @@ function createFakeBackend() {
       productID: req.body.productID,
       quantity: req.body.quantity,
     });
-    backend.put('/basket/:id', (req, res) => {
-      basketUpdates.push({
-        id: req.params.id,
-        body: req.body,
-        authorization: req.get('authorization'),
-      });
-      const item = basketItems[Number(req.params.id) - 1];
-      if (!item) {
-        res.status(404).json({ error: 'Basket item not found.' });
-        return;
-      }
-      const stock =
-        stockLevels.get(item.productID) ??
-        checkoutProducts.find((product) => product.productID === item.productID)
-          ?.productStock ??
-        0;
-      const total = basketItems
-        .filter((row) => row.productID === item.productID)
-        .reduce((sum, row) => sum + row.quantity, 0);
-      if (req.body.change > 0 && total + req.body.change > stock) {
-        res.status(409).json({ error: 'Stock limit reached.' });
-        return;
-      }
-      item.quantity += req.body.change;
-      res.json(item);
-    });
     res.status(201).json({ basketID: 3, ...req.body });
+  });
+  backend.put('/basket/:id', (req, res) => {
+    basketUpdates.push({
+      id: req.params.id,
+      body: req.body,
+      authorization: req.get('authorization'),
+    });
+    const item = basketItems[Number(req.params.id) - 1];
+    if (!item) {
+      res.status(404).json({ error: 'Basket item not found.' });
+      return;
+    }
+    const stock =
+      stockLevels.get(item.productID) ??
+      checkoutProducts.find((product) => product.productID === item.productID)
+        ?.productStock ??
+      0;
+    const total = basketItems
+      .filter((row) => row.productID === item.productID)
+      .reduce((sum, row) => sum + row.quantity, 0);
+    if (req.body.change > 0 && total + req.body.change > stock) {
+      res.status(409).json({ error: 'Stock limit reached.' });
+      return;
+    }
+    item.quantity += req.body.change;
+    res.json(item);
+  });
+  backend.delete('/basket/:id', (req, res) => {
+    const index = Number(req.params.id) - 1;
+    if (!basketItems[index]) {
+      res.status(404).json({ error: 'Basket item not found.' });
+      return;
+    }
+    basketItems.splice(index, 1);
+    res.status(204).end();
   });
   backend.get('/customers/me/address', (req, res) => {
     if (customerFor(req.get('authorization')) === '4') {
@@ -326,6 +335,36 @@ describe('checkout', () => {
   });
 
   describe('stock controls', () => {
+    it('shows compact plus/minus and bin controls and removes the selected item', async () => {
+      const before = await basketPage();
+      expect(before).toMatch(
+        /aria-label="Increase quantity of Catan">\+<\/button>/,
+      );
+      expect(before).toContain('aria-label="Remove Catan from basket"');
+      const response = await fetch(`${baseUrl}/basket/2/remove`, {
+        method: 'POST',
+        headers: { cookie: cookie(3) },
+        redirect: 'manual',
+      });
+      expect(response.status).toBe(303);
+      expect(response.headers.get('location')).toBe('/basket');
+      const after = await basketPage();
+      expect(after).not.toContain('Remove Catan from basket');
+      expect(after).toContain('Remove Furby from basket');
+      expect(after).toContain('£99.99');
+    });
+
+    it('shows removal errors without redirecting as successful', async () => {
+      const response = await fetch(`${baseUrl}/basket/99/remove`, {
+        method: 'POST',
+        headers: { cookie: cookie(3) },
+        redirect: 'manual',
+      });
+      expect(response.status).toBe(404);
+      expect(await response.text()).toContain('Basket item not found.');
+      expect(basketItems).toHaveLength(2);
+    });
+
     const basketPage = async () =>
       (
         await fetch(`${baseUrl}/basket`, {

@@ -14,7 +14,9 @@ combined into one order line. Empty or unavailable baskets cannot be ordered.
 Stock comes from the Product table. Product details limit additions to current
 stock minus the quantity already in the customer's basket. The basket includes
 decrease/increase controls; the increase arrow is disabled and grey at the stock
-limit (including duplicate rows for the same product). Reductions are still
+limit. Compact minus/plus buttons adjust quantities, and the bin button removes
+the entire basket item through the authenticated `DELETE /basket/:basketID` endpoint.
+The stock limit includes all rows for the same product. Reductions are still
 allowed if stock has fallen below the basket quantity. Backend basket writes
 lock the product row and recheck the total inside a database transaction, so
 stale pages and concurrent additions cannot bypass the limit. Basket writes use
