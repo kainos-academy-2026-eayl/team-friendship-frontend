@@ -107,6 +107,13 @@ validated reset token, not the editable URL email parameter.
 
 ## Admin portal (frontend integration)
 
+The dashboard includes a read-only **Discount codes** table showing codes,
+discounts, statuses and expiry dates. This currently uses explicitly labelled
+dummy data (`demoDiscountCodes` in `src/services/adminService.ts`), including
+active, expired and disabled examples. No discount API is called and these
+sample codes cannot be applied to orders. Replace the demo data with the real
+admin-only discount-code endpoint once that backend work is merged.
+
 The existing login form redirects users to `/admin` when the backend's successful
 `POST /login` response includes `customer.role: "admin"`. Customer login and
 return destinations are unchanged. The frontend does not contain an admin

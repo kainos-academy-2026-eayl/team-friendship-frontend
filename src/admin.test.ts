@@ -244,6 +244,35 @@ describe('admin portal', () => {
     expect(dashboardRequests).toEqual(['today']);
   });
 
+  it('lists every sample discount code with an explicit demo notice', async () => {
+    const response = await get();
+    const html = await response.text();
+    expect(response.status).toBe(200);
+    expect(html).toContain('Discount codes');
+    expect(html).toContain('4 codes');
+    expect(html).toContain('Demo data only');
+    expect(html).toContain('not live database records');
+    for (const code of ['WELCOME10', 'SAVE5', 'SUMMER20', 'VIP15']) {
+      expect(html).toContain(`<th scope="row">${code}</th>`);
+    }
+    for (const value of [
+      '10% off',
+      'GBP 5 off',
+      'Active',
+      'Expired',
+      'Disabled',
+      'No expiry',
+    ]) {
+      expect(html).toContain(value);
+    }
+  });
+
+  it('does not expose sample discount codes to customers', async () => {
+    const response = await get('/admin', 'access_token=customer-access');
+    expect(response.status).toBe(403);
+    expect(await response.text()).not.toContain('WELCOME10');
+  });
+
   it('separates zero stock from quantities 1 through 4 and excludes 5', async () => {
     const html = await (await get()).text();
     expect(html).toContain('admin-stock-card--empty');

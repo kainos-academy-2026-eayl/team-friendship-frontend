@@ -9,6 +9,34 @@ export const adminPeriods = [
   { value: 'month', label: 'This month' },
 ] as const;
 
+// Temporary display data until the discount-code backend is merged.
+export const demoDiscountCodes = [
+  {
+    code: 'WELCOME10',
+    discount: '10% off',
+    status: 'Active',
+    expires: '31 December 2026',
+  },
+  {
+    code: 'SAVE5',
+    discount: 'GBP 5 off',
+    status: 'Active',
+    expires: 'No expiry',
+  },
+  {
+    code: 'SUMMER20',
+    discount: '20% off',
+    status: 'Expired',
+    expires: '31 August 2026',
+  },
+  {
+    code: 'VIP15',
+    discount: '15% off',
+    status: 'Disabled',
+    expires: 'No expiry',
+  },
+] as const;
+
 const stockProductSchema = z.object({
   productID: z.number().int().positive(),
   productName: z.string().min(1),
