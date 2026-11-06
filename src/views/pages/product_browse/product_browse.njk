@@ -53,9 +53,15 @@
             </p>
             {% if product.stock == 0 %}<p class="availability">Out of Stock</p>{% endif %}
 
-            <a href="/products/{{ product.id }}" class="view-product-button" id="view-product-button">
+            {% if product.stock == 0 %}
+            <button type="button" class="view-product-button" disabled>
+                View Details
+            </button>
+            {% else %}
+            <a href="/products/{{ product.id }}" class="view-product-button">
                 View Details
             </a>
+            {% endif %}
         </div>
 
     </article>

@@ -19,7 +19,9 @@ Failures are shown explicitly; without JavaScript, the normal form navigation
 still works. Adding to the basket retains its redirect to Browse Products.
 Stock messaging distinguishes total
 stock from units already in the basket and the remaining number that can be added.
-Browse cards label products with zero database stock as **Out of Stock**.
+Browse cards label products with zero database stock as **Out of Stock** and
+replace their details link with a disabled button. Restocked products regain
+their link when the browse page is loaded again.
 
 The product-detail quantity field submits a positive whole-number quantity to
 the add-to-basket endpoint. Successful additions return to Browse Products;

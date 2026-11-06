@@ -417,10 +417,25 @@ describe('checkout', () => {
       ]);
     });
 
-    it('labels zero-stock products on the browse page', async () => {
+    it('labels zero-stock products and prevents opening their details from browse', async () => {
       stockLevels.set(12, 0);
       const html = await (await fetch(`${baseUrl}/product_browse`)).text();
       expect(html).toContain('<p class="availability">Out of Stock</p>');
+      expect(html).not.toContain('href="/products/12"');
+      expect(html).toMatch(
+        /<button type="button" class="view-product-button" disabled>\s*View Details\s*<\/button>/,
+      );
+      expect(html).toContain('href="/products/4"');
+    });
+
+    it('restores the browse details link when a product is restocked', async () => {
+      stockLevels.set(12, 0);
+      expect(
+        await (await fetch(`${baseUrl}/product_browse`)).text(),
+      ).not.toContain('href="/products/12"');
+      stockLevels.set(12, 2);
+      const html = await (await fetch(`${baseUrl}/product_browse`)).text();
+      expect(html).toContain('href="/products/12"');
     });
 
     it('shows compact plus/minus and bin controls and removes the selected item', async () => {
