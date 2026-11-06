@@ -1,3 +1,4 @@
+{% from "partials/profile.njk" import accountProfile %}
 {% macro navLink(item) %}
 <li>
     <a href="{{ item.href }}" {% if currentPath == item.href %}class="active" aria-current="page"{% endif %}>
@@ -11,6 +12,9 @@
 <aside class="sidebar">
     <nav id="sidebar-nav" class="sidebar-nav" aria-label="Main navigation">
         <p class="sidebar-heading">Menu</p>
+        {% if isLoggedIn and displayName %}
+        <p class="sidebar-profile">{{ accountProfile(displayName, customerId) }}</p>
+        {% endif %}
         <ul class="sidebar-links">
             {% if isAdmin %}
             {{ navLink({ href: '/admin', label: 'Admin portal' }) }}
@@ -27,6 +31,18 @@
             {% else %}
             {% for item in navigation %}{% if item.pinToBottom %}{{ navLink(item) }}{% endif %}{% endfor %}
             {% endif %}
+            <li>
+                <button type="button" id="theme-toggle" class="theme-toggle" role="switch" aria-checked="false" hidden>
+                    <span class="theme-toggle-label">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                            <path d="M18 3a10 10 0 1 0 0 18A11.25 11.25 0 0 1 18 3Z" transform="rotate(-45 12 12)"/>
+                        </svg>
+                        <span>Dark mode</span>
+                    </span>
+                    <span class="theme-switch-track" aria-hidden="true"></span>
+                </button>
+                <p id="theme-status" class="theme-status" role="status"></p>
+            </li>
         </ul>
     </nav>
 

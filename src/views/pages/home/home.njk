@@ -8,14 +8,16 @@
 <h1 id="home-title">{{ page.title }}</h1>
 <p class="intro">{{ page.intro }}</p>
 
-<div class="actions">
-    {% for action in page.actions %}
-    <a href="{{ action.href }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
-        {% endif %}>
-        {{ action.label }}
-    </a>
-    {% endfor %}
-</div>
+    {% if not isLoggedIn %}
+    <div class="actions">
+        {% for action in page.actions %}
+        <a href="{{ action.href }}" id="{{ action.id }}" {% if action.className %}class="{{ action.className }}"
+            {% endif %}>
+            {{ action.label }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
 
 <section class="home-best-sellers" aria-labelledby="best-selling-title">
     <h2 id="best-selling-title">Best selling products</h2>
