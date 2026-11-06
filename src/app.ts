@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import adminController from './controllers/adminController';
+import customerDetailsController from './controllers/customerDetailsController';
 import forgotPasswordController from './controllers/forgot-password-controller';
 import homeController from './controllers/homeController';
 import loginController from './controllers/loginController';
@@ -15,6 +16,7 @@ import registerController from './controllers/registerController';
 import resetPasswordController from './controllers/resetPasswordController';
 import { loadSession, requireLogin } from './controllers/sessionController';
 import { getBasket } from './services/basketService';
+import { capitaliseName } from './utils/name';
 import basketPage from './views/pages/basket/basket_page';
 import checkoutPage from './views/pages/checkout/checkout';
 import registerPage from './views/pages/register/register_page';
@@ -32,10 +34,14 @@ export function createApp(): Express {
   const app = express();
   const viewsDirectory = resolve(process.cwd(), 'src/views');
 
-  nunjucks.configure([resolve(viewsDirectory, 'pages'), viewsDirectory], {
-    autoescape: true,
-    express: app,
-  });
+  const templates = nunjucks.configure(
+    [resolve(viewsDirectory, 'pages'), viewsDirectory],
+    {
+      autoescape: true,
+      express: app,
+    },
+  );
+  templates.addFilter('capitaliseName', capitaliseName);
 
   app.set('view engine', 'njk');
 
@@ -54,6 +60,7 @@ export function createApp(): Express {
 
   app.use(express.urlencoded({ extended: false }));
   app.use('/login', loginController);
+  app.use('/my_details', customerDetailsController);
   app.use('/admin', adminController);
   app.use('/register', registerController);
   app.use('/products', productDisplayController);

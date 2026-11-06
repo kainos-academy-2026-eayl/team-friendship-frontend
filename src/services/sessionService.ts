@@ -1,3 +1,5 @@
+import { capitaliseName } from '../utils/name';
+
 export interface SessionTokens {
   accessToken: string;
   refreshToken: string;
@@ -70,7 +72,8 @@ export async function getSessionUser(
       typeof body.firstName === 'string' &&
       'surname' in body &&
       typeof body.surname === 'string'
-        ? `${body.firstName.trim()} ${body.surname.trim()}`.trim() || undefined
+        ? `${capitaliseName(body.firstName)} ${capitaliseName(body.surname)}`.trim() ||
+          undefined
         : undefined,
     isAdmin:
       typeof body === 'object' &&

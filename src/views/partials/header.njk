@@ -1,3 +1,4 @@
+{% from "partials/profile.njk" import accountProfile %}
 <header>
     <a href="/">
         <img src="/images/Friendshop_logo.png" alt="Team Friendship Logo" class="header-logo">
@@ -5,6 +6,8 @@
 
     <a href="/">Team Friendship</a>
     {% if isLoggedIn and displayName %}
-    <p class="signed-in-user">Signed in as <strong>{{ displayName }}</strong></p>
+    <p class="signed-in-user">
+        {{ accountProfile(displayName, customerId) }}
+    </p>
     {% endif %}
 </header>
