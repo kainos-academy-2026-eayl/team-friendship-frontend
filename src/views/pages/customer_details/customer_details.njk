@@ -1,0 +1,46 @@
+{% extends "layouts/main.njk" %}
+{% from "partials/password_toggle.njk" import passwordToggle, defaultSubmit %}
+{% block title %}{{ page.title }}{% endblock %}
+{% block content %}
+<p class="eyebrow">Your account</p>
+<h1>{{ page.title }}</h1>
+{% if error %}
+<p class="status-error" role="alert">{{ error }}</p>
+{% endif %}
+{% if saved %}<p role="status">Your details have been saved.</p>{% endif %}
+{% if editing %}
+<p class="intro">Update your details and enter your current password to save. Your password will not be changed.</p>
+<form class="customer-details-form" method="post" action="/my_details/edit">
+    {{ defaultSubmit('Save details') }}
+    {% for field in fields %}
+    <label for="{{ field.name }}">{{ field.label }}</label>
+    <input id="{{ field.name }}" name="{{ field.name }}" type="{{ field.type }}"
+        autocomplete="{{ field.autocomplete }}" maxlength="{{ field.maxLength }}" required
+        value="{{ customer[field.name] }}">
+    {% endfor %}
+    <label for="current-password">Current password</label>
+    <div class="password-field">
+        <input id="current-password" name="password" type="{{ 'text' if passwordVisible else 'password' }}"
+            autocomplete="current-password" maxlength="128" required value="{{ password }}">
+        {{ passwordToggle({ name: 'password', id: 'current-password', label: 'current password', visible: passwordVisible }, '/my_details/toggle-password') }}
+    </div>
+    <div class="actions">
+        <button type="submit">Save details</button>
+        <a class="secondary" href="/my_details">Cancel</a>
+    </div>
+</form>
+{% elif customer %}
+<dl class="customer-details">
+    <div><dt>First name</dt><dd>{{ customer.customerForename | capitaliseName }}</dd></div>
+    <div><dt>Surname</dt><dd>{{ customer.customerSurname | capitaliseName }}</dd></div>
+    <div><dt>Email address</dt><dd>{{ customer.customerEmail }}</dd></div>
+    <div><dt>Phone number</dt><dd>{{ customer.customerPhone }}</dd></div>
+    <div><dt>Address</dt><dd>{{ customer.address }}</dd></div>
+    <div><dt>Postcode</dt><dd>{{ customer.postcode }}</dd></div>
+</dl>
+{% endif %}
+<div class="actions">
+    {% if customer and not editing %}<a href="/my_details/edit">Edit details</a>{% endif %}
+    <a href="/order_history">View order history</a>
+</div>
+{% endblock %}

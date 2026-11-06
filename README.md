@@ -12,6 +12,33 @@ on the current page and displays a warning that the preference cannot be saved.
 Shared CSS colour variables cover surfaces, forms, navigation, buttons and
 semantic alerts. Product images are not inverted. Theme settings are local to
 the browser, not the user's account or other devices.
+## Customer details
+
+Signed-in customers can open `/my_details` by clicking their profile icon/name
+in the header or the light-grey profile button in the sidebar. The Nunjucks page shows the
+first name, surname, email, phone, address and postcode from the Customer table.
+The customer ID is used internally and is not displayed.
+The backend's authenticated `GET /customers/me` uses the verified customer
+principal, not a URL/cookie/form customer ID, and explicitly excludes password
+hashes. Staff accounts cannot use this customer-only endpoint. Both the API and
+page use `Cache-Control: no-store`; values are HTML-escaped. Restart both
+services after deploying the new endpoint and page.
+
+**Edit details** opens `/my_details/edit`. Customers can edit their names,
+email, phone, address and postcode; the customer ID cannot be changed.
+Saving requires the current password, verified using Argon2 on the backend's
+authenticated `PATCH /customers/me`. Password attempts are rate limited, and
+duplicate email addresses are rejected. The password stays hidden by default;
+the shared server-side Show/Hide eye buttons preserve the form without saving.
+Failed saves clear the password. Passwords are never stored in URLs or logged.
+Names have their first letter capitalised for display only (preserving the
+remaining letters); stored names and edit-field values retain their original case.
+
+The shared header shows a profile icon beside the authenticated user's first
+name and surname. The backend's `GET /me` response supplies `firstName` and
+`surname` alongside the existing account ID and role, for both customers and
+staff. Names are HTML-escaped, are reloaded after session refresh, and are not
+displayed when logged out. Authenticated pages use `Cache-Control: no-store`.
 
 ## Development checks
 
