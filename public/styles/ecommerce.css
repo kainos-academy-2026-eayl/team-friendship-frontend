@@ -206,6 +206,26 @@ button:disabled:hover {
   margin-top: 32px;
 }
 
+.admin-discount-table-wrapper {
+  overflow-x: auto;
+}
+
+.admin-discount-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-discount-table th,
+.admin-discount-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e0e5ee;
+}
+
+.admin-discount-table thead {
+  background: #eef3fc;
+}
+
 .admin-stock-list {
   display: grid;
   gap: 16px;

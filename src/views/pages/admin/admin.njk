@@ -83,6 +83,34 @@
     <p class="admin-empty">No low stock alerts.</p>
     {% endif %}
 </section>
+
+<section class="admin-stock-section" aria-labelledby="admin-discount-title">
+    <h2 id="admin-discount-title">Discount codes <span class="admin-section-note">{{ discountCodes.length }} codes</span></h2>
+    <p class="admin-notice">Demo data only: these are sample discount codes, not live database records. They cannot be applied to orders.</p>
+    <div class="admin-discount-table-wrapper" role="region" aria-label="Discount codes" tabindex="0">
+        <table class="admin-discount-table">
+            <caption class="visually-hidden">All sample discount codes, including expired and disabled codes</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Code</th>
+                    <th scope="col">Discount</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Expiry date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for discount in discountCodes %}
+                <tr>
+                    <th scope="row">{{ discount.code }}</th>
+                    <td>{{ discount.discount }}</td>
+                    <td>{{ discount.status }}</td>
+                    <td>{{ discount.expires }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
 {% endif %}
 {% endif %}
 {% endblock %}
