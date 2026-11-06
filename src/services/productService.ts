@@ -64,16 +64,16 @@ export function filterProductsByCategory(
     return products;
   }
   return products.filter(
-    (product) => product.category.toLowerCase() === target,
+    (product) => product.category?.toLowerCase() === target,
   );
 }
 
 export function getCategories(products: Product[]): string[] {
   const byKey = new Map<string, string>();
   for (const product of products) {
-    const key = product.category.toLowerCase();
+    const key = (product.category ?? 'Uncategorised').toLowerCase();
     if (!byKey.has(key)) {
-      byKey.set(key, product.category);
+      byKey.set(key, product.category ?? 'Uncategorised');
     }
   }
   return [...byKey.values()].sort((a, b) =>
@@ -95,9 +95,13 @@ export function sortProducts(
   return [...products].sort(
     (a, b) =>
       direction *
-        a.category.localeCompare(b.category, undefined, {
-          sensitivity: 'base',
-        }) || a.name.localeCompare(b.name),
+        (a.category ?? 'Uncategorised').localeCompare(
+          b.category ?? 'Uncategorised',
+          undefined,
+          {
+            sensitivity: 'base',
+          },
+        ) || a.name.localeCompare(b.name),
   );
 }
 

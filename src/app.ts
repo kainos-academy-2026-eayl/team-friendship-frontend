@@ -21,6 +21,7 @@ import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
 
 type BasketItem = {
+  basketID: number;
   quantity: number;
   product: {
     productName: string;
@@ -73,6 +74,7 @@ export function createApp(): Express {
     const basket = await getBasket(customerId);
 
     const products = basket.basket.map((item: BasketItem) => ({
+      basketID: item.basketID,
       name: item.product.productName,
       quantity: String(item.quantity),
       totalPrice: `£${(item.product.productPrice * item.quantity).toFixed(2)}`,
