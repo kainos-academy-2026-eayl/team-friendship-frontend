@@ -2,6 +2,12 @@
 
 ## Basket and checkout
 
+Basket quantity and removal controls use `public/scripts/basket.js` to submit
+in the background and update the basket, totals, stock controls and header count
+without navigating or reloading. Updates are serialized to prevent double submits;
+failures are displayed explicitly. Without JavaScript, ordinary form navigation
+remains available.
+
 The shared header links to the basket and counts individual units (not distinct
 products) from the signed-in customer's saved basket. A `?` indicates an unavailable
 count rather than incorrectly showing an empty basket. Product quantity selection

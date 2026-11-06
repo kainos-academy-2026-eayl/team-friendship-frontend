@@ -4,6 +4,7 @@
 ​
 {% block content %}​
 
+<div data-basket-content>
 <p class="eyebrow">{{ page.eyebrow }}</p>
 
 <h1 id="basket-title">
@@ -93,4 +94,6 @@
 
 <p id="status" role="status"></p>
 
-{% endblock %}
+</div>
+<script src="/scripts/basket.js" defer></script>
+{% endblock %} 

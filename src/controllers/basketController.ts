@@ -44,6 +44,10 @@ async function renderBasket(res: Response, status = 200, error?: string) {
     (sum, item) => sum + item.product.productPrice * item.quantity,
     0,
   );
+  res.locals.basketCount = basket.ok
+    ? basket.basket.reduce((count, item) => count + item.quantity, 0)
+    : undefined;
+  res.locals.basketCountUnavailable = !basket.ok;
   res.status(basket.ok ? status : 502).render('basket/basket', {
     page: { ...basketPage, products, basketTotal: `£${total.toFixed(2)}` },
     error: basket.ok ? error : basket.message,

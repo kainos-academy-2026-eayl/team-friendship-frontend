@@ -4,5 +4,6 @@ public/scripts/*
 !public/scripts/password-toggle.js
 !public/scripts/home-carousel.js
 !public/scripts/theme.js
+!public/scripts/basket.js
 .env
 .DS_Store
