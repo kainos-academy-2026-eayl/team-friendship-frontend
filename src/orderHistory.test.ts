@@ -36,6 +36,31 @@ function createFakeBackend() {
     }
     res.json({ customerId: SESSION_CUSTOMER_ID });
   });
+  backend.get('/orders/:id', (req, res) => {
+    expect(req.get('authorization')).toBe('Bearer access-valid');
+    if (req.params.id === '404') {
+      res.sendStatus(404);
+      return;
+    }
+    if (req.params.id === '500') {
+      res.sendStatus(500);
+      return;
+    }
+    res.json({
+      order: {
+        orderID: Number(req.params.id),
+        customerID: req.params.id === '99' ? 99 : SESSION_CUSTOMER_ID,
+        dateCreated: '2026-11-05T12:00:00.000Z',
+        status: 'pending',
+        orderServices: [
+          {
+            quantity: 2,
+            product: { productName: 'Marbles <script>alert(1)</script>' },
+          },
+        ],
+      },
+    });
+  });
   backend.get('/order-history/:customerID', (req, res) => {
     historyCalls.push({
       customerId: req.params.customerID,
@@ -107,23 +132,58 @@ describe('order history page', () => {
     historyCalls.length = 0;
   });
 
-  it('shows a success banner after an order is placed', async () => {
-    const response = await fetch(`${baseUrl}/order_history?placed=42`, {
+  it('renders a saved order confirmation with escaped items and pending status', async () => {
+    const response = await fetch(`${baseUrl}/order_confirmation/1`, {
       headers: { cookie: LOGGED_IN },
     });
-
-    expect(await response.text()).toContain('Order #42 placed successfully.');
+    const html = await response.text();
+    expect(response.status).toBe(200);
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(html).toContain('Order #1');
+    expect(html).toContain('Quantity: 2');
+    expect(html).toContain('pending');
+    expect(html).toContain('does not confirm successful payment');
+    expect(html).toContain('&lt;script&gt;');
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect(html).toContain('href="/order_history"');
+    expect(html).toContain('href="/product_browse"');
   });
 
-  it.each(['abc', '-1', '<script>'])(
-    'ignores an invalid placed value (%s)',
-    async (placed) => {
-      const response = await fetch(
-        `${baseUrl}/order_history?placed=${encodeURIComponent(placed)}`,
-        { headers: { cookie: LOGGED_IN } },
-      );
+  it('requires login to view confirmation', async () => {
+    const response = await fetch(`${baseUrl}/order_confirmation/1`, {
+      redirect: 'manual',
+    });
+    expect(response.status).toBe(302);
+    expect(response.headers.get('location')).toBe(
+      '/login?returnTo=%2Forder_confirmation%2F1',
+    );
+  });
 
-      expect(await response.text()).not.toContain('id="order-placed"');
+  it.each(['0', '-1', 'abc', '1.5'])(
+    'rejects invalid confirmation reference %s',
+    async (id) => {
+      const response = await fetch(`${baseUrl}/order_confirmation/${id}`, {
+        headers: { cookie: LOGGED_IN },
+      });
+      expect(response.status).toBe(400);
+      expect(await response.text()).toContain('Invalid order reference.');
+    },
+  );
+
+  it.each([
+    ['99', 404],
+    ['404', 404],
+    ['500', 502],
+  ] as const)(
+    'does not show confirmation for unavailable order %s',
+    async (id, status) => {
+      const response = await fetch(`${baseUrl}/order_confirmation/${id}`, {
+        headers: { cookie: LOGGED_IN },
+      });
+      expect(response.status).toBe(status);
+      const html = await response.text();
+      expect(html).toContain('role="alert"');
+      expect(html).not.toContain('id="confirmation-reference"');
     },
   );
 

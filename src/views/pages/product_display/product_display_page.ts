@@ -8,13 +8,6 @@ const productPage = {
       label: 'Add to Basket',
       href: '/basket',
     },
-    {
-      id: 'continue-shopping',
-      type: 'link',
-      label: 'Continue Shopping',
-      className: 'secondary',
-      href: '/product_browse',
-    },
   ],
 };
 

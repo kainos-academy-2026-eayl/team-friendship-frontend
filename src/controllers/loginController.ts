@@ -32,6 +32,14 @@ const loginRateLimit = rateLimit({
 });
 
 router.get('/', (req: Request, res: Response) => {
+  if (res.locals.isLoggedIn) {
+    res.render('login/login', {
+      page: getLoginPage(),
+      alreadyLoggedIn: true,
+    });
+    return;
+  }
+
   const error =
     typeof req.query.error === 'string' ? req.query.error : undefined;
   const success =

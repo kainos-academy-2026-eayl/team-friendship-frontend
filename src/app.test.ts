@@ -98,6 +98,19 @@ describe('HTTP application', () => {
     }
   });
 
+  it('hides the login and register buttons on the home page when logged in', async () => {
+    const loggedOut = await (await fetch(`${baseUrl}/home`)).text();
+    expect(loggedOut).toContain('id="login-button"');
+    expect(loggedOut).toContain('id="register-button"');
+
+    const loggedIn = await (
+      await fetch(`${baseUrl}/home`, { headers: { cookie: LOGGED_IN } })
+    ).text();
+    expect(loggedIn).not.toContain('id="login-button"');
+    expect(loggedIn).not.toContain('id="register-button"');
+    expect(loggedIn).toContain('id="view-all-products"');
+  });
+
   it('renders a continuous carousel without pagination links', async () => {
     const body = await (await fetch(`${baseUrl}/home`)).text();
     expect(body.match(/class="product-card"/g)).toHaveLength(6);
@@ -130,6 +143,20 @@ describe('HTTP application', () => {
     expect(body).toContain('id="view-all-products"');
   });
 
+  it('provides browser-side eye controls for both registration passwords', async () => {
+    const response = await fetch(`${baseUrl}/register`);
+    const html = await response.text();
+    expect(html.match(/data-password-toggle/g)).toHaveLength(2);
+    expect(html).toContain('aria-controls="password"');
+    expect(html).toContain('aria-controls="confirm-password"');
+    expect(html).toContain('type="button" class="password-toggle"');
+    expect(html).toContain('src="/scripts/password-toggle.js" defer');
+    expect(html).not.toContain('name="togglePassword"');
+    expect((await fetch(`${baseUrl}/scripts/password-toggle.js`)).status).toBe(
+      200,
+    );
+  });
+
   it('serves the login page', async () => {
     const response = await fetch(`${baseUrl}/login`);
     const body = await response.text();
@@ -143,10 +170,22 @@ describe('HTTP application', () => {
     expect(body).toContain('name="password" type="password"');
     expect(body).toContain('name="togglePassword" value="password"');
     expect(body).toContain('formaction="/login/toggle-password"');
-    expect(body).not.toContain('<script');
+    expect(body).toContain('<script src="/scripts/theme.js"></script>');
     expect(body).toContain(
       '<link rel="stylesheet" href="/styles/ecommerce.css">',
     );
+  });
+
+  it('shows an already logged in message instead of the login form', async () => {
+    const response = await fetch(`${baseUrl}/login`, {
+      headers: { cookie: LOGGED_IN },
+    });
+    const body = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(body).toContain('<h1 id="login-title">Already logged in</h1>');
+    expect(body).toContain('You are already logged in.');
+    expect(body).not.toContain('id="login-form"');
   });
 
   const postForm = (path: string, fields: string[][], cookie?: string) =>
@@ -272,7 +311,7 @@ describe('HTTP application', () => {
     expect(body).toContain('name="togglePassword" value="confirmPassword"');
     expect(body).toContain('formaction="/reset_password/toggle-password"');
     expect(body).not.toContain('aria-invalid="true"');
-    expect(body).not.toContain('<script');
+    expect(body).toContain('<script src="/scripts/theme.js"></script>');
   });
 
   const postResetPassword = (

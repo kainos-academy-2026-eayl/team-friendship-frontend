@@ -9,6 +9,7 @@ import {
   AdminApiError,
   adminPeriodSchema,
   adminPeriods,
+  demoDiscountCodes,
   getAdminDashboard,
   reorderStock,
 } from '../services/adminService';
@@ -58,6 +59,7 @@ router.get('/', async (req, res) => {
   res.render('admin/admin', {
     page,
     dashboard,
+    discountCodes: demoDiscountCodes,
     periods: adminPeriods,
     period: period.data,
     periodLabel: adminPeriods.find((option) => option.value === period.data)

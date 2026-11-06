@@ -1,5 +1,63 @@
 # Team Friendship Frontend
 
+## Order confirmation
+
+`/order_confirmation/:id` renders a saved order in Nunjucks, using the
+authenticated backend `GET /orders/:id` endpoint. It checks that the returned
+order belongs to the session customer and matches the requested reference.
+It shows the saved status, creation date and item quantities, not a payment
+success claim. Historical prices are not available in the order schema, so this
+page does not present current product prices as the amount paid.
+
+Checkout is unchanged: its Place Order button remains disabled. When order
+placement is implemented, redirect to `/order_confirmation/<orderID>` only after
+the backend successfully creates the order. The confirmation GET never creates
+an order, so refreshing it cannot place another order.
+The registration form's password and confirm-password eyes use
+`public/scripts/password-toggle.js` to independently show or hide their fields
+without submitting the form or sending passwords to the server. They share the
+existing eye icons and styling with login/reset, which keep their server-side
+visibility behaviour. Without JavaScript, registration passwords remain masked.
+## Colour theme
+
+The sidebar's **Dark mode** switch applies to all pages, including admin and
+authentication pages. The shared layout loads `public/scripts/theme.js` before
+the stylesheet to restore the saved theme without a light-theme flash.
+The browser stores the choice under `friendshop-theme` in localStorage. Until a
+choice is saved, the theme follows the device's colour preference. Open tabs
+synchronise preference changes. If storage is blocked, the switch still works
+on the current page and displays a warning that the preference cannot be saved.
+Shared CSS colour variables cover surfaces, forms, navigation, buttons and
+semantic alerts. Product images are not inverted. Theme settings are local to
+the browser, not the user's account or other devices.
+## Customer details
+
+Signed-in customers can open `/my_details` by clicking their profile icon/name
+in the header or the light-grey profile button in the sidebar. The Nunjucks page shows the
+first name, surname, email, phone, address and postcode from the Customer table.
+The customer ID is used internally and is not displayed.
+The backend's authenticated `GET /customers/me` uses the verified customer
+principal, not a URL/cookie/form customer ID, and explicitly excludes password
+hashes. Staff accounts cannot use this customer-only endpoint. Both the API and
+page use `Cache-Control: no-store`; values are HTML-escaped. Restart both
+services after deploying the new endpoint and page.
+
+**Edit details** opens `/my_details/edit`. Customers can edit their names,
+email, phone, address and postcode; the customer ID cannot be changed.
+Saving requires the current password, verified using Argon2 on the backend's
+authenticated `PATCH /customers/me`. Password attempts are rate limited, and
+duplicate email addresses are rejected. The password stays hidden by default;
+the shared server-side Show/Hide eye buttons preserve the form without saving.
+Failed saves clear the password. Passwords are never stored in URLs or logged.
+Names have their first letter capitalised for display only (preserving the
+remaining letters); stored names and edit-field values retain their original case.
+
+The shared header shows a profile icon beside the authenticated user's first
+name and surname. The backend's `GET /me` response supplies `firstName` and
+`surname` alongside the existing account ID and role, for both customers and
+staff. Names are HTML-escaped, are reloaded after session refresh, and are not
+displayed when logged out. Authenticated pages use `Cache-Control: no-store`.
+
 ## Development checks
 
 The home page's featured products use a small browser-side carousel script.
@@ -48,6 +106,13 @@ When reset submission is implemented, the account must be identified using a
 validated reset token, not the editable URL email parameter.
 
 ## Admin portal (frontend integration)
+
+The dashboard includes a read-only **Discount codes** table showing codes,
+discounts, statuses and expiry dates. This currently uses explicitly labelled
+dummy data (`demoDiscountCodes` in `src/services/adminService.ts`), including
+active, expired and disabled examples. No discount API is called and these
+sample codes cannot be applied to orders. Replace the demo data with the real
+admin-only discount-code endpoint once that backend work is merged.
 
 The existing login form redirects users to `/admin` when the backend's successful
 `POST /login` response includes `customer.role: "admin"`. Customer login and

@@ -14,6 +14,10 @@
     {{ page.intro }}
 </p>
 
+{% if error %}
+<p role="alert">{{ error }}</p>
+{% endif %}
+
 <div class="basket-items">
 
     {% for product in page.products %}

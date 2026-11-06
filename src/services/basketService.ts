@@ -4,76 +4,54 @@ function backendUrl() {
   return process.env.BACKEND_URL ?? 'http://localhost:3000';
 }
 
-const basketItemSchema = z.object({
-  basketID: z.number().int().positive(),
-  productID: z.number().int().positive(),
-  quantity: z.number().int().positive(),
-  product: z.object({
-    productName: z.string(),
-    productPrice: z.number().nonnegative(),
-  }),
-});
+export type BasketItem = {
+  basketID: number;
+  quantity: number;
+  product: {
+    productName: string;
+    productPrice: number;
+    productImage: string;
+  };
+};
 
-const basketResponseSchema = z.object({ basket: z.array(basketItemSchema) });
+export type GetBasketResult =
+  | { ok: true; basket: BasketItem[] }
+  | { ok: false; basket: BasketItem[]; message: string };
 
-export type BasketItem = z.infer<typeof basketItemSchema>;
-
-export type BasketResult =
-  | { ok: true; items: BasketItem[] }
-  | { ok: false; status: number; message: string };
-
-export async function getCheckoutBasket(
-  apiUrl: string,
+export async function getBasket(
   accessToken: string,
-  customerID: number,
-): Promise<BasketResult> {
-  const fallback = 'Unable to load your basket.';
+  customerId: number,
+): Promise<GetBasketResult> {
   try {
-    const response = await fetch(
-      `${apiUrl}/basket/${encodeURIComponent(customerID)}`,
-      {
-        headers: {
-          accept: 'application/json',
-          authorization: `Bearer ${accessToken}`,
-        },
+    const response = await fetch(`${backendUrl()}/basket/${customerId}`, {
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${accessToken}`,
       },
-    );
+    });
 
-    if (!response.ok) {
-      return { ok: false, status: response.status, message: fallback };
+    const body = await response.json().catch(() => ({}));
+
+    if (response.ok && Array.isArray(body.basket)) {
+      return { ok: true, basket: body.basket };
     }
 
-    const result = basketResponseSchema.safeParse(await response.json());
-    if (!result.success) {
-      console.error('Unexpected basket response', z.flattenError(result.error));
-      return { ok: false, status: 502, message: fallback };
-    }
-    return { ok: true, items: result.data.basket };
+    return {
+      ok: false,
+      basket: [],
+      message: body.error ?? 'Unable to load your basket.',
+    };
   } catch {
     return {
       ok: false,
-      status: 503,
+      basket: [],
       message: 'Unable to reach the server. Please try again.',
     };
   }
 }
 
-export async function getBasket(customerId: number) {
-  try {
-    const response = await fetch(`${backendUrl()}/basket/${customerId}`, {
-      headers: {
-        accept: 'application/json',
-      },
-    });
-
-    return await response.json();
-  } catch (error) {
-    console.error('Basket fetch error:', error);
-    throw error;
-  }
-}
-
 export async function addToBasket(
+  accessToken: string,
   customerID: number,
   productID: number,
   quantity: number,
@@ -83,6 +61,7 @@ export async function addToBasket(
     headers: {
       'Content-Type': 'application/json',
       accept: 'application/json',
+      authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify({
       customerID,

@@ -13,6 +13,8 @@ interface BackendCall {
 
 const calls: BackendCall[] = [];
 let refreshStatus = 200;
+let profile = { firstName: 'Ada', surname: 'Lovelace' };
+let saveStatus = 200;
 const validAccessTokens = new Set(
   ['access-login', 'access-refreshed', 'access-current', 'access-valid'].map(
     (token) => `Bearer ${token}`,
@@ -59,13 +61,34 @@ function createFakeBackend() {
       res.status(401).json({ error: 'Invalid or expired access token' });
       return;
     }
-    res.json({ customerId: 1 });
+    res.json({ customerId: 1, ...profile });
   });
   backend.get('/basket/:customerId', (_req, res) => {
     res.json({ basket: [] });
   });
-  backend.get('/products', (_req, res) => {
-    res.json({ products: checkoutProducts });
+  backend.get('/customers/me', (_req, res) => {
+    res.json({
+      customer: {
+        customerID: 1,
+        customerForename: 'ada',
+        customerSurname: 'lovelace',
+        customerEmail: 'ada@example.com',
+        customerPhone: '07123456789',
+        address: '12 Example Street <script>alert(1)</script>',
+        postcode: 'BT1 1AA',
+        customerPassword: 'never-display-this-hash',
+      },
+    });
+    backend.patch('/customers/me', (_req, res) => {
+      res.status(saveStatus).json(
+        saveStatus === 200
+          ? { message: 'Your details have been saved.' }
+          : {
+              error:
+                'Your current password is incorrect. No changes were saved.',
+            },
+      );
+    });
   });
   return backend;
 }
@@ -128,6 +151,163 @@ describe('session authentication', () => {
   beforeEach(() => {
     calls.length = 0;
     refreshStatus = 200;
+    saveStatus = 200;
+    profile = { firstName: 'Ada', surname: 'Lovelace' };
+  });
+
+  it('shows the signed-in first name and surname in the shared header', async () => {
+    profile = { firstName: 'ada', surname: 'lovelace' };
+    const response = await fetch(`${baseUrl}/home`, {
+      headers: { cookie: 'access_token=access-valid' },
+    });
+    expect(await response.text()).toContain('<strong>Ada Lovelace</strong>');
+    expect(response.headers.get('cache-control')).toBe('no-store');
+  });
+
+  it('does not show an identity when logged out', async () => {
+    const response = await fetch(`${baseUrl}/home`);
+    expect(await response.text()).not.toContain('class="signed-in-user"');
+  });
+
+  it('escapes names returned by the backend', async () => {
+    profile = { firstName: '<script>alert(1)</script>', surname: 'Test' };
+    const response = await fetch(`${baseUrl}/home`, {
+      headers: { cookie: 'access_token=access-valid' },
+    });
+    const html = await response.text();
+    expect(html).toContain('&lt;script&gt;');
+    expect(html).not.toContain('<script>alert(1)</script>');
+  });
+
+  it('shows the signed-in name after refreshing a session', async () => {
+    const response = await fetch(`${baseUrl}/home`, {
+      headers: { cookie: 'refresh_token=refresh-header-test' },
+    });
+    expect(await response.text()).toContain('<strong>Ada Lovelace</strong>');
+  });
+
+  it('loads customer details using the session and safely renders every public field', async () => {
+    const response = await fetch(`${baseUrl}/my_details?customerID=999`, {
+      headers: { cookie: 'access_token=access-valid' },
+    });
+    const html = await response.text();
+    expect(response.status).toBe(200);
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    for (const value of [
+      'Ada',
+      'Lovelace',
+      'ada@example.com',
+      '07123456789',
+      'BT1 1AA',
+    ]) {
+      expect(html).toContain(value);
+    }
+    expect(html).toContain('&lt;script&gt;');
+    expect(html).not.toContain('never-display-this-hash');
+    expect(html).not.toContain('<dt>Customer ID</dt>');
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect(calls.map((call) => call.path)).toEqual(['/me', '/customers/me']);
+  });
+
+  it('requires login for customer details', async () => {
+    const response = await fetch(`${baseUrl}/my_details`, {
+      redirect: 'manual',
+    });
+    expect(response.status).toBe(302);
+    expect(response.headers.get('location')).toBe(
+      '/login?returnTo=%2Fmy_details',
+    );
+    expect(calls).toEqual([]);
+  });
+
+  it('links the signed-in customer profile to My details', async () => {
+    const html = await (
+      await fetch(`${baseUrl}/home`, {
+        headers: { cookie: 'access_token=access-valid' },
+      })
+    ).text();
+    expect(html.match(/href="\/my_details"/g)).toHaveLength(2);
+  });
+
+  const editedDetails = {
+    customerForename: 'ada',
+    customerSurname: 'lovelace',
+    customerEmail: 'ada@example.com',
+    customerPhone: '07123456789',
+    address: '12 New Street',
+    postcode: 'BT1 1AA',
+    password: 'correct-password',
+  };
+
+  it('loads the edit form with a hidden password and no stored hash', async () => {
+    const response = await fetch(`${baseUrl}/my_details/edit`, {
+      headers: { cookie: 'access_token=access-valid' },
+    });
+    const html = await response.text();
+    expect(html).toContain('value="ada"');
+    expect(html).toContain('type="password"');
+    expect(html).toContain('Show current password');
+    expect(html).not.toContain('never-display-this-hash');
+  });
+
+  it('saves editable values without changing case or accepting a supplied ID', async () => {
+    const response = await postForm(
+      `${baseUrl}/my_details/edit`,
+      { ...editedDetails, customerID: '99' },
+      'access_token=access-valid',
+    );
+    expect(response.status).toBe(303);
+    expect(response.headers.get('location')).toBe('/my_details?saved=1');
+    expect(calls.at(-1)).toEqual({
+      path: '/customers/me',
+      body: editedDetails,
+    });
+  });
+
+  it('shows save failures, preserves edits, and clears the password', async () => {
+    saveStatus = 403;
+    const response = await postForm(
+      `${baseUrl}/my_details/edit`,
+      editedDetails,
+      'access_token=access-valid',
+    );
+    const html = await response.text();
+    expect(response.status).toBe(403);
+    expect(html).toContain('Your current password is incorrect');
+    expect(html).toContain('12 New Street');
+    expect(html).not.toContain('correct-password');
+    expect(html).toContain('type="password"');
+  });
+
+  it('shows and hides the password without sending an update', async () => {
+    for (const [visiblePasswords, expectedType] of [
+      ['', 'text'],
+      ['password', 'password'],
+    ] as const) {
+      calls.length = 0;
+      const response = await postForm(
+        `${baseUrl}/my_details/toggle-password`,
+        { ...editedDetails, togglePassword: 'password', visiblePasswords },
+        'access_token=access-valid',
+      );
+      const html = await response.text();
+      expect(html).toContain(`name="password" type="${expectedType}"`);
+      expect(html).toContain('value="correct-password"');
+      expect(html).toContain('12 New Street');
+      expect(calls.map((call) => call.path)).toEqual(['/me']);
+    }
+  });
+
+  it('rejects cross-origin saves before contacting the backend', async () => {
+    const response = await fetch(`${baseUrl}/my_details/edit`, {
+      method: 'POST',
+      headers: {
+        origin: 'https://other.example',
+        cookie: 'access_token=access-valid',
+      },
+    });
+    expect(response.status).toBe(403);
+    expect(calls).toEqual([]);
   });
 
   it('sets HttpOnly session cookies and redirects to returnTo on login', async () => {

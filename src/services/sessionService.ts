@@ -1,3 +1,5 @@
+import { capitaliseName } from '../utils/name';
+
 export interface SessionTokens {
   accessToken: string;
   refreshToken: string;
@@ -64,7 +66,11 @@ function parseCustomerId(body: unknown): number | undefined {
 export async function getSessionUser(
   apiUrl: string,
   accessToken: string,
-): Promise<SessionUser | null> {
+): Promise<{
+  isAdmin: boolean;
+  customerId: number | undefined;
+  displayName: string | undefined;
+} | null> {
   const response = await fetch(`${apiUrl}/me`, {
     headers: { authorization: `Bearer ${accessToken}` },
   });
@@ -77,6 +83,16 @@ export async function getSessionUser(
   }
   const body: unknown = await response.json();
   return {
+    displayName:
+      typeof body === 'object' &&
+      body !== null &&
+      'firstName' in body &&
+      typeof body.firstName === 'string' &&
+      'surname' in body &&
+      typeof body.surname === 'string'
+        ? `${capitaliseName(body.firstName)} ${capitaliseName(body.surname)}`.trim() ||
+          undefined
+        : undefined,
     isAdmin:
       typeof body === 'object' &&
       body !== null &&

@@ -4,10 +4,12 @@ import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import adminController from './controllers/adminController';
 import checkoutController from './controllers/checkoutController';
+import customerDetailsController from './controllers/customerDetailsController';
 import forgotPasswordController from './controllers/forgot-password-controller';
 import homeController from './controllers/homeController';
 import loginController from './controllers/loginController';
 import logoutController from './controllers/logoutController';
+import orderConfirmationController from './controllers/orderConfirmationController';
 import orderHistoryController from './controllers/orderHistoryController';
 import { requireSameOrigin } from './controllers/originGuard';
 import productController from './controllers/productController';
@@ -15,27 +17,24 @@ import productDisplayController from './controllers/productDisplayController';
 import registerController from './controllers/registerController';
 import resetPasswordController from './controllers/resetPasswordController';
 import { loadSession, requireLogin } from './controllers/sessionController';
-import { getBasket } from './services/basketService';
+import { type BasketItem, getBasket } from './services/basketService';
+import { capitaliseName } from './utils/name';
 import basketPage from './views/pages/basket/basket_page';
 import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
 
-type BasketItem = {
-  quantity: number;
-  product: {
-    productName: string;
-    productPrice: number;
-    productImage: string;
-  };
-};
 export function createApp(): Express {
   const app = express();
   const viewsDirectory = resolve(process.cwd(), 'src/views');
 
-  nunjucks.configure([resolve(viewsDirectory, 'pages'), viewsDirectory], {
-    autoescape: true,
-    express: app,
-  });
+  const templates = nunjucks.configure(
+    [resolve(viewsDirectory, 'pages'), viewsDirectory],
+    {
+      autoescape: true,
+      express: app,
+    },
+  );
+  templates.addFilter('capitaliseName', capitaliseName);
 
   app.set('view engine', 'njk');
 
@@ -54,6 +53,7 @@ export function createApp(): Express {
 
   app.use(express.urlencoded({ extended: false }));
   app.use('/login', loginController);
+  app.use('/my_details', customerDetailsController);
   app.use('/admin', adminController);
   app.use('/register', registerController);
   app.use('/products', productDisplayController);
@@ -69,15 +69,18 @@ export function createApp(): Express {
   app.use('/home', homeController);
 
   app.get('/basket', requireLogin, async (_req: Request, res: Response) => {
-    const customerId = 1;
-    const basket = await getBasket(customerId);
+    const basket = await getBasket(
+      res.locals.accessToken,
+      res.locals.customerId,
+    );
 
     const products = basket.basket.map((item: BasketItem) => ({
+      basketID: item.basketID,
       name: item.product.productName,
       quantity: String(item.quantity),
       totalPrice: `£${(item.product.productPrice * item.quantity).toFixed(2)}`,
       image: {
-        src: `/images/${item.product.productImage}`,
+        src: `/images/products_images/${item.product.productImage.split('/').pop()}`,
         alt: item.product.productName,
       },
     }));
@@ -94,6 +97,7 @@ export function createApp(): Express {
         products,
         basketTotal: `£${basketTotal.toFixed(2)}`,
       },
+      error: basket.ok ? undefined : basket.message,
     });
   });
 
@@ -110,6 +114,7 @@ export function createApp(): Express {
   app.use('/reset_password', resetPasswordController);
 
   app.use('/order_history', requireLogin, orderHistoryController);
+  app.use('/order_confirmation', orderConfirmationController);
 
   return app;
 }
