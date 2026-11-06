@@ -40,6 +40,12 @@
                 Quantity: {{ product.quantity }}
             </p>
 
+            <form method="post" action="/basket/{{ product.basketID }}/quantity" class="basket-quantity-controls">
+                <button type="submit" name="direction" value="decrease" aria-label="Decrease quantity of {{ product.name }}"{% if product.quantity <= 1 %} disabled{% endif %}>&#8722;</button>
+                <button type="submit" name="direction" value="increase" aria-label="Increase quantity of {{ product.name }}"{% if not product.canIncrease %} disabled{% endif %}>&#10095;</button>
+            </form>
+            {% if not product.canIncrease %}<p class="basket-stock-limit" role="status">{% if product.stock == 0 %}Out of stock.{% else %}Stock limit reached ({{ product.stock }} available).{% endif %}</p>{% endif %}
+
             <p class="item-total">
                 {{ product.totalPrice }}
             </p>

@@ -12,6 +12,7 @@ export type BasketItem = {
     productName: string;
     productPrice: number;
     productImage: string;
+    productStock: number;
   };
 };
 
@@ -25,6 +26,7 @@ const basketSchema = z.object({
         productName: z.string(),
         productPrice: z.number().nonnegative().finite(),
         productImage: z.string(),
+        productStock: z.number().int().nonnegative(),
       }),
     }),
   ),
@@ -33,6 +35,31 @@ const basketSchema = z.object({
 export type GetBasketResult =
   | { ok: true; basket: BasketItem[] }
   | { ok: false; basket: BasketItem[]; message: string };
+
+export function quantityInBasket(
+  basket: BasketItem[],
+  productID: number,
+): number {
+  return basket
+    .filter((item) => item.productID === productID)
+    .reduce((total, item) => total + item.quantity, 0);
+}
+
+async function basketFailure(response: Response) {
+  console.error('Basket update failed', response.status);
+  const body: unknown = await response.json();
+  const parsed = z.object({ error: z.string() }).safeParse(body);
+  return {
+    ok: false as const,
+    status: [400, 401, 403, 404, 409].includes(response.status)
+      ? response.status
+      : 502,
+    message:
+      response.status < 500 && parsed.success
+        ? parsed.data.error
+        : 'Unable to update your basket. Please try again.',
+  };
+}
 
 export async function getBasket(
   accessToken: string,
@@ -90,15 +117,9 @@ export async function addToBasket(
       }),
     });
     if (!response.ok) {
-      console.error('Add to basket failed', response.status);
-      return {
-        ok: false as const,
-        status: [400, 401, 403, 404, 409].includes(response.status)
-          ? response.status
-          : 502,
-        message: 'Unable to add this product to your basket. Please try again.',
-      };
+      return await basketFailure(response);
     }
+
     return { ok: true as const };
   } catch (error) {
     console.error('Unable to confirm basket update', error);
@@ -107,6 +128,33 @@ export async function addToBasket(
       status: 502,
       message:
         'Unable to confirm whether the item was added. Check your basket before trying again.',
+    };
+  }
+}
+
+export async function changeBasketQuantity(
+  accessToken: string,
+  basketID: number,
+  change: -1 | 1,
+) {
+  try {
+    const response = await fetch(`${backendUrl()}/basket/${basketID}`, {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ change }),
+    });
+    if (!response.ok) return await basketFailure(response);
+    return { ok: true as const };
+  } catch (error) {
+    console.error('Unable to confirm basket quantity update', error);
+    return {
+      ok: false as const,
+      status: 502,
+      message:
+        'Unable to confirm the quantity update. Reload your basket before trying again.',
     };
   }
 }

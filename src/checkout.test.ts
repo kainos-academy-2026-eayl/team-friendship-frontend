@@ -9,6 +9,8 @@ import { checkoutProducts } from './testFixtures';
 const orderRequests: { authorization?: string; body: unknown }[] = [];
 const discountLookups: string[] = [];
 const basketAdds: unknown[] = [];
+const basketUpdates: unknown[] = [];
+const stockLevels = new Map<number, number>();
 let savedOrder: unknown;
 const selectedItems = [
   { productID: 4, quantity: 1 },
@@ -43,7 +45,13 @@ function createFakeBackend() {
       res.sendStatus(404);
       return;
     }
-    res.json({ product });
+    res.json({
+      product: {
+        ...product,
+        productStock:
+          stockLevels.get(product.productID) ?? product.productStock,
+      },
+    });
   });
   backend.get('/basket/:customerID', (req, res) => {
     if (customerFor(req.get('authorization')) !== req.params.customerID) {
@@ -54,9 +62,18 @@ function createFakeBackend() {
       basket: basketItems.map((item, index) => ({
         ...item,
         basketID: index + 1,
-        product: checkoutProducts.find(
-          (product) => product.productID === item.productID,
-        ),
+        product: (() => {
+          const product = checkoutProducts.find(
+            (product) => product.productID === item.productID,
+          );
+          return (
+            product && {
+              ...product,
+              productStock:
+                stockLevels.get(item.productID) ?? product.productStock,
+            }
+          );
+        })(),
       })),
     });
   });
@@ -69,6 +86,32 @@ function createFakeBackend() {
     basketItems.push({
       productID: req.body.productID,
       quantity: req.body.quantity,
+    });
+    backend.put('/basket/:id', (req, res) => {
+      basketUpdates.push({
+        id: req.params.id,
+        body: req.body,
+        authorization: req.get('authorization'),
+      });
+      const item = basketItems[Number(req.params.id) - 1];
+      if (!item) {
+        res.status(404).json({ error: 'Basket item not found.' });
+        return;
+      }
+      const stock =
+        stockLevels.get(item.productID) ??
+        checkoutProducts.find((product) => product.productID === item.productID)
+          ?.productStock ??
+        0;
+      const total = basketItems
+        .filter((row) => row.productID === item.productID)
+        .reduce((sum, row) => sum + row.quantity, 0);
+      if (req.body.change > 0 && total + req.body.change > stock) {
+        res.status(409).json({ error: 'Stock limit reached.' });
+        return;
+      }
+      item.quantity += req.body.change;
+      res.json(item);
     });
     res.status(201).json({ basketID: 3, ...req.body });
   });
@@ -185,6 +228,8 @@ describe('checkout', () => {
     savedOrder = undefined;
     discountLookups.length = 0;
     basketAdds.length = 0;
+    basketUpdates.length = 0;
+    stockLevels.clear();
     basketItems = selectedItems.map((item) => ({ ...item }));
     basketStatus = 200;
     addStatus = 201;
@@ -261,7 +306,7 @@ describe('checkout', () => {
       expect(response.status).toBe(409);
       expect(response.headers.get('location')).toBeNull();
       const html = await response.text();
-      expect(html).toContain('Unable to add this product');
+      expect(html).toContain('Could not add product');
       expect(html).toContain('value="3"');
     });
 
@@ -277,6 +322,113 @@ describe('checkout', () => {
       ).text();
       expect(html).toContain('id="checkout" disabled');
       expect(html).not.toContain('href="/checkout"');
+    });
+  });
+
+  describe('stock controls', () => {
+    const basketPage = async () =>
+      (
+        await fetch(`${baseUrl}/basket`, {
+          headers: { cookie: cookie(3) },
+        })
+      ).text();
+    const productPage = async () =>
+      (
+        await fetch(`${baseUrl}/products/12`, {
+          headers: { cookie: cookie(3) },
+        })
+      ).text();
+    const change = (direction: string) =>
+      fetch(`${baseUrl}/basket/2/quantity`, {
+        method: 'POST',
+        headers: {
+          cookie: cookie(3),
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ direction }),
+        redirect: 'manual',
+      });
+
+    it('increments to the stock limit then disables the increase arrow', async () => {
+      stockLevels.set(12, 3);
+      expect(await basketPage()).toMatch(
+        /aria-label="Increase quantity of Catan">/,
+      );
+      const response = await change('increase');
+      expect(response.status).toBe(303);
+      expect(response.headers.get('location')).toBe('/basket');
+      expect(basketUpdates).toEqual([
+        { id: '2', body: { change: 1 }, authorization: 'Bearer customer-3' },
+      ]);
+      const html = await basketPage();
+      expect(html).toContain('Quantity: 3');
+      expect(html).toMatch(/aria-label="Increase quantity of Catan" disabled/);
+      expect(html).toContain('Stock limit reached (3 available)');
+    });
+
+    it('counts duplicate rows and disables every increase control for the product at the limit', async () => {
+      basketItems.push({ productID: 12, quantity: 13 });
+      const html = await basketPage();
+      expect(
+        html.match(/aria-label="Increase quantity of Catan" disabled/g),
+      ).toHaveLength(2);
+      const details = await productPage();
+      expect(details).toMatch(/id="add-to-basket" disabled/);
+      expect(details).toContain('You already have all available units');
+    });
+
+    it('uses only remaining stock as the product input limit', async () => {
+      const html = await productPage();
+      expect(html).toContain('max="13"');
+      const response = await fetch(`${baseUrl}/products/12/add-to-basket`, {
+        method: 'POST',
+        headers: {
+          cookie: cookie(3),
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ quantity: '14' }),
+        redirect: 'manual',
+      });
+      expect(response.status).toBe(409);
+      expect(basketAdds).toHaveLength(0);
+    });
+
+    it('disables additions when the database stock is zero', async () => {
+      stockLevels.set(12, 0);
+      const html = await productPage();
+      expect(html).toContain('Out of Stock');
+      expect(html).toMatch(/id="add-to-basket" disabled/);
+      expect(await basketPage()).toMatch(
+        /aria-label="Increase quantity of Catan" disabled/,
+      );
+    });
+
+    it('allows decreasing after a stock reduction and re-enables additions below the limit', async () => {
+      stockLevels.set(12, 0);
+      expect((await change('decrease')).status).toBe(303);
+      expect(basketItems[1]?.quantity).toBe(1);
+      stockLevels.set(12, 2);
+      expect(await basketPage()).toMatch(
+        /aria-label="Increase quantity of Catan">/,
+      );
+    });
+
+    it('handles a stale increase request without reporting success', async () => {
+      stockLevels.set(12, 2);
+      const response = await change('increase');
+      expect(response.status).toBe(409);
+      expect(response.headers.get('location')).toBeNull();
+      const html = await response.text();
+      expect(html).toContain('Stock limit reached.');
+      expect(html).toMatch(/aria-label="Increase quantity of Catan" disabled/);
+      expect(basketItems[1]?.quantity).toBe(2);
+    });
+
+    it('does not enable product additions when the basket cannot be checked', async () => {
+      basketStatus = 500;
+      const html = await productPage();
+      expect(html).toContain('Unable to check your basket');
+      expect(html).toMatch(/id="add-to-basket" disabled/);
     });
   });
 

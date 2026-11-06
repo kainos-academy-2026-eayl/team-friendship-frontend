@@ -11,6 +11,18 @@ before submitting the order, using those product IDs and quantities rather than
 sample items or values supplied by the browser. Repeated product rows are
 combined into one order line. Empty or unavailable baskets cannot be ordered.
 
+Stock comes from the Product table. Product details limit additions to current
+stock minus the quantity already in the customer's basket. The basket includes
+decrease/increase controls; the increase arrow is disabled and grey at the stock
+limit (including duplicate rows for the same product). Reductions are still
+allowed if stock has fallen below the basket quantity. Backend basket writes
+lock the product row and recheck the total inside a database transaction, so
+stale pages and concurrent additions cannot bypass the limit. Basket writes use
+the authenticated customer and reject access to another customer's items.
+`PUT /basket/:basketID` accepts either `{ "change": 1 }` / `{ "change": -1 }`
+or a positive absolute `{ "quantity": 2 }`. Basket contents do not reserve stock;
+order placement still checks stock. Restart both services for these changes.
+
 ## Order confirmation
 
 `/order_confirmation/:id` renders a saved order in Nunjucks, using the

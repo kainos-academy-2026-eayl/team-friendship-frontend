@@ -188,6 +188,20 @@ button:hover {
   background: var(--primary-hover);
 }
 
+.basket-quantity-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.basket-quantity-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  padding: 8px;
+}
+
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -195,6 +209,15 @@ button:disabled {
 
 button:disabled:hover {
   background: var(--primary);
+}
+
+.basket-quantity-controls button:disabled,
+.basket-quantity-controls button:disabled:hover {
+  background: #e0e0e0;
+  border-color: #bdbdbd;
+  color: #616161;
+  opacity: 1;
+  cursor: not-allowed;
 }
 
 .secondary {

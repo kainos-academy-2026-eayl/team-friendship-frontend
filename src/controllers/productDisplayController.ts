@@ -1,6 +1,11 @@
 import { type Request, type Response, Router } from 'express';
 import { z } from 'zod';
-import { addToBasket } from '../services/basketService';
+import type { Product } from '../models/productDisplayModel';
+import {
+  addToBasket,
+  getBasket,
+  quantityInBasket,
+} from '../services/basketService';
 import { getProduct } from '../services/productDisplayServices';
 import productDisplay from '../views/pages/product_display/product_display_page';
 import { requireLogin } from './sessionController';
@@ -10,6 +15,22 @@ const router = Router();
 const productIdSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
+
+async function availability(res: Response, product: Product) {
+  if (!res.locals.isLoggedIn) return { remainingStock: product.stock };
+  const basket = await getBasket(res.locals.accessToken, res.locals.customerId);
+  if (!basket.ok)
+    return {
+      remainingStock: 0,
+      error: 'Unable to check your basket. Reload before adding this product.',
+    };
+  return {
+    remainingStock: Math.max(
+      0,
+      product.stock - quantityInBasket(basket.basket, product.id),
+    ),
+  };
+}
 
 router.get('/:id', async (req: Request, res: Response) => {
   const params = productIdSchema.safeParse(req.params);
@@ -35,6 +56,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   res.render('product_display/product_display', {
     page: productDisplay,
     product: result.product,
+    ...(await availability(res, result.product)),
   });
 });
 
@@ -65,13 +87,19 @@ router.post(
       });
       return;
     }
-    if (quantity.data > product.product.stock) {
-      res.status(409).render('product_display/product_display', {
-        page: productDisplay,
-        product: product.product,
-        quantity: quantity.data,
-        error: 'The selected quantity exceeds the available stock.',
-      });
+    const available = await availability(res, product.product);
+    if (available.error || quantity.data > available.remainingStock) {
+      res
+        .status(available.error ? 502 : 409)
+        .render('product_display/product_display', {
+          page: productDisplay,
+          product: product.product,
+          quantity: quantity.data,
+          ...available,
+          error:
+            available.error ??
+            'The selected quantity exceeds the available stock, including items already in your basket.',
+        });
       return;
     }
     const result = await addToBasket(
@@ -85,6 +113,7 @@ router.post(
         page: productDisplay,
         product: product.product,
         quantity: quantity.data,
+        ...(await availability(res, product.product)),
         error: result.message,
       });
       return;

@@ -51,6 +51,7 @@
             <p class="product-price">
                 £{{ product.price }}
             </p>
+            {% if product.stock == 0 %}<p class="availability">Out of Stock</p>{% endif %}
 
             <a href="/products/{{ product.id }}" class="view-product-button" id="view-product-button">
                 View Details
