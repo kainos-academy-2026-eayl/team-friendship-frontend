@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import express, { type Express, type Request, type Response } from 'express';
 import nunjucks from 'nunjucks';
 import adminController from './controllers/adminController';
+import basketController from './controllers/basketController';
 import checkoutController from './controllers/checkoutController';
 import customerDetailsController from './controllers/customerDetailsController';
 import forgotPasswordController from './controllers/forgot-password-controller';
@@ -17,9 +18,8 @@ import productDisplayController from './controllers/productDisplayController';
 import registerController from './controllers/registerController';
 import resetPasswordController from './controllers/resetPasswordController';
 import { loadSession, requireLogin } from './controllers/sessionController';
-import { type BasketItem, getBasket } from './services/basketService';
+import { getBasket } from './services/basketService';
 import { capitaliseName } from './utils/name';
-import basketPage from './views/pages/basket/basket_page';
 import registerPage from './views/pages/register/register_page';
 import sidebarNavigation from './views/partials/sidebar_navigation';
 
@@ -45,6 +45,25 @@ export function createApp(): Express {
   app.use('/logout', logoutController);
   app.use(loadSession);
 
+  app.use(async (req, res, next) => {
+    if (
+      req.path !== '/health' &&
+      res.locals.customerId &&
+      !res.locals.isAdmin
+    ) {
+      const basket = await getBasket(
+        res.locals.accessToken,
+        res.locals.customerId,
+      );
+      res.locals.basketResult = basket;
+      res.locals.basketCount = basket.ok
+        ? basket.basket.reduce((count, item) => count + item.quantity, 0)
+        : undefined;
+      res.locals.basketCountUnavailable = !basket.ok;
+    }
+    next();
+  });
+
   app.use((req, res, next) => {
     res.locals.navigation = sidebarNavigation;
     res.locals.currentPath = req.path;
@@ -68,38 +87,7 @@ export function createApp(): Express {
 
   app.use('/home', homeController);
 
-  app.get('/basket', requireLogin, async (_req: Request, res: Response) => {
-    const basket = await getBasket(
-      res.locals.accessToken,
-      res.locals.customerId,
-    );
-
-    const products = basket.basket.map((item: BasketItem) => ({
-      basketID: item.basketID,
-      name: item.product.productName,
-      quantity: String(item.quantity),
-      totalPrice: `£${(item.product.productPrice * item.quantity).toFixed(2)}`,
-      image: {
-        src: `/images/products_images/${item.product.productImage.split('/').pop()}`,
-        alt: item.product.productName,
-      },
-    }));
-
-    const basketTotal = basket.basket.reduce(
-      (total: number, item: BasketItem) =>
-        total + item.product.productPrice * item.quantity,
-      0,
-    );
-
-    res.render('basket/basket', {
-      page: {
-        ...basketPage,
-        products,
-        basketTotal: `£${basketTotal.toFixed(2)}`,
-      },
-      error: basket.ok ? undefined : basket.message,
-    });
-  });
+  app.use('/basket', basketController);
 
   app.use('/checkout', requireLogin, checkoutController);
 

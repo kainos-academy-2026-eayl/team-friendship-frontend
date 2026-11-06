@@ -4,11 +4,21 @@ import type { AddressInfo } from 'node:net';
 import express from 'express';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from './app';
-import { DUMMY_ORDER_ITEMS } from './controllers/checkoutController';
 import { checkoutProducts } from './testFixtures';
 
 const orderRequests: { authorization?: string; body: unknown }[] = [];
 const discountLookups: string[] = [];
+const basketAdds: unknown[] = [];
+const basketUpdates: unknown[] = [];
+const stockLevels = new Map<number, number>();
+let savedOrder: unknown;
+const selectedItems = [
+  { productID: 4, quantity: 1 },
+  { productID: 12, quantity: 2 },
+];
+let basketItems = selectedItems.map((item) => ({ ...item }));
+let basketStatus = 200;
+let addStatus = 201;
 
 function createFakeBackend() {
   const backend = express();
@@ -25,7 +35,100 @@ function createFakeBackend() {
     res.json({ customerId: Number(customerId), role: 'customer' });
   });
   backend.get('/products', (_req, res) => {
-    res.json({ products: checkoutProducts });
+    res.json({
+      products: checkoutProducts.map((product) => ({
+        ...product,
+        productStock:
+          stockLevels.get(product.productID) ?? product.productStock,
+      })),
+    });
+  });
+  backend.get('/products/:id', (req, res) => {
+    const product = checkoutProducts.find(
+      (product) => product.productID === Number(req.params.id),
+    );
+    if (!product) {
+      res.sendStatus(404);
+      return;
+    }
+    res.json({
+      product: {
+        ...product,
+        productStock:
+          stockLevels.get(product.productID) ?? product.productStock,
+      },
+    });
+  });
+  backend.get('/basket/:customerID', (req, res) => {
+    if (customerFor(req.get('authorization')) !== req.params.customerID) {
+      res.sendStatus(403);
+      return;
+    }
+    res.status(basketStatus).json({
+      basket: basketItems.map((item, index) => ({
+        ...item,
+        basketID: index + 1,
+        product: (() => {
+          const product = checkoutProducts.find(
+            (product) => product.productID === item.productID,
+          );
+          return (
+            product && {
+              ...product,
+              productStock:
+                stockLevels.get(item.productID) ?? product.productStock,
+            }
+          );
+        })(),
+      })),
+    });
+  });
+  backend.post('/basket', (req, res) => {
+    basketAdds.push(req.body);
+    if (addStatus !== 201) {
+      res.status(addStatus).json({ error: 'Could not add product' });
+      return;
+    }
+    basketItems.push({
+      productID: req.body.productID,
+      quantity: req.body.quantity,
+    });
+    res.status(201).json({ basketID: 3, ...req.body });
+  });
+  backend.put('/basket/:id', (req, res) => {
+    basketUpdates.push({
+      id: req.params.id,
+      body: req.body,
+      authorization: req.get('authorization'),
+    });
+    const item = basketItems[Number(req.params.id) - 1];
+    if (!item) {
+      res.status(404).json({ error: 'Basket item not found.' });
+      return;
+    }
+    const stock =
+      stockLevels.get(item.productID) ??
+      checkoutProducts.find((product) => product.productID === item.productID)
+        ?.productStock ??
+      0;
+    const total = basketItems
+      .filter((row) => row.productID === item.productID)
+      .reduce((sum, row) => sum + row.quantity, 0);
+    if (req.body.change > 0 && total + req.body.change > stock) {
+      res.status(409).json({ error: 'Stock limit reached.' });
+      return;
+    }
+    item.quantity += req.body.change;
+    res.json(item);
+  });
+  backend.delete('/basket/:id', (req, res) => {
+    const index = Number(req.params.id) - 1;
+    if (!basketItems[index]) {
+      res.status(404).json({ error: 'Basket item not found.' });
+      return;
+    }
+    basketItems.splice(index, 1);
+    res.status(204).end();
   });
   backend.get('/customers/me/address', (req, res) => {
     if (customerFor(req.get('authorization')) === '4') {
@@ -59,19 +162,29 @@ function createFakeBackend() {
       res.status(401).json({ error: 'Invalid or expired access token' });
       return;
     }
-    res.status(201).json({
-      order: {
-        orderID: 42,
-        customerID: Number(customerId),
-        dateCreated: '2026-11-05T22:00:00.000Z',
-        status: 'pending',
-        address: req.body.address ?? '123 Town Street',
-        postcode: req.body.postcode ?? 'BT16 AAA',
-        discountCode: req.body.discountCode ?? null,
-        discountAmount: req.body.discountCode ? 21.6 : 0,
-        orderServices: [],
-      },
-    });
+    savedOrder = {
+      orderID: 42,
+      customerID: Number(customerId),
+      dateCreated: '2026-11-05T22:00:00.000Z',
+      status: 'pending',
+      address: req.body.address ?? '123 Town Street',
+      postcode: req.body.postcode ?? 'BT16 AAA',
+      discountCode: req.body.discountCode ?? null,
+      discountAmount: req.body.discountCode ? 21.6 : 0,
+      orderServices: req.body.orderServices.map(
+        (item: { productID: number; quantity: number }) => ({
+          ...item,
+          orderID: 42,
+          product: checkoutProducts.find(
+            (product) => product.productID === item.productID,
+          ),
+        }),
+      ),
+    };
+    res.status(201).json({ order: savedOrder });
+  });
+  backend.get('/orders/:id', (_req, res) => {
+    res.json({ order: savedOrder });
   });
   return backend;
 }
@@ -127,7 +240,14 @@ describe('checkout', () => {
 
   beforeEach(() => {
     orderRequests.length = 0;
+    savedOrder = undefined;
     discountLookups.length = 0;
+    basketAdds.length = 0;
+    basketUpdates.length = 0;
+    stockLevels.clear();
+    basketItems = selectedItems.map((item) => ({ ...item }));
+    basketStatus = 200;
+    addStatus = 201;
   });
 
   afterAll(async () => {
@@ -143,8 +263,319 @@ describe('checkout', () => {
     }
   });
 
+  describe('browse to basket', () => {
+    const add = (quantity: string, id = '12', auth = cookie(3)) =>
+      fetch(`${baseUrl}/products/${id}/add-to-basket`, {
+        method: 'POST',
+        headers: {
+          cookie: auth,
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ quantity }),
+        redirect: 'manual',
+      });
+
+    it('submits the selected quantity and returns to browse with a working checkout link', async () => {
+      const details = await (await fetch(`${baseUrl}/products/12`)).text();
+      expect(details).toMatch(
+        /<form method="post" action="\/products\/12\/add-to-basket" data-product-quantity-form>[\s\S]*name="quantity"/,
+      );
+      const response = await add('3');
+      expect(response.status).toBe(303);
+      expect(response.headers.get('location')).toBe('/product_browse');
+      expect(basketAdds).toEqual([
+        { customerID: 3, productID: 12, quantity: 3 },
+      ]);
+      const basket = await (
+        await fetch(`${baseUrl}/basket`, { headers: { cookie: cookie(3) } })
+      ).text();
+      expect(basket).toContain('Quantity: 3');
+      expect(basket).toContain('href="/checkout" id="checkout"');
+      expect(await (await get()).text()).toContain('Catan × 3');
+    });
+
+    it.each(['0', '-1', '1.5', '', 'abc', '9007199254740992'])(
+      'rejects invalid quantity %j without adding',
+      async (quantity) => {
+        expect((await add(quantity)).status).toBe(400);
+        expect(basketAdds).toHaveLength(0);
+      },
+    );
+
+    it('rejects invalid product IDs and quantities exceeding stock', async () => {
+      expect((await add('1', 'invalid')).status).toBe(400);
+      expect((await add('16')).status).toBe(409);
+      expect(basketAdds).toHaveLength(0);
+    });
+
+    it('requires login before adding products', async () => {
+      const response = await add('3', '12', '');
+      expect(response.status).toBe(302);
+      expect(response.headers.get('location')).toContain('/login?returnTo=');
+      expect(basketAdds).toHaveLength(0);
+    });
+
+    it('does not redirect as successful when adding fails', async () => {
+      addStatus = 409;
+      const response = await add('3');
+      expect(response.status).toBe(409);
+      expect(response.headers.get('location')).toBeNull();
+      const html = await response.text();
+      expect(html).toContain('Could not add product');
+      expect(html).toContain('value="3"');
+    });
+
+    it('keeps checkout disabled when the basket is empty or unavailable', async () => {
+      basketItems = [];
+      let html = await (
+        await fetch(`${baseUrl}/basket`, { headers: { cookie: cookie(3) } })
+      ).text();
+      expect(html).toContain('id="checkout" disabled');
+      basketStatus = 500;
+      html = await (
+        await fetch(`${baseUrl}/basket`, { headers: { cookie: cookie(3) } })
+      ).text();
+      expect(html).toContain('id="checkout" disabled');
+      expect(html).not.toContain('href="/checkout"');
+    });
+  });
+
+  describe('stock controls', () => {
+    it('shows the total basket unit count and updates it after adding and removing', async () => {
+      const readHeader = async () =>
+        (
+          await fetch(`${baseUrl}/home`, {
+            headers: { cookie: cookie(3) },
+          })
+        ).text();
+      expect(await readHeader()).toContain('aria-label="View basket, 3 items"');
+      await fetch(`${baseUrl}/products/12/add-to-basket`, {
+        method: 'POST',
+        headers: {
+          cookie: cookie(3),
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ quantity: '2' }),
+        redirect: 'manual',
+      });
+      expect(await readHeader()).toContain('aria-label="View basket, 5 items"');
+      await fetch(`${baseUrl}/basket/3/remove`, {
+        method: 'POST',
+        headers: { cookie: cookie(3) },
+        redirect: 'manual',
+      });
+      expect(await readHeader()).toContain('aria-label="View basket, 3 items"');
+    });
+
+    it('explicitly marks an unavailable basket count instead of showing zero', async () => {
+      basketStatus = 500;
+      const html = await (
+        await fetch(`${baseUrl}/home`, {
+          headers: { cookie: cookie(3) },
+        })
+      ).text();
+      expect(html).toContain('View basket, item count unavailable');
+      expect(html).toContain(
+        'class="basket-count" aria-hidden="true">?</span>',
+      );
+    });
+
+    it('uses arrow-only selection to select and add both units when two are available', async () => {
+      basketItems = [];
+      stockLevels.set(12, 2);
+      const select = (quantity: string, direction: string) =>
+        fetch(`${baseUrl}/products/12/quantity`, {
+          method: 'POST',
+          headers: {
+            cookie: cookie(3),
+            'content-type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({ quantity, direction }),
+        });
+      let html = await (await select('1', 'increase')).text();
+      expect(html).toContain('<input type="hidden" name="quantity" value="2">');
+      expect(html).not.toContain('type="number"');
+      expect(html).toMatch(/aria-label="Increase selected quantity" disabled/);
+      expect(basketAdds).toHaveLength(0);
+      html = await (await select('2', 'increase')).text();
+      expect(html).toContain('<input type="hidden" name="quantity" value="2">');
+      html = await (await select('2', 'decrease')).text();
+      expect(html).toContain('<input type="hidden" name="quantity" value="1">');
+      expect(html).toMatch(/aria-label="Decrease selected quantity" disabled/);
+      const response = await fetch(`${baseUrl}/products/12/add-to-basket`, {
+        method: 'POST',
+        headers: {
+          cookie: cookie(3),
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ quantity: '2' }),
+        redirect: 'manual',
+      });
+      expect(response.status).toBe(303);
+      expect(basketAdds).toEqual([
+        { customerID: 3, productID: 12, quantity: 2 },
+      ]);
+    });
+
+    it('labels zero-stock products and prevents opening their details from browse', async () => {
+      stockLevels.set(12, 0);
+      const html = await (await fetch(`${baseUrl}/product_browse`)).text();
+      expect(html).toContain('<p class="availability">Out of Stock</p>');
+      expect(html).not.toContain('href="/products/12"');
+      expect(html).toMatch(
+        /<button type="button" class="view-product-button" disabled>\s*View Details\s*<\/button>/,
+      );
+      expect(html).toContain('href="/products/4"');
+    });
+
+    it('restores the browse details link when a product is restocked', async () => {
+      stockLevels.set(12, 0);
+      expect(
+        await (await fetch(`${baseUrl}/product_browse`)).text(),
+      ).not.toContain('href="/products/12"');
+      stockLevels.set(12, 2);
+      const html = await (await fetch(`${baseUrl}/product_browse`)).text();
+      expect(html).toContain('href="/products/12"');
+    });
+
+    it('shows compact plus/minus and bin controls and removes the selected item', async () => {
+      const before = await basketPage();
+      expect(before).toMatch(
+        /aria-label="Increase quantity of Catan">\+<\/button>/,
+      );
+      expect(before).toContain('aria-label="Remove Catan from basket"');
+      const response = await fetch(`${baseUrl}/basket/2/remove`, {
+        method: 'POST',
+        headers: { cookie: cookie(3) },
+        redirect: 'manual',
+      });
+      expect(response.status).toBe(303);
+      expect(response.headers.get('location')).toBe('/basket');
+      const after = await basketPage();
+      expect(after).not.toContain('Remove Catan from basket');
+      expect(after).toContain('Remove Furby from basket');
+      expect(after).toContain('£99.99');
+    });
+
+    it('shows removal errors without redirecting as successful', async () => {
+      const response = await fetch(`${baseUrl}/basket/99/remove`, {
+        method: 'POST',
+        headers: { cookie: cookie(3) },
+        redirect: 'manual',
+      });
+      expect(response.status).toBe(404);
+      expect(await response.text()).toContain('Basket item not found.');
+      expect(basketItems).toHaveLength(2);
+    });
+
+    const basketPage = async () =>
+      (
+        await fetch(`${baseUrl}/basket`, {
+          headers: { cookie: cookie(3) },
+        })
+      ).text();
+    const productPage = async () =>
+      (
+        await fetch(`${baseUrl}/products/12`, {
+          headers: { cookie: cookie(3) },
+        })
+      ).text();
+    const change = (direction: string) =>
+      fetch(`${baseUrl}/basket/2/quantity`, {
+        method: 'POST',
+        headers: {
+          cookie: cookie(3),
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ direction }),
+        redirect: 'manual',
+      });
+
+    it('increments to the stock limit then disables the increase arrow', async () => {
+      stockLevels.set(12, 3);
+      expect(await basketPage()).toMatch(
+        /aria-label="Increase quantity of Catan">/,
+      );
+      const response = await change('increase');
+      expect(response.status).toBe(303);
+      expect(response.headers.get('location')).toBe('/basket');
+      expect(basketUpdates).toEqual([
+        { id: '2', body: { change: 1 }, authorization: 'Bearer customer-3' },
+      ]);
+      const html = await basketPage();
+      expect(html).toContain('Quantity: 3');
+      expect(html).toMatch(/aria-label="Increase quantity of Catan" disabled/);
+      expect(html).toContain('Stock limit reached (3 available)');
+    });
+
+    it('counts duplicate rows and disables every increase control for the product at the limit', async () => {
+      basketItems.push({ productID: 12, quantity: 13 });
+      const html = await basketPage();
+      expect(
+        html.match(/aria-label="Increase quantity of Catan" disabled/g),
+      ).toHaveLength(2);
+      const details = await productPage();
+      expect(details).toMatch(/id="add-to-basket" disabled/);
+      expect(details).toContain('You already have all available units');
+    });
+
+    it('uses only remaining stock as the product input limit', async () => {
+      const html = await productPage();
+      expect(html).toContain('2 already in your basket; 13 more can be added.');
+      const response = await fetch(`${baseUrl}/products/12/add-to-basket`, {
+        method: 'POST',
+        headers: {
+          cookie: cookie(3),
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ quantity: '14' }),
+        redirect: 'manual',
+      });
+      expect(response.status).toBe(409);
+      expect(basketAdds).toHaveLength(0);
+    });
+
+    it('disables additions when the database stock is zero', async () => {
+      stockLevels.set(12, 0);
+      const html = await productPage();
+      expect(html).toContain('Out of Stock');
+      expect(html).toMatch(/id="add-to-basket" disabled/);
+      expect(await basketPage()).toMatch(
+        /aria-label="Increase quantity of Catan" disabled/,
+      );
+    });
+
+    it('allows decreasing after a stock reduction and re-enables additions below the limit', async () => {
+      stockLevels.set(12, 0);
+      expect((await change('decrease')).status).toBe(303);
+      expect(basketItems[1]?.quantity).toBe(1);
+      stockLevels.set(12, 2);
+      expect(await basketPage()).toMatch(
+        /aria-label="Increase quantity of Catan">/,
+      );
+    });
+
+    it('handles a stale increase request without reporting success', async () => {
+      stockLevels.set(12, 2);
+      const response = await change('increase');
+      expect(response.status).toBe(409);
+      expect(response.headers.get('location')).toBeNull();
+      const html = await response.text();
+      expect(html).toContain('Stock limit reached.');
+      expect(html).toMatch(/aria-label="Increase quantity of Catan" disabled/);
+      expect(basketItems[1]?.quantity).toBe(2);
+    });
+
+    it('does not enable product additions when the basket cannot be checked', async () => {
+      basketStatus = 500;
+      const html = await productPage();
+      expect(html).toContain('Unable to check your basket');
+      expect(html).toMatch(/id="add-to-basket" disabled/);
+    });
+  });
+
   describe('GET /checkout', () => {
-    it('summarises the dummy order using real product names and prices', async () => {
+    it('summarises the customer basket using its product names, quantities and prices', async () => {
       const response = await get();
       const page = await response.text();
 
@@ -248,7 +679,7 @@ describe('checkout', () => {
       expect(orderRequests[0]?.body).toEqual({
         customerID: 3,
         discountCode: 'FRIENDSHIP12',
-        orderServices: DUMMY_ORDER_ITEMS,
+        orderServices: selectedItems,
       });
     });
 
@@ -277,17 +708,63 @@ describe('checkout', () => {
   });
 
   describe('POST /checkout', () => {
-    it('creates the order with the home address and redirects to order history', async () => {
+    it('orders the current basket rather than sample or submitted items, grouping repeated products', async () => {
+      basketItems = [
+        { productID: 12, quantity: 3 },
+        { productID: 12, quantity: 2 },
+      ];
+      const response = await post({
+        ...VALID_FORM,
+        customerID: '99',
+        orderServices: 'forged',
+      });
+      expect(response.status).toBe(303);
+      expect(orderRequests[0]?.body).toEqual({
+        customerID: 3,
+        orderServices: [{ productID: 12, quantity: 5 }],
+      });
+    });
+
+    it('blocks empty baskets and disables place order', async () => {
+      basketItems = [];
+      const page = await (await get()).text();
+      expect(page).toContain('Your basket is empty');
+      expect(page).toMatch(/class="checkout-button" disabled/);
+      expect((await post(VALID_FORM)).status).toBe(400);
+      expect(orderRequests).toHaveLength(0);
+    });
+
+    it('blocks checkout when the basket API fails', async () => {
+      basketStatus = 500;
+      expect((await get()).status).toBe(502);
+      expect((await post(VALID_FORM)).status).toBe(502);
+      expect(orderRequests).toHaveLength(0);
+    });
+
+    it('creates the order with the home address and redirects to its confirmation', async () => {
       const response = await post(VALID_FORM);
 
       expect(response.status).toBe(303);
-      expect(response.headers.get('location')).toBe('/order_history?placed=42');
+      expect(response.headers.get('location')).toBe('/order_confirmation/42');
       expect(orderRequests).toEqual([
         {
           authorization: 'Bearer customer-3',
-          body: { customerID: 3, orderServices: DUMMY_ORDER_ITEMS },
+          body: { customerID: 3, orderServices: selectedItems },
         },
       ]);
+      const confirmation = await fetch(
+        `${baseUrl}${response.headers.get('location')}`,
+        {
+          headers: { cookie: cookie(3) },
+        },
+      );
+      expect(confirmation.status).toBe(200);
+      const html = await confirmation.text();
+      expect(html).toContain('42');
+      expect(html).toContain('Furby');
+      expect(html).toContain('Catan');
+      expect(html).toContain('pending');
+      expect(orderRequests).toHaveLength(1);
     });
 
     it('sends an alternative address when chosen', async () => {
@@ -303,7 +780,7 @@ describe('checkout', () => {
         customerID: 3,
         address: '14 Gift Lane',
         postcode: 'BT9 5AB',
-        orderServices: DUMMY_ORDER_ITEMS,
+        orderServices: selectedItems,
       });
     });
 

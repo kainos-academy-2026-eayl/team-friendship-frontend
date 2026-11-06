@@ -1,6 +1,7 @@
 import { type Request, type Response, Router } from 'express';
 import { z } from 'zod';
 import type { OrderItem } from '../models/orderModel';
+import { type BasketItem, getBasket } from '../services/basketService';
 import { getHomeAddress } from '../services/customerService';
 import {
   calculateDiscount,
@@ -8,17 +9,24 @@ import {
   getDiscount,
 } from '../services/discountService';
 import { createOrder } from '../services/orderService';
-import { getProducts } from '../services/productService';
 import checkoutPage from '../views/pages/checkout/checkout';
 import { backendUrl } from './sessionController';
 
 const router = Router();
 
-// Dummy order lines until checkout reads from the basket; IDs must exist in the seeded Product table.
-export const DUMMY_ORDER_ITEMS: OrderItem[] = [
-  { productID: 4, quantity: 1 },
-  { productID: 12, quantity: 2 },
-];
+function orderItems(basket: BasketItem[]): OrderItem[] {
+  const quantities = new Map<number, number>();
+  for (const item of basket) {
+    quantities.set(
+      item.productID,
+      (quantities.get(item.productID) ?? 0) + item.quantity,
+    );
+  }
+  return [...quantities].map(([productID, quantity]) => ({
+    productID,
+    quantity,
+  }));
+}
 
 function requiredText(message: string, maxLength: number) {
   return z
@@ -104,19 +112,14 @@ function formatPrice(amount: number): string {
   return `£${amount.toFixed(2)}`;
 }
 
-async function loadSummary(discount: Discount | undefined) {
-  const result = await getProducts(backendUrl());
-  if (!result.ok) return undefined;
-
+function loadSummary(basket: BasketItem[], discount: Discount | undefined) {
   const lines = [];
   let subtotal = 0;
-  for (const item of DUMMY_ORDER_ITEMS) {
-    const product = result.products.find((p) => p.id === item.productID);
-    if (!product) return undefined;
-    const lineTotal = Number(product.price) * item.quantity;
+  for (const item of basket) {
+    const lineTotal = item.product.productPrice * item.quantity;
     subtotal += lineTotal;
     lines.push({
-      name: product.name,
+      name: item.product.productName,
       quantity: item.quantity,
       lineTotal: formatPrice(lineTotal),
     });
@@ -155,10 +158,11 @@ async function renderCheckout(
   }
   const discount = discountLookup?.ok ? discountLookup.discount : undefined;
 
-  const [summary, homeAddress] = await Promise.all([
-    loadSummary(discount),
+  const [basket, homeAddress] = await Promise.all([
+    getBasket(res.locals.accessToken, res.locals.customerId),
     getHomeAddress(backendUrl(), res.locals.accessToken),
   ]);
+  const summary = basket.ok ? loadSummary(basket.basket, discount) : undefined;
 
   if (
     (!homeAddress.ok && homeAddress.status === 401) ||
@@ -171,7 +175,7 @@ async function renderCheckout(
   res.status(summary ? status : 502).render('checkout/checkout', {
     page: checkoutPage,
     summary,
-    error: summary ? undefined : 'Unable to load your order summary.',
+    error: basket.ok ? undefined : basket.message,
     homeAddress: homeAddress.ok ? homeAddress.address : undefined,
     homeAddressError: homeAddress.ok ? undefined : homeAddress.message,
     values: discount ? { ...values, discountCode: discount.code } : values,
@@ -228,6 +232,16 @@ router.post('/', async (req: Request, res: Response) => {
   }
 
   const { deliveryOption, address, postcode, discountCode } = parsed.data;
+  const basket = await getBasket(res.locals.accessToken, customerID);
+  if (!basket.ok || basket.basket.length === 0) {
+    await renderCheckout(req, res, basket.ok ? 400 : 502, {
+      values,
+      formError: basket.ok
+        ? 'Your basket is empty. Add products before placing an order.'
+        : basket.message,
+    });
+    return;
+  }
 
   let canonicalCode: string | undefined;
   if (discountCode) {
@@ -250,7 +264,7 @@ router.post('/', async (req: Request, res: Response) => {
     backendUrl(),
     res.locals.accessToken,
     customerID,
-    DUMMY_ORDER_ITEMS,
+    orderItems(basket.basket),
     {
       ...(deliveryOption === 'other' && address && postcode
         ? { deliveryAddress: { address, postcode } }
@@ -271,7 +285,7 @@ router.post('/', async (req: Request, res: Response) => {
     return;
   }
 
-  res.redirect(303, `/order_history?placed=${result.order.orderID}`);
+  res.redirect(303, `/order_confirmation/${result.order.orderID}`);
 });
 
 export default router;

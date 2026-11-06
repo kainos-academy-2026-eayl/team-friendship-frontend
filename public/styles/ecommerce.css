@@ -188,6 +188,37 @@ button:hover {
   background: var(--primary-hover);
 }
 
+.product-quantity-controls,
+.basket-quantity-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.product-quantity-controls button,
+.basket-quantity-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  min-height: 34px;
+  height: 34px;
+  padding: 4px;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.basket-quantity-controls .basket-remove {
+  margin-left: 4px;
+}
+
+.product-quantity-controls output {
+  min-width: 32px;
+  align-self: center;
+  text-align: center;
+  font-weight: 600;
+}
+
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -195,6 +226,17 @@ button:disabled {
 
 button:disabled:hover {
   background: var(--primary);
+}
+
+.product-quantity-controls button:disabled,
+.product-quantity-controls button:disabled:hover,
+.basket-quantity-controls button:disabled,
+.basket-quantity-controls button:disabled:hover {
+  background: #e0e0e0;
+  border-color: #bdbdbd;
+  color: #616161;
+  opacity: 1;
+  cursor: not-allowed;
 }
 
 .secondary {
@@ -711,6 +753,35 @@ header {
   flex-shrink: 0;
 }
 
+.header-basket {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-left: auto;
+  min-width: 44px;
+  min-height: 44px;
+  text-decoration: none;
+}
+
+.signed-in-user + .header-basket {
+  margin-left: 8px;
+}
+
+.header-basket .basket-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 12px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .profile-link {
   display: inline-flex;
   align-items: center;
@@ -778,7 +849,7 @@ header {
 }
 
 .signed-in-user strong {
-  color: #17243b;
+  color: var(--text);
 }
 
 @media (max-width: 600px) {

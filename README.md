@@ -1,5 +1,51 @@
 # Team Friendship Frontend
 
+## Basket and checkout
+
+Basket quantity and removal controls use `public/scripts/basket.js` to submit
+in the background and update the basket, totals, stock controls and header count
+without navigating or reloading. Updates are serialized to prevent double submits;
+failures are displayed explicitly. Without JavaScript, ordinary form navigation
+remains available.
+
+The shared header links to the basket and counts individual units (not distinct
+products) from the signed-in customer's saved basket. A `?` indicates an unavailable
+count rather than incorrectly showing an empty basket. Product quantity selection
+uses only minus/plus buttons, with no editable input. With JavaScript enabled,
+`public/scripts/product-quantity.js` updates the selection in place using the
+server's current stock check, without reloading or adding anything. Requests are
+serialized and Add To Basket is temporarily disabled while a selection is pending.
+Failures are shown explicitly; without JavaScript, the normal form navigation
+still works. Adding to the basket retains its redirect to Browse Products.
+Stock messaging distinguishes total
+stock from units already in the basket and the remaining number that can be added.
+Browse cards label products with zero database stock as **Out of Stock** and
+replace their details link with a disabled button. Restocked products regain
+their link when the browse page is loaded again.
+
+The product-detail quantity field submits a positive whole-number quantity to
+the add-to-basket endpoint. Successful additions return to Browse Products;
+failed requests display an error instead of redirecting as successful.
+The basket's Checkout link opens `/checkout` when the basket is available and
+nonempty. Checkout displays the signed-in customer's basket and reloads it
+before submitting the order, using those product IDs and quantities rather than
+sample items or values supplied by the browser. Repeated product rows are
+combined into one order line. Empty or unavailable baskets cannot be ordered.
+
+Stock comes from the Product table. Product details limit additions to current
+stock minus the quantity already in the customer's basket. The basket includes
+decrease/increase controls; the increase arrow is disabled and grey at the stock
+limit. Compact minus/plus buttons adjust quantities, and the bin button removes
+the entire basket item through the authenticated `DELETE /basket/:basketID` endpoint.
+The stock limit includes all rows for the same product. Reductions are still
+allowed if stock has fallen below the basket quantity. Backend basket writes
+lock the product row and recheck the total inside a database transaction, so
+stale pages and concurrent additions cannot bypass the limit. Basket writes use
+the authenticated customer and reject access to another customer's items.
+`PUT /basket/:basketID` accepts either `{ "change": 1 }` / `{ "change": -1 }`
+or a positive absolute `{ "quantity": 2 }`. Basket contents do not reserve stock;
+order placement still checks stock. Restart both services for these changes.
+
 ## Order confirmation
 
 `/order_confirmation/:id` renders a saved order in Nunjucks, using the
@@ -9,9 +55,9 @@ It shows the saved status, creation date and item quantities, not a payment
 success claim. Historical prices are not available in the order schema, so this
 page does not present current product prices as the amount paid.
 
-Checkout is unchanged: its Place Order button remains disabled. When order
-placement is implemented, redirect to `/order_confirmation/<orderID>` only after
-the backend successfully creates the order. The confirmation GET never creates
+Checkout redirects to `/order_confirmation/<orderID>` only after
+the backend successfully creates the order. Failed submissions stay on checkout
+and show an error. The confirmation GET never creates
 an order, so refreshing it cannot place another order.
 The registration form's password and confirm-password eyes use
 `public/scripts/password-toggle.js` to independently show or hide their fields
