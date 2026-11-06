@@ -1,5 +1,10 @@
 # Team Friendship Frontend
 
+The registration form's password and confirm-password eyes use
+`public/scripts/password-toggle.js` to independently show or hide their fields
+without submitting the form or sending passwords to the server. They share the
+existing eye icons and styling with login/reset, which keep their server-side
+visibility behaviour. Without JavaScript, registration passwords remain masked.
 ## Colour theme
 
 The sidebar's **Dark mode** switch applies to all pages, including admin and
