@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 function backendUrl() {
   return process.env.BACKEND_URL ?? 'http://localhost:3000';
 }
