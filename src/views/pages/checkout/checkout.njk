@@ -1,8 +1,11 @@
-{% extends "layouts/main.njk" %}​
-​
-{% block title %}{{ page.title }}{% endblock %}​
-​
-{% block content %}​
+{% extends "layouts/main.njk" %}
+
+{% block title %}{{ page.title }}{% endblock %}
+
+{% block content %}
+{% macro fieldError(id, message) %}{% if message %}<p id="{{ id }}-error" class="field-error">{{ message }}</p>{% endif %}{% endmacro %}
+{% macro invalid(id, message) %}{% if message %} aria-invalid="true" aria-describedby="{{ id }}-error"{% endif %}{% endmacro %}
+
 
 
 <p class="eyebrow">{{ page.eyebrow }}</p>
@@ -16,61 +19,122 @@
 </p>
 
 <div class="checkout-container">
+  {# The Apply button sits before the form's own buttons, so this hidden button keeps Enter as "Place Order". #}
+  <button type="submit" form="checkout-form" class="default-submit" tabindex="-1" aria-hidden="true">Place Order</button>
 
   <section class="checkout-section">
     <h2>Order Summary</h2>
 
+    {% if error %}
+    <p class="error-message" role="alert">{{ error }}</p>
+    {% elif summary and summary.lines | length %}
+    {% for line in summary.lines %}
     <div class="checkout-item">
-      <span>Gaming Mouse</span>
-      <span>£20.00</span>
+      <span>{{ line.name }} × {{ line.quantity }}</span>
+      <span>{{ line.lineTotal }}</span>
     </div>
+    {% endfor %}
 
-    <div class="checkout-item">
-      <span>Keyboard</span>
-      <span>£50.00</span>
+    {% if summary.discount %}
+    <div class="checkout-item checkout-subtotal">
+      <span>Subtotal</span>
+      <span>{{ summary.subtotal }}</span>
     </div>
+    <div id="checkout-discount" class="checkout-item checkout-discount">
+      <span>Discount ({{ summary.discount.code }}, {{ summary.discount.percentOff }}% off)</span>
+      <span>−{{ summary.discount.amount }}</span>
+    </div>
+    {% endif %}
 
-    <h3>Total: £70.00</h3>
+    <h3>Total: {{ summary.total }}</h3>
+
+    <div class="discount-code">
+      <label for="discount-code">Discount code</label>
+      {{ fieldError('discount-code', errors.discountCode) }}
+      <div class="discount-code-row">
+        <input id="discount-code" name="discountCode" form="checkout-form" type="text" placeholder="Enter code" autocomplete="off" maxlength="50" value="{{ values.discountCode }}"{{ invalid('discount-code', errors.discountCode) }}>
+        <button type="submit" form="checkout-form" name="action" value="applyDiscount" formnovalidate>Apply</button>
+      </div>
+      {% if summary.discount %}
+      <p class="discount-applied" role="status">{{ summary.discount.code }} applied.</p>
+      {% endif %}
+    </div>
+    {% else %}
+    <p id="checkout-empty">Your basket is empty. <a href="/product_browse">Browse products</a></p>
+    {% endif %}
   </section>
 
   <section class="checkout-section">
+    <form id="checkout-form" method="post" action="/checkout" novalidate>
+    {% if formError %}
+    <p class="error-message" role="alert">{{ formError }}</p>
+    {% endif %}
+
     <h2>Delivery Details</h2>
 
     <label for="first-name">First Name</label>
-    <input id="first-name" type="text" placeholder="First Name">
+    {{ fieldError('first-name', errors.firstName) }}
+    <input id="first-name" name="firstName" type="text" placeholder="First Name" autocomplete="given-name" maxlength="50" value="{{ values.firstName }}"{{ invalid('first-name', errors.firstName) }}>
 
     <label for="surname">Surname</label>
-    <input id="surname" type="text" placeholder="Surname">
+    {{ fieldError('surname', errors.surname) }}
+    <input id="surname" name="surname" type="text" placeholder="Surname" autocomplete="family-name" maxlength="50" value="{{ values.surname }}"{{ invalid('surname', errors.surname) }}>
 
-    <label for="address">Address</label>
-    <input id="address" type="text" placeholder="Address">
+    <fieldset class="delivery-fieldset"{% if errors.deliveryOption %} aria-describedby="delivery-option-error"{% endif %}>
+      <legend>Delivery Address</legend>
+      {{ fieldError('delivery-option', errors.deliveryOption) }}
 
-    <label for="postcode">Postcode</label>
-    <input id="postcode" type="text" placeholder="Postcode">
+      <div class="delivery-choice">
+        <input id="delivery-home" class="delivery-radio" type="radio" name="deliveryOption" value="home"{% if not homeAddress %} disabled{% elif values.deliveryOption == 'home' %} checked{% endif %}>
+        <label for="delivery-home">Use my home address</label>
 
-    <label for="email">Email Address</label>
-    <input id="email" type="email" placeholder="Email Address">
+        <input id="delivery-other" class="delivery-radio" type="radio" name="deliveryOption" value="other"{% if values.deliveryOption == 'other' %} checked{% endif %}>
+        <label for="delivery-other">Enter a different address</label>
 
+        {% if homeAddressError %}
+        <p class="delivery-unavailable" role="status">{{ homeAddressError }}</p>
+        {% endif %}
+
+        {% if homeAddress %}
+        <div id="home-address-panel" class="delivery-panel">
+          <p class="home-address">{{ homeAddress.address }}<br>{{ homeAddress.postcode }}</p>
+        </div>
+        {% endif %}
+
+        <div id="other-address-panel" class="delivery-panel">
+          <label for="address">Address</label>
+          {{ fieldError('address', errors.address) }}
+          <input id="address" name="address" type="text" placeholder="Address" autocomplete="street-address" maxlength="255" value="{{ values.address }}"{{ invalid('address', errors.address) }}>
+
+          <label for="postcode">Postcode</label>
+          {{ fieldError('postcode', errors.postcode) }}
+          <input id="postcode" name="postcode" type="text" placeholder="Postcode" autocomplete="postal-code" maxlength="10" value="{{ values.postcode }}"{{ invalid('postcode', errors.postcode) }}>
+        </div>
+      </div>
+    </fieldset>
 
     <h2>Payment Details</h2>
 
     <label for="card-number">Card Number</label>
-    <input id="card-number" type="text" placeholder="Card Number">
- 
+    {{ fieldError('card-number', errors.cardNumber) }}
+    <input id="card-number" name="cardNumber" type="text" inputmode="numeric" placeholder="1234 5678 9012 3456" autocomplete="cc-number" maxlength="19"{{ invalid('card-number', errors.cardNumber) }}>
+
     <label for="expiry-date">Expiry Date</label>
-    <input id="expiry-date" type="text" placeholder="Expiry Date">
- 
+    {{ fieldError('expiry-date', errors.expiryDate) }}
+    <input id="expiry-date" name="expiryDate" type="text" inputmode="numeric" placeholder="MM/YY" autocomplete="cc-exp" maxlength="5"{{ invalid('expiry-date', errors.expiryDate) }}>
+
     <label for="cvv">CVV</label>
-    <input id="cvv" type="text" placeholder="CVV">
-    
-   
-    <button class="checkout-button" disabled>
+    {{ fieldError('cvv', errors.cvv) }}
+    <input id="cvv" name="cvv" type="text" inputmode="numeric" placeholder="CVV" autocomplete="cc-csc" maxlength="3"{{ invalid('cvv', errors.cvv) }}>
+
+    <button type="submit" class="checkout-button"{% if not summary %} disabled{% endif %}>
       Place Order
     </button>
-    
+
     <p class="checkout-note">
-  Your order will be confirmed after payment is processed.
-</p>
+      Your order will be confirmed after payment is processed.
+    </p>
+    </form>
   </section>
 
 </div>

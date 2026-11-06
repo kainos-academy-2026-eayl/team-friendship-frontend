@@ -4,6 +4,7 @@ import type { AddressInfo } from 'node:net';
 import express from 'express';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from './app';
+import { checkoutProducts } from './testFixtures';
 
 const LOGGED_IN = 'access_token=test-access-token';
 
@@ -17,7 +18,7 @@ function createFakeBackend() {
     res.json({ customerId: 1 });
   });
   backend.get('/products', (_req, res) => {
-    res.json({ products: [] });
+    res.json({ products: checkoutProducts });
   });
   backend.get('/basket/:customerId', (_req, res) => {
     res.json({ basket: [] });

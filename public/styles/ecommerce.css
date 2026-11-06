@@ -935,6 +935,88 @@ header a:hover {
   cursor: not-allowed;
 }
 
+.delivery-fieldset {
+  margin: 0 0 20px;
+  padding: 0;
+  border: 0;
+}
+
+.delivery-fieldset legend {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.delivery-choice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px 10px;
+}
+
+.delivery-choice .delivery-radio {
+  width: auto;
+  margin: 0;
+}
+
+.delivery-choice .delivery-radio + label {
+  margin: 0;
+  font-weight: 400;
+}
+
+.delivery-radio:disabled + label {
+  color: #697589;
+}
+
+.delivery-unavailable,
+.delivery-panel {
+  grid-column: 1 / -1;
+}
+
+.delivery-unavailable {
+  margin: 0;
+  color: #697589;
+}
+
+/* Address details stay hidden until the customer picks an option. */
+.delivery-panel {
+  display: none;
+  margin-top: 8px;
+}
+
+#delivery-home:checked ~ #home-address-panel,
+#delivery-other:checked ~ #other-address-panel {
+  display: block;
+}
+
+.home-address {
+  margin: 0;
+  padding: 13px 14px;
+  border: 1px solid #aebaca;
+  border-radius: 8px;
+  background: #f4f6fa;
+}
+
+.field-error {
+  margin: -4px 0 8px;
+  color: #c62828;
+  font-size: 14px;
+}
+
+.error-message {
+  color: #c62828;
+}
+
+.order-placed {
+  margin-bottom: 20px;
+  padding: 13px 14px;
+  border: 1px solid #2e7d32;
+  border-radius: 8px;
+  background: #edf7ee;
+  color: #1b5e20;
+  font-weight: 600;
+}
+
 .order-card {
   border: 1px solid var(--border);
   padding: 16px;
@@ -1174,4 +1256,42 @@ header a:hover {
 .back-button:hover {
   background: transparent;
   color: var(--link-hover);
+}
+
+.checkout-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.checkout-subtotal {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e5ee;
+}
+
+.checkout-discount {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.discount-code {
+  margin-top: 24px;
+}
+
+.discount-code-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.discount-code-row input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.discount-applied {
+  margin: 8px 0 0;
+  color: #2e7d32;
 }

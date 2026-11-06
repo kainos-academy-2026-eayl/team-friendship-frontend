@@ -1,4 +1,5 @@
 import { type Request, type Response, Router } from 'express';
+import { z } from 'zod';
 import {
   getOrderHistory,
   type OrderHistoryItem,
@@ -7,6 +8,8 @@ import orderHistoryPage from '../views/pages/order_history/order_history';
 import { backendUrl } from './sessionController';
 
 const router = Router();
+
+const placedOrderSchema = z.coerce.number().int().positive();
 
 function groupByOrder(items: OrderHistoryItem[]) {
   const orders = new Map<
@@ -33,8 +36,10 @@ function groupByOrder(items: OrderHistoryItem[]) {
   return [...orders.values()];
 }
 
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   const customerID = res.locals.customerId;
+  const placed = placedOrderSchema.safeParse(req.query.placed);
+  const placedOrderId = placed.success ? placed.data : undefined;
 
   if (!customerID) {
     res.redirect('/login');
@@ -54,6 +59,7 @@ router.get('/', async (_req: Request, res: Response) => {
         orders: [],
       },
       error: result.message,
+      placedOrderId,
     });
     return;
   }
@@ -63,6 +69,7 @@ router.get('/', async (_req: Request, res: Response) => {
       ...orderHistoryPage,
       orders: groupByOrder(result.orders),
     },
+    placedOrderId,
   });
 });
 
