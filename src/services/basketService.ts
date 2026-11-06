@@ -3,18 +3,13 @@ function backendUrl() {
 }
 
 export async function getBasket(customerId: number) {
-  try {
-    const response = await fetch(`${backendUrl()}/basket/${customerId}`, {
-      headers: {
-        accept: 'application/json',
-      },
-    });
+  const response = await fetch(`${backendUrl()}/basket/${customerId}`, {
+    headers: {
+      accept: 'application/json',
+    },
+  });
 
-    return await response.json();
-  } catch (error) {
-    console.error('Basket fetch error:', error);
-    throw error;
-  }
+  return await response.json();
 }
 
 export async function addToBasket(

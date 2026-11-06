@@ -169,7 +169,7 @@ describe('HTTP application', () => {
     expect(body).toContain('name="password" type="password"');
     expect(body).toContain('name="togglePassword" value="password"');
     expect(body).toContain('formaction="/login/toggle-password"');
-    expect(body).not.toContain('<script');
+    expect(body).toContain('<script src="/scripts/theme.js"></script>');
     expect(body).toContain(
       '<link rel="stylesheet" href="/styles/ecommerce.css">',
     );
@@ -310,7 +310,7 @@ describe('HTTP application', () => {
     expect(body).toContain('name="togglePassword" value="confirmPassword"');
     expect(body).toContain('formaction="/reset_password/toggle-password"');
     expect(body).not.toContain('aria-invalid="true"');
-    expect(body).not.toContain('<script');
+    expect(body).toContain('<script src="/scripts/theme.js"></script>');
   });
 
   const postResetPassword = (

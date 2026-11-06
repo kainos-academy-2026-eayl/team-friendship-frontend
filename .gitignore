@@ -3,5 +3,6 @@ dist/
 public/scripts/*
 !public/scripts/password-toggle.js
 !public/scripts/home-carousel.js
+!public/scripts/theme.js
 .env
 .DS_Store
