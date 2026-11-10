@@ -1,20 +1,21 @@
-# Use an official Node.js runtime
+# downloads node
 FROM node:22-alpine
 
-# Set working directory
+# means cd /app inside the container
+# sets the working directory inside the container to /app
 WORKDIR /app
 
-# Copy package files first for better layer caching
-COPY package.json package-lock.json ./
+# copies package.json and package-lock.json to the working directory (install dependancies)
+COPY package*.json ./
 
-# Install dependencies
+# installs depndancies (not husky)
 RUN npm ci --ignore-scripts
 
-# Copy application source
-COPY . .
+# copies rest of applications
+COPY . .                                                                                                                                                              
 
-# Expose application port
-EXPOSE 3000
+RUN npm run build
 
-# Start the application
+EXPOSE 8000
+
 CMD ["npm", "start"]
