@@ -70,5 +70,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Check the image exists
-        run: docker image ls team-friendship-frontend
+        #run: docker image ls team-friendship-frontend
+        run: docker image inspect "team-friendship-frontend:sha-${{ github.sha }}" > /dev/null
+        
 
