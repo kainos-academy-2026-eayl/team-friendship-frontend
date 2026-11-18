@@ -3,3 +3,6 @@ npm-debug.log
 .git
 .gitignore
 coverage
+.env
+.env.*
+!.env.example
